@@ -84,7 +84,9 @@ function DocumentsPage() {
           </div>
         </div>
 
-        <SignedOutHero onSignIn={() => navigate("/auth/sign-in")} />
+        <SignedOutHero
+          onSignIn={() => navigate("/auth/sign-in?returnTo=/documents")}
+        />
 
         <BottomNav />
       </div>
