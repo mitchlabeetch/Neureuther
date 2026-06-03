@@ -2,53 +2,101 @@ import { useState } from 'react';
 import { useApp } from '@/lib/store';
 import { SpinWheel } from '@/components/SpinWheel';
 import { BottomNav } from '@/components/BottomNav';
-import { Plus, Trash2, Check, PartyPopper } from 'lucide-react';
+import { Plus, Trash2, Check, PartyPopper, Pencil, UserPlus, RotateCcw, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface PendingPick {
-  userIndex: number;
-  label: string;
   userId: string;
   points: number;
 }
+
+interface TempUser {
+  name: string;
+  emoji: string;
+}
+
+const TEMP_EMOJIS = ['👤', '🤷', '🎭', '🃏', '❓', '👻', '🤖', '🐲'];
 
 function WheelPage() {
   const { state, addWheelConfig, removeWheelConfig, getUserById, updateWheelConfig, awardPoints } = useApp();
   const [activeConfigId, setActiveConfigId] = useState(state.wheelConfigs[0]?.id || '');
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showTempUserDialog, setShowTempUserDialog] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newPoints, setNewPoints] = useState('15');
   const [selectedUsers, setSelectedUsers] = useState<string[]>(state.users.map(u => u.id));
   const [pendingPick, setPendingPick] = useState<PendingPick | null>(null);
   const [doneAnimation, setDoneAnimation] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState<Array<{ id: number; x: number; color: string; delay: number }>>([]);
+  const [wheelSpinning, setWheelSpinning] = useState(false);
+  const [wheelResult, setWheelResult] = useState<number | null>(null);
+
+  // Edit dialog state
+  const [editTitle, setEditTitle] = useState('');
+  const [editPoints, setEditPoints] = useState('');
+
+  // Temp user state
+  const [tempUsers, setTempUsers] = useState<TempUser[]>([]);
+  const [tempUserName, setTempUserName] = useState('');
 
   const activeConfig = state.wheelConfigs.find(w => w.id === (activeConfigId || state.wheelConfigs[0]?.id));
-  const activeUsers = activeConfig?.users.map(id => getUserById(id)).filter(Boolean) ?? [];
-  const segments = activeUsers.map((u) => ({
+
+  // Merge real users + temp users for the wheel
+  const realActiveUsers = activeConfig?.users.map(id => getUserById(id)).filter(Boolean) ?? [];
+  const tempSegments = tempUsers.map((tu, i) => ({
+    label: tu.name,
+    color: '#94A3B8',
+    emoji: tu.emoji,
+    _tempIdx: i,
+  }));
+  const realSegments = realActiveUsers.map((u) => ({
     label: u!.name,
     color: u!.color,
     emoji: u!.emoji,
   }));
+  const allSegments = [...realSegments, ...tempSegments];
+
+  const resetTempUsers = () => setTempUsers([]);
+  const resetPick = () => {
+    setPendingPick(null);
+    setWheelResult(null);
+    setDoneAnimation(false);
+    resetTempUsers();
+  };
 
   const handleResult = (index: number, label: string) => {
-    if (activeUsers[index] && activeConfig) {
+    const segment = allSegments[index];
+    if (!segment || !activeConfig) return;
+
+    // Check if it's a temp user
+    if ('_tempIdx' in segment && typeof (segment as any)._tempIdx === 'number') {
       setPendingPick({
-        userIndex: index,
-        label,
-        userId: activeUsers[index]!.id,
+        userId: `temp-${(segment as any)._tempIdx}`,
         points: activeConfig.pointsPerTask,
       });
-      setDoneAnimation(false);
+    } else {
+      const realUser = realActiveUsers[index];
+      if (realUser) {
+        setPendingPick({
+          userId: realUser.id,
+          points: activeConfig.pointsPerTask,
+        });
+      }
     }
+    setDoneAnimation(false);
   };
 
   const handleDone = () => {
     if (!pendingPick || !activeConfig) return;
     setDoneAnimation(true);
-    awardPoints(pendingPick.userId, pendingPick.points, `Completed: ${activeConfig.title}`);
+
+    // Only award points to real users
+    if (!pendingPick.userId.startsWith('temp-')) {
+      awardPoints(pendingPick.userId, pendingPick.points, `Completed: ${activeConfig.title}`);
+    }
 
     // Burst confetti
     const colors = ['#FDA172', '#FF6B6B', '#A78BFA', '#69D2A6', '#FBBF24', '#FB7185', '#38BDF8'];
@@ -64,6 +112,8 @@ function WheelPage() {
       setPendingPick(null);
       setDoneAnimation(false);
       setConfettiPieces([]);
+      setWheelResult(null);
+      resetTempUsers();
     }, 2200);
   };
 
@@ -74,6 +124,29 @@ function WheelPage() {
     setNewPoints('15');
     setSelectedUsers(state.users.map(u => u.id));
     setShowNewDialog(false);
+  };
+
+  const handleEdit = () => {
+    if (!activeConfig || !editTitle.trim()) return;
+    updateWheelConfig(activeConfig.id, {
+      title: editTitle.trim(),
+      pointsPerTask: Number(editPoints) || activeConfig.pointsPerTask,
+    });
+    setShowEditDialog(false);
+  };
+
+  const openEditDialog = () => {
+    if (!activeConfig) return;
+    setEditTitle(activeConfig.title);
+    setEditPoints(String(activeConfig.pointsPerTask));
+    setShowEditDialog(true);
+  };
+
+  const addTempUser = () => {
+    if (!tempUserName.trim()) return;
+    const emoji = TEMP_EMOJIS[tempUsers.length % TEMP_EMOJIS.length];
+    setTempUsers(prev => [...prev, { name: tempUserName.trim(), emoji }]);
+    setTempUserName('');
   };
 
   const toggleUserSelection = (uid: string) => {
@@ -89,7 +162,13 @@ function WheelPage() {
     updateWheelConfig(configId, { users: newUsers });
   };
 
-  const lastPickUser = pendingPick ? getUserById(pendingPick.userId) : null;
+  const lastPickUser = pendingPick && !pendingPick.userId.startsWith('temp-')
+    ? getUserById(pendingPick.userId)
+    : null;
+  const lastPickTempUser = pendingPick && pendingPick.userId.startsWith('temp-')
+    ? tempUsers[parseInt(pendingPick.userId.replace('temp-', ''))]
+    : null;
+  const lastPickDisplay = lastPickUser || (lastPickTempUser ? { name: lastPickTempUser.name, emoji: lastPickTempUser.emoji } : null);
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
@@ -123,7 +202,7 @@ function WheelPage() {
           {state.wheelConfigs.map(config => (
             <button
               key={config.id}
-              onClick={() => { setActiveConfigId(config.id); setPendingPick(null); }}
+              onClick={() => { setActiveConfigId(config.id); resetPick(); }}
               className={`shrink-0 px-4 py-2.5 rounded-full font-bold text-sm transition-all active:scale-95 ${
                 activeConfig?.id === config.id
                   ? 'bg-[#2D2B2A] text-white shadow-lg'
@@ -160,17 +239,15 @@ function WheelPage() {
                     className="mt-1.5 rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
                   />
                 </div>
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Points reward</label>
-                    <Input
-                      type="number"
-                      value={newPoints}
-                      onChange={e => setNewPoints(e.target.value)}
-                      placeholder="15"
-                      className="mt-1.5 rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
-                    />
-                  </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Points reward</label>
+                  <Input
+                    type="number"
+                    value={newPoints}
+                    onChange={e => setNewPoints(e.target.value)}
+                    placeholder="15"
+                    className="mt-1.5 rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
+                  />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Include People (min 2)</label>
@@ -208,7 +285,7 @@ function WheelPage() {
       {activeConfig && (
         <div className="px-5 mb-3 flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">People:</span>
-          {activeUsers.map(u => (
+          {realActiveUsers.map(u => (
           <Tooltip key={u!.id}>
             <TooltipTrigger asChild>
               <button
@@ -226,27 +303,143 @@ function WheelPage() {
             </TooltipContent>
           </Tooltip>
           ))}
-          <span className="text-xs font-bold text-gray-400 ml-auto">{activeConfig.pointsPerTask} pts</span>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => removeWheelConfig(activeConfig.id)}
-                className="p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-50 transition-all active:scale-90"
-              >
-                <Trash2 size={16} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
-              Delete this wheel
-            </TooltipContent>
-          </Tooltip>
+          {tempUsers.map((tu, i) => (
+            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white bg-slate-400">
+              {tu.emoji} {tu.name}
+            </span>
+          ))}
+          <div className="ml-auto flex items-center gap-0.5">
+            {/* Add temp user */}
+            <Dialog open={showTempUserDialog} onOpenChange={setShowTempUserDialog}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DialogTrigger asChild>
+                    <button className="p-2 rounded-full text-gray-400 hover:text-blue-400 hover:bg-blue-50 transition-all active:scale-90">
+                      <UserPlus size={16} />
+                    </button>
+                  </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                  Add temporary user for this run
+                </TooltipContent>
+              </Tooltip>
+              <DialogContent className="rounded-3xl max-w-[360px] mx-auto p-0 gap-0">
+                <DialogHeader className="px-6 pt-6 pb-3">
+                  <DialogTitle className="text-xl font-extrabold text-[#2D2B2A]">Temporary User</DialogTitle>
+                </DialogHeader>
+                <div className="px-6 pb-6 space-y-4">
+                  <p className="text-xs text-gray-400 font-semibold">Adds a one-time user to the wheel for this spin only. Resets after "Done" or page change.</p>
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Name</label>
+                    <div className="flex gap-2 mt-1.5">
+                      <Input
+                        value={tempUserName}
+                        onChange={e => setTempUserName(e.target.value)}
+                        placeholder="e.g. Guest"
+                        className="rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
+                        onKeyDown={e => e.key === 'Enter' && addTempUser()}
+                      />
+                      <button
+                        onClick={addTempUser}
+                        disabled={!tempUserName.trim()}
+                        className="shrink-0 px-4 py-2 rounded-xl font-bold text-sm text-white bg-cantaloupe hover:bg-[#e88c5e] disabled:bg-gray-300 transition-all active:scale-95"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                  {tempUsers.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {tempUsers.map((tu, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white bg-slate-400">
+                          {tu.emoji} {tu.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Edit wheel */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={openEditDialog}
+                  className="p-2 rounded-full text-gray-400 hover:text-cantaloupe hover:bg-orange-50 transition-all active:scale-90"
+                >
+                  <Pencil size={16} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                Edit this wheel
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Delete wheel */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => removeWheelConfig(activeConfig.id)}
+                  className="p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-50 transition-all active:scale-90"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                Delete this wheel
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       )}
 
+      {/* Edit dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="rounded-3xl max-w-[380px] mx-auto p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-3">
+            <DialogTitle className="text-xl font-extrabold text-[#2D2B2A]">Edit Wheel</DialogTitle>
+          </DialogHeader>
+          <div className="px-6 pb-6 space-y-4">
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Task / Question</label>
+              <Input
+                value={editTitle}
+                onChange={e => setEditTitle(e.target.value)}
+                className="mt-1.5 rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Points reward</label>
+              <Input
+                type="number"
+                value={editPoints}
+                onChange={e => setEditPoints(e.target.value)}
+                className="mt-1.5 rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
+              />
+            </div>
+            <button
+              onClick={handleEdit}
+              disabled={!editTitle.trim()}
+              className="w-full py-3 rounded-xl font-extrabold text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 disabled:text-gray-500 transition-all active:scale-[0.98]"
+            >
+              Save Changes
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Wheel */}
-      {segments.length >= 2 ? (
+      {allSegments.length >= 2 ? (
         <div className="px-5">
-          <SpinWheel segments={segments} onResult={handleResult} />
+          <SpinWheel
+            segments={allSegments}
+            onResult={handleResult}
+            spinning={wheelSpinning}
+            result={wheelResult}
+            onSpin={() => setWheelSpinning(true)}
+            onSpinEnd={() => setWheelSpinning(false)}
+          />
         </div>
       ) : (
         <div className="px-5 py-20 text-center">
@@ -257,28 +450,37 @@ function WheelPage() {
       )}
 
       {/* Last pick with Done button */}
-      {pendingPick && lastPickUser && (
+      {pendingPick && lastPickDisplay && (
         <div className="px-5 mt-4 mb-4">
           <div className={`flex items-center gap-2 bg-white rounded-2xl px-4 py-2.5 border shadow-sm transition-all duration-500 ${
             doneAnimation ? 'border-green-300 bg-green-50/50 scale-105' : 'border-orange-100'
           }`}>
             <span className="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Last pick</span>
-            <span className="text-lg">{lastPickUser.emoji}</span>
-            <span className="text-sm font-extrabold text-[#2D2B2A]">{lastPickUser.name}</span>
+            <span className="text-lg">{lastPickDisplay.emoji}</span>
+            <span className="text-sm font-extrabold text-[#2D2B2A]">{lastPickDisplay.name}</span>
+
+            {/* Reset */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={resetPick}
+                  className="p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all active:scale-90"
+                >
+                  <RotateCcw size={14} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                Reset selection & temp users
+              </TooltipContent>
+            </Tooltip>
+
             {!doneAnimation ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={handleDone}
-                    className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-green-400 text-white text-xs font-extrabold hover:bg-green-500 transition-all active:scale-90 shadow-sm"
-                  >
-                    <Check size={14} strokeWidth={3} /> Done
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
-                  Confirm & award +{pendingPick.points} pts
-                </TooltipContent>
-              </Tooltip>
+              <button
+                onClick={handleDone}
+                className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-green-400 text-white text-xs font-extrabold hover:bg-green-500 transition-all active:scale-90 shadow-sm"
+              >
+                <Check size={14} strokeWidth={3} /> Done
+              </button>
             ) : (
               <div className="ml-auto flex items-center gap-1.5 text-green-500 font-extrabold text-sm animate-bounce-in">
                 <PartyPopper size={16} />

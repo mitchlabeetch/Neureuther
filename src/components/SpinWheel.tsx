@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { RotateCw, Plus, Trash2 } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { RotateCw } from 'lucide-react';
 
 interface ConfettiPiece {
   id: number;
@@ -14,19 +14,19 @@ const SEGMENT_COLORS = ['#FDA172', '#FF6B6B', '#A78BFA', '#69D2A6', '#FBBF24', '
 interface SpinWheelProps {
   segments: { label: string; color: string; emoji?: string }[];
   onResult: (index: number, label: string) => void;
+  spinning: boolean;
+  result: number | null;
+  onSpin: () => void;
+  onSpinEnd: () => void;
 }
 
-export function SpinWheel({ segments, onResult }: SpinWheelProps) {
-  const [spinning, setSpinning] = useState(false);
+export function SpinWheel({ segments, onResult, spinning, result, onSpin, onSpinEnd }: SpinWheelProps) {
   const [rotation, setRotation] = useState(0);
-  const [result, setResult] = useState<number | null>(null);
   const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
-  const wheelRef = useRef<HTMLDivElement>(null);
 
-  const spin = () => {
+  const spin = useCallback(() => {
     if (spinning || segments.length < 2) return;
-    setSpinning(true);
-    setResult(null);
+    onSpin();
 
     const spins = 5 + Math.floor(Math.random() * 5);
     const extraAngle = Math.random() * 360;
@@ -38,8 +38,7 @@ export function SpinWheel({ segments, onResult }: SpinWheelProps) {
     const winnerIndex = segments.length - 1 - Math.floor(normalizedAngle / segmentAngle);
 
     setTimeout(() => {
-      setSpinning(false);
-      setResult(winnerIndex);
+      onSpinEnd();
       onResult(winnerIndex, segments[winnerIndex].label);
 
       const pieces: ConfettiPiece[] = [];
@@ -55,7 +54,7 @@ export function SpinWheel({ segments, onResult }: SpinWheelProps) {
       setConfetti(pieces);
       setTimeout(() => setConfetti([]), 2500);
     }, 3500);
-  };
+  }, [spinning, segments, rotation, onSpin, onSpinEnd, onResult]);
 
   const arrowSize = 16;
   const svgSize = 300;
@@ -96,7 +95,6 @@ export function SpinWheel({ segments, onResult }: SpinWheelProps) {
         {/* Wheel SVG */}
         <svg width={svgSize} height={svgSize} className="drop-shadow-xl">
           <g
-            ref={wheelRef as any}
             style={{
               transformOrigin: `${center}px ${center}px`,
               transform: `rotate(${rotation}deg)`,
@@ -138,51 +136,30 @@ export function SpinWheel({ segments, onResult }: SpinWheelProps) {
               );
             })}
           </g>
-          {/* Center circle */}
-          <circle cx={center} cy={center} r={24} fill="white" stroke="#2D2B2A" strokeWidth={3} />
-          <circle cx={center} cy={center} r={18} fill="#FDA172" />
-          <text
-            x={center}
-            y={center + 1}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            className="text-white font-extrabold select-none pointer-events-none"
-            style={{ fontSize: 10 }}
+          {/* Center clickable spin button */}
+          <g
+            onClick={spin}
+            className={`cursor-pointer ${spinning ? 'pointer-events-none' : ''}`}
           >
-            SPIN
-          </text>
+            <circle cx={center} cy={center} r={30} fill="white" stroke="#2D2B2A" strokeWidth={3}
+              className={`transition-all duration-200 ${!spinning ? 'hover:fill-orange-50' : ''}`}
+            />
+            <circle cx={center} cy={center} r={23} fill="#FDA172"
+              className={`transition-all duration-200 ${!spinning ? 'hover:fill-[#e88c5e] active:scale-90' : ''}`}
+            />
+            <text
+              x={center}
+              y={center + 1}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="fill-white font-extrabold select-none pointer-events-none"
+              style={{ fontSize: 13 }}
+            >
+              SPIN
+            </text>
+          </g>
         </svg>
       </div>
-
-      {/* Spin button */}
-      <button
-        onClick={spin}
-        disabled={spinning}
-        className={`mt-6 px-8 py-3.5 rounded-full font-extrabold text-lg transition-all duration-200 active:scale-95 flex items-center gap-2 ${
-          spinning
-            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-[#2D2B2A] text-white hover:bg-[#3D3B3A] shadow-lg shadow-orange-200/40'
-        }`}
-      >
-        <RotateCw size={20} className={spinning ? 'animate-spin' : ''} />
-        {spinning ? 'Spinning...' : 'SPIN THE WHEEL!'}
-      </button>
-
-      {/* Result */}
-      {result !== null && !spinning && (
-        <div className="mt-5 animate-bounce-in bg-white rounded-2xl px-6 py-4 shadow-lg border-2 border-cantaloupe flex items-center gap-3">
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center text-2xl font-extrabold text-white"
-            style={{ backgroundColor: segments[result].color }}
-          >
-            {segments[result].emoji || segments[result].label.charAt(0)}
-          </div>
-          <div>
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">It's your turn!</div>
-            <div className="text-xl font-extrabold text-[#2D2B2A]">{segments[result].label}</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
