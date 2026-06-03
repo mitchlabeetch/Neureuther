@@ -46,6 +46,8 @@ export interface WheelConfig {
   title: string;
   pointsPerTask: number;
   users: string[];
+  lastPickUserId: string | null;
+  lastPickAt: string | null;
 }
 
 export interface RewardItem {
@@ -167,8 +169,8 @@ export async function loadAppState(
         FROM checklist_subtasks ORDER BY sort_order, created_at`,
     sql`SELECT id, name, color, sort_order, created_at
         FROM task_flags ORDER BY sort_order, created_at`,
-    sql`SELECT id, title, points_per_task
-        FROM wheel_configs ORDER BY sort_order, created_at`,
+    sql`SELECT id, title, points_per_task, last_pick_user_id, last_pick_at
+            FROM wheel_configs ORDER BY sort_order, created_at`,
     sql`SELECT wheel_config_id, user_id FROM wheel_config_users`,
     sql`SELECT id, label, points_cost, icon, category, description
         FROM reward_items ORDER BY sort_order, created_at`,
@@ -271,17 +273,21 @@ export async function loadAppState(
       createdAt: new Date(f.created_at).toISOString(),
     })),
     wheelConfigs: (
-      wheels as Array<{
-        id: string;
-        title: string;
-        points_per_task: number;
-      }>
-    ).map((w) => ({
-      id: w.id,
-      title: w.title,
-      pointsPerTask: w.points_per_task,
-      users: usersByConfig.get(w.id) ?? [],
-    })),
+          wheels as Array<{
+            id: string;
+            title: string;
+            points_per_task: number;
+            last_pick_user_id: string | null;
+            last_pick_at: string | null;
+          }>
+        ).map((w) => ({
+          id: w.id,
+          title: w.title,
+          pointsPerTask: w.points_per_task,
+          users: usersByConfig.get(w.id) ?? [],
+          lastPickUserId: w.last_pick_user_id,
+          lastPickAt: w.last_pick_at ? new Date(w.last_pick_at).toISOString() : null,
+        })),
     rewardItems: (
       rewards as Array<{
         id: string;

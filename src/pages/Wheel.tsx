@@ -18,7 +18,7 @@
 /* Last pick with Done button */
 /* Reset */
 /* Confirm remove user */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/lib/store";
 import { SpinWheel } from "@/components/SpinWheel";
 import { BottomNav } from "@/components/BottomNav";
@@ -46,13 +46,14 @@ const isRandomPickWheel = (config?: { title?: string } | null) =>
 
 function WheelPage() {
   const {
-    state,
-    addWheelConfig,
-    removeWheelConfig,
-    getUserById,
-    updateWheelConfig,
-    awardPoints,
-  } = useApp();
+      state,
+      addWheelConfig,
+      removeWheelConfig,
+      getUserById,
+      updateWheelConfig,
+      awardPoints,
+      saveLastPick,
+    } = useApp();
 
   const [activeConfigId, setActiveConfigId] = useState(state.wheelConfigs[0]?.id || "");
   const [showNewDialog, setShowNewDialog] = useState(false);
@@ -107,42 +108,82 @@ function WheelPage() {
   const allSegments = [...realSegments, ...tempSegments];
   const resetTempUsers = () => setTempUsers([]);
 
-  const resetPick = () => {
-    setPendingPick(null);
-    setDoneAnimation(false);
-    resetTempUsers();
-  };
+  // When the active wheel changes (or data refreshes), restore its last pick
+    useEffect(() => {
+      const config = state.wheelConfigs.find(
+        (w) => w.id === (activeConfigId || state.wheelConfigs[0]?.id)
+      );
+      if (config?.lastPickUserId) {
+        const user = getUserById(config.lastPickUserId);
+        if (user) {
+          // Only update if the pick actually differs (avoids flicker on refetch)
+          setPendingPick((prev) => {
+            if (prev?.userId === config.lastPickUserId) return prev;
+            return {
+              userId: config.lastPickUserId!,
+              points: isRandomPickWheel(config) ? 0 : config.pointsPerTask,
+            };
+          });
+          setDoneAnimation(false);
+          resetTempUsers();
+          return;
+        }
+      }
+      // No persisted pick — clear the UI (unless we already have a non-persisted temp pick)
+      setPendingPick((prev) => {
+        if (!prev || prev.userId.startsWith("temp-")) return prev;
+        return null;
+      });
+      setDoneAnimation(false);
+      resetTempUsers();
+    }, [activeConfigId, state.wheelConfigs]); // eslint-disable-line react-hooks/exhaustive-deps
+  
+    const resetPick = async () => {
+      setPendingPick(null);
+      setDoneAnimation(false);
+      resetTempUsers();
+      // Clear persisted pick on the backend
+      if (activeConfig?.id) {
+        saveLastPick(activeConfig.id, null).catch(() => {});
+      }
+    };
 
   const handleResult = (index: number, label: string) => {
-    const segment = allSegments[index];
-
-    if (!segment || !activeConfig) return;
-
-    const isTemp = "_tempIdx" in segment && typeof (segment as any)._tempIdx === "number";
-
-    if (isTemp) {
-      const tempIdx = (segment as any)._tempIdx as number;
-
-      setPendingPick({
-        userId: `temp-${tempIdx}`,
-        points: 0,
-      });
-    } else {
-      const realUser = realActiveUsers.find(
-        (u) => u!.emoji === segment.emoji && u!.name === segment.label
-      );
-
-      if (realUser) {
+      const segment = allSegments[index];
+  
+      if (!segment || !activeConfig) return;
+  
+      const isTemp = "_tempIdx" in segment && typeof (segment as any)._tempIdx === "number";
+  
+      if (isTemp) {
+        const tempIdx = (segment as any)._tempIdx as number;
+  
+        // Clear persisted pick for this wheel (temp users aren't persisted)
+        saveLastPick(activeConfig.id, null).catch(() => {});
+  
         setPendingPick({
-          userId: realUser.id,
-          // Random-pick wheels are pure tiebreakers — no points awarded.
-          points: isRandomPickWheel(activeConfig) ? 0 : activeConfig.pointsPerTask,
+          userId: `temp-${tempIdx}`,
+          points: 0,
         });
+      } else {
+        const realUser = realActiveUsers.find(
+          (u) => u!.emoji === segment.emoji && u!.name === segment.label
+        );
+  
+        if (realUser) {
+          // Persist the pick to the backend so it survives navigation
+          saveLastPick(activeConfig.id, realUser.id).catch(() => {});
+  
+          setPendingPick({
+            userId: realUser.id,
+            // Random-pick wheels are pure tiebreakers — no points awarded.
+            points: isRandomPickWheel(activeConfig) ? 0 : activeConfig.pointsPerTask,
+          });
+        }
       }
-    }
-
-    setDoneAnimation(false);
-  };
+  
+      setDoneAnimation(false);
+    };
 
   const handleDone = () => {
     if (!pendingPick || !activeConfig) return;
@@ -179,14 +220,12 @@ function WheelPage() {
     }));
 
     setConfettiPieces(pieces);
-
-    setTimeout(() => {
-      setPendingPick(null);
-      setDoneAnimation(false);
-      setConfettiPieces([]);
-      resetTempUsers();
-    }, 2200);
-  };
+    
+        // The pick stays visible until another spin — no auto-clear.
+        setTimeout(() => {
+          setConfettiPieces([]);
+        }, 2200);
+      };
 
   const handleCreate = async () => {
     if (!newTitle.trim() || selectedUsers.length < 2) return;
@@ -198,10 +237,10 @@ function WheelPage() {
     });
 
     // Switch to the newly created wheel so the user immediately sees
-    // their new question rather than staying on whichever wheel was
-    // active before.
-    setActiveConfigId(newConfig.id);
-    resetPick();
+        // their new question rather than staying on whichever wheel was
+        // active before. The effect will clear the pick since new wheel
+        // has no lastPickUserId.
+        setActiveConfigId(newConfig.id);
 
     setNewTitle("");
     setNewPoints("15");
@@ -214,14 +253,17 @@ function WheelPage() {
   // that — so users always have a one-tap shortcut for oral "whoever
   // goes next" decisions.
   const handleRandomPick = async () => {
-    if (state.users.length < 2) return;
-
-    const existing = state.wheelConfigs.find(isRandomPickWheel);
-    if (existing) {
-      setActiveConfigId(existing.id);
-      resetPick();
-      return;
-    }
+      if (state.users.length < 2) return;
+  
+      const existing = state.wheelConfigs.find(isRandomPickWheel);
+      if (existing) {
+        setActiveConfigId(existing.id);
+        // If already on the random pick wheel, just keep its last pick
+        if (activeConfig?.id !== existing.id) {
+          // The effect will restore the pick for the new active wheel
+        }
+        return;
+      }
 
     const newConfig = await addWheelConfig({
       title: RANDOM_PICK_TITLE,
@@ -431,9 +473,9 @@ function WheelPage() {
             <button
               key={config.id}
               onClick={() => {
-                setActiveConfigId(config.id);
-                resetPick();
-              }}
+                              setActiveConfigId(config.id);
+                              // Don't reset — let the effect restore the wheel's last pick
+                            }}
               className={`shrink-0 px-4 py-2.5 rounded-full font-medium text-sm transition-all duration-200 active:scale-95 ${
                 activeConfig?.id === config.id
                 ? "bg-[#171e19] text-white shadow-lg shadow-[#171e19]/20"

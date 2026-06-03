@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BottomNav } from '@/components/BottomNav';
 import {
   ArrowLeft,
+  ArrowRight,
   ChefHat,
   Refrigerator,
   UtensilsCrossed,
@@ -175,23 +176,29 @@ function KitchenPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => navigate('/meals')}
-                    className="group bg-white rounded-[1.5rem] p-4 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_12px_32px_-10px_rgba(0,0,0,0.12)] hover:-translate-y-1 active:scale-[0.97]"
+                    className="group flex items-center gap-2.5 bg-white rounded-[1.5rem] px-3.5 py-3 text-left border border-[#b7c6c2]/40 transition-all duration-300 hover:border-[#171e19]/30 hover:shadow-[0_6px_20px_-8px_rgba(0,0,0,0.12)] active:scale-[0.97]"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-[#FDA172]/15 flex items-center justify-center mb-3 transition-transform group-hover:scale-110">
-                      <Croissant size={22} className="text-[#FDA172]" />
+                    <div className="w-9 h-9 rounded-xl bg-[#FDA172]/15 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                      <Croissant size={18} className="text-[#FDA172]" />
                     </div>
-                    <h4 className="text-sm font-semibold text-[#171e19] mb-0.5">Meals</h4>
-                    <p className="text-[11px] text-[#b7c6c2] font-medium">Plan & track meals</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-[#171e19] leading-tight">Meals</h4>
+                      <p className="text-[10px] text-[#b7c6c2] font-medium leading-tight mt-0.5">Plan & track</p>
+                    </div>
+                    <ArrowRight size={14} className="text-[#b7c6c2] group-hover:text-[#171e19] group-hover:translate-x-0.5 transition-all shrink-0" />
                   </button>
                   <button
                     onClick={() => navigate('/groceries')}
-                    className="group bg-white rounded-[1.5rem] p-4 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_12px_32px_-10px_rgba(0,0,0,0.12)] hover:-translate-y-1 active:scale-[0.97]"
+                    className="group flex items-center gap-2.5 bg-white rounded-[1.5rem] px-3.5 py-3 text-left border border-[#b7c6c2]/40 transition-all duration-300 hover:border-[#171e19]/30 hover:shadow-[0_6px_20px_-8px_rgba(0,0,0,0.12)] active:scale-[0.97]"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-[#69D2A6]/15 flex items-center justify-center mb-3 transition-transform group-hover:scale-110">
-                      <ShoppingBasket size={22} className="text-[#69D2A6]" />
+                    <div className="w-9 h-9 rounded-xl bg-[#69D2A6]/15 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                      <ShoppingBasket size={18} className="text-[#69D2A6]" />
                     </div>
-                    <h4 className="text-sm font-semibold text-[#171e19] mb-0.5">Groceries</h4>
-                    <p className="text-[11px] text-[#b7c6c2] font-medium">Shopping list</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-[#171e19] leading-tight">Groceries</h4>
+                      <p className="text-[10px] text-[#b7c6c2] font-medium leading-tight mt-0.5">Shopping list</p>
+                    </div>
+                    <ArrowRight size={14} className="text-[#b7c6c2] group-hover:text-[#171e19] group-hover:translate-x-0.5 transition-all shrink-0" />
                   </button>
                 </div>
               </div>

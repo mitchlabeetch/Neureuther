@@ -51,6 +51,8 @@ export interface WheelConfig {
   title: string;
   users: string[];
   pointsPerTask: number;
+  lastPickUserId: string | null;
+  lastPickAt: string | null;
 }
 
 export interface RewardItem {
@@ -178,10 +180,11 @@ interface AppContextValue {
   addFlag: (data: { name: string; color: string }) => Promise<void>;
   updateFlag: (id: string, data: Partial<Pick<TaskFlag, "name" | "color">>) => Promise<void>;
   removeFlag: (id: string) => Promise<void>;
-  addWheelConfig: (config: Omit<WheelConfig, "id">) => Promise<WheelConfig>;
-  updateWheelConfig: (id: string, data: Partial<WheelConfig>) => Promise<void>;
-  removeWheelConfig: (id: string) => Promise<void>;
-  addRewardItem: (item: Omit<RewardItem, "id">) => Promise<void>;
+  addWheelConfig: (config: Omit<WheelConfig, "id" | "lastPickUserId" | "lastPickAt">) => Promise<WheelConfig>;
+    updateWheelConfig: (id: string, data: Partial<WheelConfig>) => Promise<void>;
+    removeWheelConfig: (id: string) => Promise<void>;
+    saveLastPick: (wheelId: string, userId: string | null) => Promise<void>;
+    addRewardItem: (item: Omit<RewardItem, "id">) => Promise<void>;
   updateRewardItem: (id: string, data: Partial<RewardItem>) => Promise<void>;
   removeRewardItem: (id: string) => Promise<void>;
   awardPoints: (userId: string, points: number, reason: string) => Promise<void>;
@@ -383,13 +386,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   const addWheelConfigMut = useMutation({
-    mutationFn: (config: Omit<WheelConfig, "id">) =>
-      api<WheelConfig>("/api/wheel-configs", {
-        method: "POST",
-        body: JSON.stringify(config),
-      }),
-    onSuccess: invalidate,
-  });
+      mutationFn: (config: Omit<WheelConfig, "id" | "lastPickUserId" | "lastPickAt">) =>
+        api<WheelConfig>("/api/wheel-configs", {
+          method: "POST",
+          body: JSON.stringify(config),
+        }),
+      onSuccess: invalidate,
+    });
 
   const updateWheelConfigMut = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<WheelConfig> }) =>
@@ -401,12 +404,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   const removeWheelConfigMut = useMutation({
-    mutationFn: (id: string) =>
-      api<{ ok: true }>(`/api/wheel-configs/${id}`, { method: "DELETE" }),
-    onSuccess: invalidate,
-  });
-
-  const addRewardItemMut = useMutation({
+      mutationFn: (id: string) =>
+        api<{ ok: true }>(`/api/wheel-configs/${id}`, { method: "DELETE" }),
+      onSuccess: invalidate,
+    });
+  
+    const saveLastPickMut = useMutation({
+      mutationFn: ({
+        wheelId,
+        userId,
+      }: {
+        wheelId: string;
+        userId: string | null;
+      }) =>
+        api<{ ok: true; cleared: boolean }>(
+          `/api/wheel-configs/${wheelId}/last-pick`,
+          { method: "POST", body: JSON.stringify({ userId }) },
+        ),
+      onSuccess: invalidate,
+    });
+  
+    const addRewardItemMut = useMutation({
     mutationFn: (item: Omit<RewardItem, "id">) =>
       api<RewardItem>("/api/reward-items", {
         method: "POST",
@@ -631,13 +649,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const removeWheelConfig = useCallback(
-    async (id: string) => {
-      await removeWheelConfigMut.mutateAsync(id);
-    },
-    [removeWheelConfigMut],
-  );
-
-  const addRewardItem = useCallback(
+      async (id: string) => {
+        await removeWheelConfigMut.mutateAsync(id);
+      },
+      [removeWheelConfigMut],
+    );
+  
+    const saveLastPick = useCallback(
+      async (wheelId: string, userId: string | null) => {
+        await saveLastPickMut.mutateAsync({ wheelId, userId });
+      },
+      [saveLastPickMut],
+    );
+  
+    const addRewardItem = useCallback(
     async (item: Omit<RewardItem, "id">) => {
       await addRewardItemMut.mutateAsync(item);
     },
@@ -775,9 +800,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateFlag,
         removeFlag,
         addWheelConfig,
-        updateWheelConfig,
-        removeWheelConfig,
-        addRewardItem,
+                updateWheelConfig,
+                removeWheelConfig,
+                saveLastPick,
+                addRewardItem,
         updateRewardItem,
         removeRewardItem,
         awardPoints,
