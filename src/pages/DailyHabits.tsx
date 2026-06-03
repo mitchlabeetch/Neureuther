@@ -6,7 +6,6 @@ import {
   Check,
   Plus,
   Pencil,
-  X,
   Trash2,
   ChevronRight,
   Trophy,
@@ -117,12 +116,6 @@ export default function DailyHabitsPage() {
 
   // ── Inline new task ──
   const [newTaskLabel, setNewTaskLabel] = useState("");
-
-  const openCreateTask = useCallback(() => {
-    setEditingTask(null);
-    setTaskForm(EMPTY_TASK_FORM);
-    setShowTaskDialog(true);
-  }, []);
 
   const openEditTask = useCallback(
     (task: (typeof tasks)[number]) => {
@@ -423,13 +416,6 @@ export default function DailyHabitsPage() {
           </Tooltip>
         </div>
 
-        {/* Detailed add button */}
-        <button
-          onClick={openCreateTask}
-          className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-[#b7c6c2] hover:text-[#171e19] py-2 transition-colors mb-4"
-        >
-          <Plus size={14} /> Add with details
-        </button>
       </div>
 
       {/* ── Task create / edit dialog ── */}
