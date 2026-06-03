@@ -110,17 +110,13 @@ function HomePage() {
                     <Progress
                         value={progressVal}
                         className="h-3 rounded-full bg-[#FFF1E6] [&>div]:bg-cantaloupe [&>div]:rounded-full" />
-                    <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar relative z-10">
-                        {state.checklistItems.slice(0, 5).map(item => (<div
-                            key={item.id}
-                            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${item.completed ? "bg-green-50 text-green-600" : "bg-[#eeebe3] text-[#b7c6c2]"} transition-all hover:scale-105`}>
-                            {item.completed ? <CheckCircle2 size={12} /> : <Circle size={12} />}
-                            {item.label}
-                        </div>))}
-                        {state.checklistItems.length > 5 && (<span
-                            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-[#eeebe3] text-[#b7c6c2]">+{state.checklistItems.length - 5}more
-                                                                                                                              </span>)}
-                    </div>
+                    <button
+                        onClick={() => navigate("/checklist/long-term")}
+                        className="mt-4 w-full flex items-center justify-between px-4 py-2.5 rounded-[1.25rem] bg-[#eeebe3] border border-[#b7c6c2]/20 text-xs font-medium text-[#171e19] transition-all active:scale-[0.99] hover:bg-[#b7c6c2]/15 relative z-10"
+                    >
+                        <span>See long-term checklist</span>
+                        <ArrowRight size={14} className="text-[#b7c6c2]" />
+                    </button>
                 </div>
             </div>
             {}
