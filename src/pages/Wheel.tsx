@@ -139,10 +139,9 @@ function WheelPage() {
         <div className="px-5 mb-4 flex items-center gap-2">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">People:</span>
           {activeUsers.map(u => (
-          <Tooltip>
+          <Tooltip key={u!.id}>
             <TooltipTrigger asChild>
               <button
-                key={u!.id}
                 onClick={() => toggleConfigUser(activeConfig.id, u!.id)}
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all active:scale-90 ${
                   activeConfig.users.includes(u!.id) ? 'text-white' : 'bg-gray-200 text-gray-500 line-through'

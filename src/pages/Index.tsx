@@ -70,9 +70,16 @@ function HomePage() {
               <h3 className="text-lg font-extrabold text-[#2D2B2A]">Today's Checklist</h3>
               <p className="text-sm text-gray-400 font-semibold">{completedToday}/{totalToday} done</p>
             </div>
-            <div className="w-16 h-16 rounded-full bg-cantaloupe-lighter flex items-center justify-center">
-              <span className="text-2xl font-extrabold text-cantaloupe">{Math.round(progressVal)}%</span>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-16 h-16 rounded-full bg-cantaloupe-lighter flex items-center justify-center cursor-default">
+                  <span className="text-2xl font-extrabold text-cantaloupe">{Math.round(progressVal)}%</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                {completedToday} of {totalToday} tasks completed today
+              </TooltipContent>
+            </Tooltip>
           </div>
           <Progress value={progressVal} className="h-3 rounded-full bg-orange-100 [&>div]:bg-cantaloupe [&>div]:rounded-full" />
           <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar">
