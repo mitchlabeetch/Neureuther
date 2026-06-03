@@ -123,8 +123,21 @@ const EMPTY_STATE: AppState = {
 
 const STATE_QUERY_KEY = ["app", "state"] as const;
 
+function getApiBaseUrl(): string {
+  // Runtime override (e.g. set by Capacitor at startup) takes priority,
+  // then the Vite build-time env var, then relative URLs as fallback.
+  if (typeof window !== "undefined" && (window as any).__API_BASE_URL__) {
+    return (window as any).__API_BASE_URL__ as string;
+  }
+  // import.meta.env is statically replaced at build time
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL as string;
+  }
+  return "";
+}
+
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetch(getApiBaseUrl() + url, {
     ...init,
     headers: {
       "Content-Type": "application/json",

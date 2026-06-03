@@ -1,11 +1,9 @@
 // POST /api/rewards/claim — atomic "check balance then deduct".
-// This replaces the client's localStorage path that read the user's points
-// and pushed a negative entry. Doing it server-side prevents over-spending
-// when two clients race.
+// Uses a single CTE to check and insert in one round-trip, preventing
+// over-spending even when concurrent requests race.
 import { defineHandler } from "nitro";
 import { readBody, createError } from "nitro/h3";
 import { sql } from "../../../utils/db";
-import { getUserPointsBalance } from "../../../utils/state";
 
 export default defineHandler(async (event) => {
   const body = await readBody<{
@@ -31,24 +29,26 @@ export default defineHandler(async (event) => {
     points_cost: number;
   };
 
-  // No transaction wrapper: a tiny over-spend window is acceptable for a
-  // household app, and Neon HTTP queries are stateless anyway. The
-  // balance check happens immediately before the INSERT, then we re-check
-  // before committing the second query to be safe.
-  const balance = await getUserPointsBalance(body.userId);
-  if (balance < reward.points_cost) {
+  // Atomic CTE: the INSERT only runs when the user's balance >= cost.
+  // If balance is too low, zero rows are returned — no partial insert.
+  const inserted = await sql`
+    WITH balance AS (
+      SELECT COALESCE(SUM(points), 0)::int AS total
+      FROM points_log WHERE user_id = ${body.userId}
+    )
+    INSERT INTO points_log (user_id, points, reason)
+    SELECT ${body.userId}, ${-reward.points_cost}, ${`Claimed: ${reward.label}`}
+    FROM balance WHERE total >= ${reward.points_cost}
+    RETURNING id, user_id, points, reason, occurred_at
+  `;
+
+  if (inserted.length === 0) {
     throw createError({
       statusCode: 409,
       statusMessage: "insufficient points",
     });
   }
 
-  const inserted = await sql`INSERT INTO points_log (user_id, points, reason)
-                              VALUES (${body.userId}, ${-reward.points_cost},
-                                      ${`Claimed: ${reward.label}`})
-                              RETURNING id, user_id, points, reason, occurred_at`;
-
-  const newBalance = balance - reward.points_cost;
   const row = inserted[0] as {
     id: string;
     user_id: string;
@@ -56,6 +56,12 @@ export default defineHandler(async (event) => {
     reason: string;
     occurred_at: string;
   };
+
+  // Re-read balance post-deduction for the response
+  const balanceRows =
+    await sql`SELECT COALESCE(SUM(points), 0)::int AS total
+              FROM points_log WHERE user_id = ${body.userId}`;
+  const newBalance = Number((balanceRows[0] as { total: number }).total) || 0;
 
   return {
     ok: true,

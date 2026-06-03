@@ -421,7 +421,7 @@ function LongTermChecklistPage() {
             {}
             <div className="px-5 pt-14 pb-4 animate-fade-in-up">
                 <button
-                    onClick={() => navigate("/checklist")}
+                    onClick={() => navigate("/")}
                     className="flex items-center gap-1.5 text-sm font-medium text-[#b7c6c2] hover:text-[#171e19] transition-colors mb-3">
                     <ChevronRight size={16} className="rotate-180" />Back
                             </button>
