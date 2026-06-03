@@ -199,16 +199,105 @@ function WheelPage() {
       ))}
 
       {/* Header */}
-      <div className="px-5 pt-14 pb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold text-[#2D2B2A]">Spin Wheel</h1>
-          <p className="text-sm text-gray-400 font-semibold mt-1">Who's up for what?</p>
+      <div className="px-5 pt-10 pb-2">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#2D2B2A]">Spin Wheel</h1>
+            <p className="text-sm text-gray-400 font-semibold mt-0.5">Who's up for what?</p>
+          </div>
+
+          {/* Action icons */}
+          {activeConfig && (
+            <div className="flex items-center gap-0.5 mt-1">
+              {/* Add temp user */}
+              <Dialog open={showTempUserDialog} onOpenChange={setShowTempUserDialog}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DialogTrigger asChild>
+                      <button className="p-2 rounded-full text-gray-400 hover:text-blue-400 hover:bg-blue-50 transition-all active:scale-90">
+                        <UserPlus size={16} />
+                      </button>
+                    </DialogTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                    Add temporary user for this run
+                  </TooltipContent>
+                </Tooltip>
+                <DialogContent className="rounded-3xl max-w-[360px] mx-auto p-0 gap-0">
+                  <DialogHeader className="px-6 pt-6 pb-3">
+                    <DialogTitle className="text-xl font-extrabold text-[#2D2B2A]">Temporary User</DialogTitle>
+                  </DialogHeader>
+                  <div className="px-6 pb-6 space-y-4">
+                    <p className="text-xs text-gray-400 font-semibold">Adds a one-time user to the wheel for this spin only.</p>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Name</label>
+                      <div className="flex gap-2 mt-1.5">
+                        <Input
+                          value={tempUserName}
+                          onChange={e => setTempUserName(e.target.value)}
+                          placeholder="e.g. Guest"
+                          className="rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
+                          onKeyDown={e => e.key === 'Enter' && addTempUser()}
+                        />
+                        <button
+                          onClick={addTempUser}
+                          disabled={!tempUserName.trim()}
+                          className="shrink-0 px-4 py-2 rounded-xl font-bold text-sm text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 transition-all active:scale-95"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                    {tempUsers.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {tempUsers.map((tu, i) => (
+                          <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white bg-slate-400">
+                            {tu.emoji} {tu.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Edit wheel */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={openEditDialog}
+                    className="p-2 rounded-full text-gray-400 hover:text-cantaloupe hover:bg-orange-50 transition-all active:scale-90"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                  Edit this wheel
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Delete wheel */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => removeWheelConfig(activeConfig.id)}
+                    className="p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-50 transition-all active:scale-90"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                  Delete this wheel
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Wheel selector */}
-      <div className="px-5 mb-4">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+      <div className="px-5 mb-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           {state.wheelConfigs.map(config => (
             <button
               key={config.id}
@@ -291,9 +380,9 @@ function WheelPage() {
         </div>
       </div>
 
-      {/* Config management */}
+      {/* People bar */}
       {activeConfig && (
-        <div className="px-5 mb-3 flex items-center gap-2 flex-wrap">
+        <div className="px-5 mb-2 flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">People:</span>
           {realActiveUsers.map(u => (
           <Tooltip key={u!.id}>
@@ -318,89 +407,6 @@ function WheelPage() {
               {tu.emoji} {tu.name}
             </span>
           ))}
-          <div className="ml-auto flex items-center gap-0.5">
-            {/* Add temp user */}
-            <Dialog open={showTempUserDialog} onOpenChange={setShowTempUserDialog}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DialogTrigger asChild>
-                    <button className="p-2 rounded-full text-gray-400 hover:text-blue-400 hover:bg-blue-50 transition-all active:scale-90">
-                      <UserPlus size={16} />
-                    </button>
-                  </DialogTrigger>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
-                  Add temporary user for this run
-                </TooltipContent>
-              </Tooltip>
-              <DialogContent className="rounded-3xl max-w-[360px] mx-auto p-0 gap-0">
-                <DialogHeader className="px-6 pt-6 pb-3">
-                  <DialogTitle className="text-xl font-extrabold text-[#2D2B2A]">Temporary User</DialogTitle>
-                </DialogHeader>
-                <div className="px-6 pb-6 space-y-4">
-                  <p className="text-xs text-gray-400 font-semibold">Adds a one-time user to the wheel for this spin only. Resets after "Done" or page change.</p>
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Name</label>
-                    <div className="flex gap-2 mt-1.5">
-                      <Input
-                        value={tempUserName}
-                        onChange={e => setTempUserName(e.target.value)}
-                        placeholder="e.g. Guest"
-                        className="rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
-                        onKeyDown={e => e.key === 'Enter' && addTempUser()}
-                      />
-                      <button
-                        onClick={addTempUser}
-                        disabled={!tempUserName.trim()}
-                        className="shrink-0 px-4 py-2 rounded-xl font-bold text-sm text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 transition-all active:scale-95"
-                      >
-                        Add
-                      </button>
-                    </div>
-                  </div>
-                  {tempUsers.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {tempUsers.map((tu, i) => (
-                        <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white bg-slate-400">
-                          {tu.emoji} {tu.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* Edit wheel */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={openEditDialog}
-                  className="p-2 rounded-full text-gray-400 hover:text-cantaloupe hover:bg-orange-50 transition-all active:scale-90"
-                >
-                  <Pencil size={16} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
-                Edit this wheel
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Delete wheel */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => removeWheelConfig(activeConfig.id)}
-                  className="p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-50 transition-all active:scale-90"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
-                Delete this wheel
-              </TooltipContent>
-            </Tooltip>
-          </div>
         </div>
       )}
 
@@ -473,8 +479,8 @@ function WheelPage() {
 
       {/* Last pick with Done button */}
       {pendingPick && lastPickDisplay && (
-        <div className="px-5 mt-4 mb-4">
-          <div className={`flex items-center gap-2 bg-white rounded-2xl px-4 py-2.5 border shadow-sm transition-all duration-500 ${
+        <div className="px-5 mt-2 mb-2">
+          <div className={`flex items-center gap-2 bg-white rounded-2xl px-3 py-2 border shadow-sm transition-all duration-500 ${
             doneAnimation ? 'border-green-300 bg-green-50/50 scale-105' : 'border-orange-100'
           }`}>
             <span className="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Last pick</span>
