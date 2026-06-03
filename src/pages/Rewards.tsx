@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
-import { Plus, Trash2, Pencil, Star, Wallet, Search, X, Sparkles, Film, Shield, Cookie, Users, Clock } from 'lucide-react';
+import { Plus, Trash2, Pencil, Star, Wallet, Sparkles, Film, Shield, Cookie, Users, Clock, Search, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { EmojiPicker } from '@/components/EmojiPicker';
@@ -37,9 +37,6 @@ function RewardsPage() {
   const [newCategory, setNewCategory] = useState('experience');
   const [newDescription, setNewDescription] = useState('');
 
-  const [search, setSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string>('all');
-
   // Redeem flow state
   const [redeemItemId, setRedeemItemId] = useState<string | null>(null);
   const [confirmingUser, setConfirmingUser] = useState<string | null>(null);
@@ -48,20 +45,8 @@ function RewardsPage() {
   const [editingReward, setEditingReward] = useState<RewardItem | null>(null);
 
   const filteredItems = useMemo(() => {
-    let items = state.rewardItems;
-    if (activeCategory !== 'all') {
-      items = items.filter((i) => i.category === activeCategory);
-    }
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      items = items.filter(
-        (i) =>
-          i.label.toLowerCase().includes(q) ||
-          (i.description?.toLowerCase().includes(q) ?? false)
-      );
-    }
-    return items;
-  }, [state.rewardItems, activeCategory, search]);
+    return state.rewardItems;
+  }, [state.rewardItems]);
 
   const recentClaims = useMemo(() => {
     return state.pointsLog
@@ -113,9 +98,6 @@ function RewardsPage() {
     setEditingReward(null);
   };
 
-  const maxPoints = useMemo(() => {
-    return Math.max(...state.users.map((u) => getUserPoints(u.id)), 1);
-  }, [state.users, state.pointsLog]);
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content pb-24">
@@ -159,56 +141,11 @@ function RewardsPage() {
         )}
       </div>
 
-      {/* Search */}
-      <div className="px-5 mb-3">
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#b7c6c2]" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search rewards..."
-            className="pl-10 pr-9 rounded-xl bg-white border-[#b7c6c2]/20 focus:border-[#FDA172] focus:ring-[#FDA172] h-11"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b7c6c2] hover:text-[#171e19]"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Category tabs */}
-      <div className="px-5 mb-4">
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const isActive = activeCategory === cat.key;
-            return (
-              <button
-                key={cat.key}
-                onClick={() => setActiveCategory(cat.key)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
-                  isActive
-                    ? 'bg-[#171e19] text-white shadow-[0_4px_12px_-4px_rgba(23,30,25,0.3)]'
-                    : 'bg-white text-[#b7c6c2] border border-[#b7c6c2]/20 hover:border-[#b7c6c2]/40'
-                }`}
-              >
-                <Icon size={13} />
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Reward shop */}
       <div className="px-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="section-header">
-            {activeCategory === 'all' ? 'Reward Shop' : `${CATEGORIES.find((c) => c.key === activeCategory)?.label} Rewards`}
+            Reward Shop
           </h3>
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
@@ -376,7 +313,7 @@ function RewardsPage() {
 
         {filteredItems.length === 0 && (
           <div className="text-center py-8 text-[#b7c6c2] text-sm">
-            {search ? 'No rewards match your search' : 'No rewards yet — tap Add to create one'}
+            No rewards yet — tap Add to create one
           </div>
         )}
       </div>
