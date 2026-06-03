@@ -58,6 +58,8 @@ export interface RewardItem {
   label: string;
   pointsCost: number;
   icon: string;
+  category: string;
+  description: string | null;
 }
 
 export interface PointsLog {

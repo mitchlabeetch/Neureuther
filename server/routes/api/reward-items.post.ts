@@ -9,6 +9,8 @@ export default defineHandler(async (event) => {
     label?: string;
     pointsCost?: number;
     icon?: string;
+    category?: string;
+    description?: string;
   }>(event);
 
   if (
@@ -24,13 +26,15 @@ export default defineHandler(async (event) => {
 
   const id = body.id?.trim() || crypto.randomUUID();
   const icon = body.icon?.trim() || "🎁";
+  const category = body.category?.trim() || "general";
+  const description = body.description?.trim() || null;
 
   const tail = await sql`SELECT COALESCE(MAX(sort_order), -1) + 1 AS next
                        FROM reward_items`;
   const nextSort = Number((tail[0] as { next: number | string }).next) || 0;
 
-  await sql`INSERT INTO reward_items (id, label, points_cost, icon, sort_order)
-            VALUES (${id}, ${body.label.trim()}, ${body.pointsCost}, ${icon}, ${nextSort})`;
+  await sql`INSERT INTO reward_items (id, label, points_cost, icon, sort_order, category, description)
+            VALUES (${id}, ${body.label.trim()}, ${body.pointsCost}, ${icon}, ${nextSort}, ${category}, ${description})`;
 
-  return { id, label: body.label.trim(), pointsCost: body.pointsCost, icon };
+  return { id, label: body.label.trim(), pointsCost: body.pointsCost, icon, category, description };
 });

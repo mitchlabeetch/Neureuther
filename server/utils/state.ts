@@ -53,6 +53,8 @@ export interface RewardItem {
   label: string;
   pointsCost: number;
   icon: string;
+  category: string;
+  description: string | null;
 }
 
 export interface PointsLogEntry {
@@ -168,7 +170,7 @@ export async function loadAppState(
     sql`SELECT id, title, points_per_task
         FROM wheel_configs ORDER BY sort_order, created_at`,
     sql`SELECT wheel_config_id, user_id FROM wheel_config_users`,
-    sql`SELECT id, label, points_cost, icon
+    sql`SELECT id, label, points_cost, icon, category, description
         FROM reward_items ORDER BY sort_order, created_at`,
     sql`SELECT id, user_id, points, reason, occurred_at
         FROM points_log ORDER BY occurred_at DESC`,
@@ -286,12 +288,16 @@ export async function loadAppState(
         label: string;
         points_cost: number;
         icon: string;
+        category: string;
+        description: string | null;
       }>
     ).map((r) => ({
       id: r.id,
       label: r.label,
       pointsCost: r.points_cost,
       icon: r.icon,
+      category: r.category,
+      description: r.description,
     })),
     pointsLog: (
       pointsLog as Array<{

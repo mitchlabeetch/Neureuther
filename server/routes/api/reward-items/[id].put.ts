@@ -13,13 +13,17 @@ export default defineHandler(async (event) => {
     label?: string;
     pointsCost?: number;
     icon?: string;
+    category?: string;
+    description?: string | null;
   }>(event);
 
   if (
     !body ||
     (body.label === undefined &&
       body.pointsCost === undefined &&
-      body.icon === undefined)
+      body.icon === undefined &&
+      body.category === undefined &&
+      body.description === undefined)
   ) {
     throw createError({ statusCode: 400, statusMessage: "nothing to update" });
   }
@@ -34,7 +38,9 @@ export default defineHandler(async (event) => {
   await sql`UPDATE reward_items SET
               label = COALESCE(${body.label?.trim() ?? null}, label),
               points_cost = COALESCE(${body.pointsCost ?? null}, points_cost),
-              icon = COALESCE(${body.icon ?? null}, icon)
+              icon = COALESCE(${body.icon ?? null}, icon),
+              category = COALESCE(${body.category?.trim() ?? null}, category),
+              description = COALESCE(${body.description ?? null}, description)
             WHERE id = ${id}`;
 
   return { ok: true };

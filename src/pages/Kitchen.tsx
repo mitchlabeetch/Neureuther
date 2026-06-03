@@ -208,7 +208,7 @@ function KitchenPage() {
           const CatIcon = cat.icon;
           return (
             <div key={cat.key} id={`cat-${cat.key}`}>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-1">
                 <div
                   className="w-8 h-8 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: cat.color + '15' }}
@@ -217,6 +217,9 @@ function KitchenPage() {
                 </div>
                 <h3 className="text-sm font-semibold text-[#171e19]">{cat.label}</h3>
               </div>
+              <p className="text-[11px] text-[#b7c6c2] font-medium mb-3 leading-tight">
+                These checks are resetting every day — the goal is to remain at 100% as much as possible
+              </p>
               <div className="space-y-2.5">
                 {catRules.map((rule) => (
                   <div
