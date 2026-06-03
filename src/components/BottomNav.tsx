@@ -66,7 +66,7 @@ export function BottomNav() {
                       className={`relative flex flex-col items-center justify-center gap-1 rounded-2xl transition-all duration-300 active:scale-90 w-14 h-12 ${
                         isActive
                           ? 'bg-[#FFF1E6] text-cantaloupe'
-                          : 'text-[#b7c6c2]/70 hover:text-cantaloupe hover:bg-[#FFF1E6]/50'
+                          : 'text-[#95a5a0] hover:text-cantaloupe hover:bg-[#FFF1E6]/50'
                       }`}
                     >
                       <div className={`relative ${isActive ? 'animate-icon-pop' : ''}`}>
@@ -81,7 +81,7 @@ export function BottomNav() {
                       </div>
                       <span
                         className={`text-[9px] font-medium tracking-wide transition-colors ${
-                          isActive ? 'text-cantaloupe' : 'text-[#b7c6c2]/50'
+                          isActive ? 'text-cantaloupe' : 'text-[#95a5a0]'
                         }`}
                       >
                         {label}

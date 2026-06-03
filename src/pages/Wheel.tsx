@@ -312,7 +312,7 @@ function WheelPage() {
                 <DialogTrigger asChild>
                   <button
                     aria-label="Add temporary user"
-                    className="p-2.5 rounded-full text-[#b7c6c2] hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 active:scale-90"
+                    className="p-2.5 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 active:scale-90"
                   >
                     <UserPlus size={16} />
                   </button>
@@ -365,7 +365,7 @@ function WheelPage() {
               <button
                 onClick={openEditDialog}
                 aria-label="Edit this wheel"
-                className="p-2.5 rounded-full text-[#b7c6c2] hover:text-cantaloupe hover:bg-[#FFF1E6] transition-all duration-200 active:scale-90"
+                className="p-2.5 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-cantaloupe hover:bg-[#FFF1E6] transition-all duration-200 active:scale-90"
               >
                 <Pencil size={16} />
               </button>
@@ -373,7 +373,7 @@ function WheelPage() {
               <button
                 onClick={() => removeWheelConfig(activeConfig.id)}
                 aria-label="Delete this wheel"
-                className="p-2.5 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all duration-200 active:scale-90"
+                className="p-2.5 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-[#ca0013] hover:bg-red-50 transition-all duration-200 active:scale-90"
               >
                 <Trash2 size={16} />
               </button>
@@ -394,8 +394,8 @@ function WheelPage() {
               }}
               className={`shrink-0 px-4 py-2.5 rounded-full font-medium text-sm transition-all duration-200 active:scale-95 ${
                 activeConfig?.id === config.id
-                  ? "bg-[#171e19] text-white shadow-lg shadow-[#171e19]/20"
-                  : "bg-white text-[#b7c6c2] border border-[#b7c6c2]/25 hover:border-cantaloupe hover:text-cantaloupe"
+                ? "bg-[#171e19] text-white shadow-lg shadow-[#171e19]/20"
+                : "bg-white text-[#95a5a0] border border-[#b7c6c2]/30 hover:border-cantaloupe hover:text-cantaloupe"
               }`}
             >
               {config.title}
@@ -608,7 +608,7 @@ function WheelPage() {
             <button
               onClick={resetPick}
               aria-label="Reset selection and temp users"
-              className="p-1.5 rounded-full text-[#b7c6c2] hover:text-[#171e19] hover:bg-[#eeebe3] transition-all active:scale-90 ml-auto"
+              className="p-1.5 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-[#171e19] hover:bg-[#d5ddd9] transition-all active:scale-90 ml-auto"
             >
               <RotateCcw size={14} />
             </button>

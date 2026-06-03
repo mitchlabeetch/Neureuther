@@ -128,7 +128,7 @@ function ChecklistPage() {
               <button
                 onClick={() => removeChecklistItem(item.id)}
                 aria-label="Remove this task"
-                className="p-2 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90"
+                className="p-2 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90"
               >
                 <Trash2 size={14} />
               </button>
@@ -189,9 +189,9 @@ function ChecklistPage() {
               <h3 className="text-lg font-semibold text-[#171e19]">Who did it?</h3>
               <button
                 onClick={() => setActivePicker(null)}
-                className="p-2 rounded-full hover:bg-[#eeebe3] transition-all active:scale-90"
+                className="p-2 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-[#171e19] hover:bg-[#b7c6c2]/30 transition-all active:scale-90"
               >
-                <X size={20} className="text-[#b7c6c2]" />
+                <X size={20} />
               </button>
             </div>
             <div className="space-y-2">

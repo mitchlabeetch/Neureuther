@@ -190,7 +190,7 @@ function RewardsPage() {
                 <button
                   onClick={() => removeRewardItem(item.id)}
                   aria-label="Remove this reward"
-                  className="p-1.5 rounded-xl text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all"
+                  className="p-1.5 rounded-xl bg-[#eeebe3] text-[#95a5a0] hover:text-[#ca0013] hover:bg-red-50 transition-all"
                 >
                   <Trash2 size={14} />
                 </button>
