@@ -87,7 +87,7 @@ function HomePage() {
                         <div>
                             <h3 className="text-lg font-semibold text-[#171e19] tracking-tight">Today's Checklist</h3>
                             <p className="text-sm text-[#b7c6c2] font-medium mt-1">
-                                {completedToday}/ {totalToday}done
+                                {completedToday} / {totalToday} done
                                                                                                               </p>
                         </div>
                         <div
@@ -106,7 +106,7 @@ function HomePage() {
                             {item.label}
                         </div>))}
                         {state.checklistItems.length > 5 && (<span
-                            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-[#eeebe3] text-[#b7c6c2]">+{state.checklistItems.length - 5}more
+                            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-[#eeebe3] text-[#b7c6c2]">+{state.checklistItems.length - 5} more
                                                                                                   </span>)}
                     </div>
                 </div>
@@ -153,7 +153,7 @@ function HomePage() {
                             <span className="truncate block">{topUser?.emoji} {topUser?.name}</span>
                         </div>
                         <div className="text-xs text-[#b7c6c2] font-medium mt-1 truncate">
-                            {topUser?.points || 0}pts — Top earner
+                            {topUser?.points || 0} pts — Top earner
                                                                                                 </div>
                     </div>
                     <div className="stat-card">
@@ -161,7 +161,7 @@ function HomePage() {
                             className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">🔥
                                                                                                 </div>
                         <div className="text-xl font-semibold text-[#ca0013] mt-1">
-                            {completedToday}tasks
+                            {completedToday} tasks
                                                                                                 </div>
                         <div className="text-xs text-[#b7c6c2] font-medium mt-1">Completed today</div>
                     </div>
