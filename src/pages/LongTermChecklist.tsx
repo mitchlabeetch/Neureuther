@@ -1250,24 +1250,25 @@ function FlagSelector({
                 </div>
               ))}
               <div className="border-t border-[#b7c6c2]/20 mt-1 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOpen(false);
-                    onCreate();
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#69D2A6] hover:bg-green-50 transition-colors"
-                >
-                  <Plus size={14} strokeWidth={2.5} />
-                  <span className="flex-1 text-left">Add a flag</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      onCreate();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#69D2A6] hover:bg-green-50 transition-colors"
+                  >
+                    <Plus size={14} strokeWidth={2.5} />
+                    <span className="flex-1 text-left">Add a flag</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>,
+            ,
           document.body,
         )}
     </div>
   );
 }
-
-export default LongTermChecklistPage;
+  
+  export default LongTermChecklistPage;
+  
