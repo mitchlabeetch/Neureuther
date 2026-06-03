@@ -1,5 +1,5 @@
 import { BottomNav } from "@/components/BottomNav";
-import { LayoutGrid, ArrowLeft, CalendarDays, User, ListChecks } from "lucide-react";
+import { LayoutGrid, ArrowLeft, CalendarDays, User, ListChecks, Archive, Shuffle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function AllChecklistsPage() {
@@ -29,6 +29,22 @@ export default function AllChecklistsPage() {
       icon: User,
       path: "/checklist/personal",
       color: "#A78BFA",
+    },
+    {
+      id: "archive",
+      label: "Checklist Archive",
+      desc: "Archived tasks & checklists",
+      icon: Archive,
+      path: "/checklist/archive",
+      color: "#95a5a0",
+    },
+    {
+      id: "random",
+      label: "Random Checklist",
+      desc: "Quick everyday quest lists",
+      icon: Shuffle,
+      path: "/checklist/random",
+      color: "#F472B6",
     },
   ];
 

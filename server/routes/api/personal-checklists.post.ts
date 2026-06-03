@@ -42,6 +42,7 @@ export default defineHandler(async (event) => {
     bgColor,
     flagId,
     deadline,
+    archived: false,
     sortOrder: nextSort,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

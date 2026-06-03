@@ -70,6 +70,7 @@ export interface PersonalChecklistEntry {
   bgColor: string;
   flagId: string | null;
   deadline: string | null;
+  archived: boolean;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -121,7 +122,7 @@ export async function resetChecklistIfNeeded(): Promise<void> {
     SET completed = FALSE,
         completed_by = NULL,
         completed_at = NULL
-    WHERE kind = 'daily'
+    WHERE kind = 'daily' AND archived = FALSE
   `;
 
   await sql`
@@ -171,7 +172,7 @@ export async function loadAppState(
     sql`SELECT id, user_id, points, reason, occurred_at
         FROM points_log ORDER BY occurred_at DESC`,
     sql`SELECT pc.id, pc.user_id, pc.name, pc.bg_color, pc.flag_id, pc.deadline,
-               pc.sort_order, pc.created_at, pc.updated_at,
+               pc.archived, pc.sort_order, pc.created_at, pc.updated_at,
                COALESCE(t.total, 0)::int AS total_tasks,
                COALESCE(t.done, 0)::int AS done_tasks
         FROM personal_checklists pc
@@ -228,7 +229,7 @@ export async function loadAppState(
       completedBy: c.completed_by,
       completedAt: c.completed_at ? new Date(c.completed_at).toISOString() : null,
       points: Number(c.points) || 5,
-      kind: c.kind === "long_term" ? "long_term" : "daily",
+      kind: c.kind === "long_term" ? "long_term" : c.kind === "random" ? "random" : "daily",
       archived: Boolean(c.archived),
       deadline: c.deadline ? new Date(c.deadline).toISOString() : null,
       flagId: c.flag_id,
@@ -314,6 +315,7 @@ export async function loadAppState(
         bg_color: string;
         flag_id: string | null;
         deadline: string | null;
+        archived: boolean;
         sort_order: number;
         created_at: string;
         updated_at: string;
@@ -327,6 +329,7 @@ export async function loadAppState(
       bgColor: c.bg_color,
       flagId: c.flag_id,
       deadline: c.deadline ? new Date(c.deadline).toISOString() : null,
+      archived: Boolean(c.archived),
       sortOrder: c.sort_order,
       createdAt: new Date(c.created_at).toISOString(),
       updatedAt: new Date(c.updated_at).toISOString(),

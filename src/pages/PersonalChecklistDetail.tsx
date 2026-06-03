@@ -14,6 +14,7 @@ import {
   ChevronRight,
   CircleAlert,
   Settings2,
+  Archive,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -94,6 +95,9 @@ export default function PersonalChecklistDetailPage() {
   const [showChecklistEdit, setShowChecklistEdit] = useState(false);
   const [clForm, setClForm] = useState({ name: "", bgColor: "#ffffff", flagId: "", deadline: "" });
   const [showClDeleteConfirm, setShowClDeleteConfirm] = useState(false);
+
+  // ── Archive completed checklist confirmation ──
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
   // ── Inline new task ──
   const [newTaskLabel, setNewTaskLabel] = useState("");
@@ -192,9 +196,9 @@ export default function PersonalChecklistDetailPage() {
 
   const handleChecklistDelete = useCallback(async () => {
     if (!checklistId) return;
-    await removePersonalChecklist(checklistId);
+    await updatePersonalChecklist(checklistId, { archived: true });
     navigate("/checklist/personal");
-  }, [checklistId, removePersonalChecklist, navigate]);
+  }, [checklistId, updatePersonalChecklist, navigate]);
 
   const handleSyncDeadline = useCallback(async () => {
     if (!checklistId) return;
@@ -348,6 +352,19 @@ export default function PersonalChecklistDetailPage() {
           >
             <Clock size={14} />
             Sync deadline to latest task
+          </button>
+        </div>
+      )}
+
+      {/* Archive completed checklist button */}
+      {checklist.totalTasks > 0 && checklist.doneTasks === checklist.totalTasks && (
+        <div className="px-5 mt-2 mb-2">
+          <button
+            onClick={() => setShowArchiveConfirm(true)}
+            className="w-full flex items-center justify-center gap-2 rounded-[1.25rem] p-3 bg-[#eeebe3] border border-[#b7c6c2]/20 text-[#171e19] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98] text-xs font-semibold"
+          >
+            <Archive size={14} />
+            Archive this completed checklist
           </button>
         </div>
       )}
@@ -651,7 +668,7 @@ export default function PersonalChecklistDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Checklist delete confirmation */}
+      {/* Checklist delete confirmation — asks about sharing */}
       {showClDeleteConfirm && (
         <div
           className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center px-5"
@@ -659,17 +676,17 @@ export default function PersonalChecklistDetailPage() {
         >
           <div className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col items-center text-center mb-5">
-              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-3">
-                <Trash2 className="text-[#ca0013]" size={28} />
+              <div className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
+                <Trash2 className="text-[#171e19]" size={28} />
               </div>
-              <h3 className="text-lg font-semibold text-[#171e19]">Delete this checklist?</h3>
+              <h3 className="text-lg font-semibold text-[#171e19]">Move to Archive?</h3>
               <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">
-                "{checklist.name}" and all its tasks will be removed permanently.
+                "{checklist.name}" will be moved to the shared Archive. This means others in the household will be able to see and reuse it. Are you okay with sharing it?
               </p>
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setShowClDeleteConfirm(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]">Cancel</button>
-              <button onClick={handleChecklistDelete} className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]">Delete</button>
+            <div className="flex flex-col gap-2">
+              <button onClick={handleChecklistDelete} className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]">Yes, move to shared Archive</button>
+              <button onClick={() => setShowClDeleteConfirm(false)} className="w-full py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]">Cancel</button>
             </div>
           </div>
         </div>
@@ -748,6 +765,43 @@ export default function PersonalChecklistDetailPage() {
                 setClForm((f) => f.flagId === flagDeleteConfirm.id ? { ...f, flagId: "" } : f);
                 setFlagDeleteConfirm(null);
               }} className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Archive completed checklist confirmation — asks about sharing */}
+      {showArchiveConfirm && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center px-5"
+          onClick={() => setShowArchiveConfirm(false)}
+        >
+          <div className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 animate-scale-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col items-center text-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
+                <Archive className="text-[#171e19]" size={28} />
+              </div>
+              <h3 className="text-lg font-semibold text-[#171e19]">Archive this checklist?</h3>
+              <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">
+                "{checklist.name}" will be moved to the shared Archive. Others in the household will be able to see and reuse it. Are you okay with sharing it?
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={async () => {
+                  await updatePersonalChecklist(checklistId!, { archived: true });
+                  navigate("/checklist/personal");
+                }}
+                className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
+              >
+                Yes, move to shared Archive
+              </button>
+              <button
+                onClick={() => setShowArchiveConfirm(false)}
+                className="w-full py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

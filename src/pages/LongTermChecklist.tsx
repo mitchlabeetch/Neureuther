@@ -67,7 +67,7 @@ import {
     PartyPopper,
     Flag,
     Star,
-    Archive,
+    Archive as ArchiveIcon,
     ChevronDown,
     ChevronRight,
     Users,
@@ -201,6 +201,7 @@ function LongTermChecklistPage() {
 
     const [flagDeleteConfirm, setFlagDeleteConfirm] = useState<TaskFlag | null>(null);
     const [newSubtaskLabel, setNewSubtaskLabel] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const triggerSuccess = (points: number) => {
         if (successTimeoutRef.current)
@@ -284,31 +285,37 @@ function LongTermChecklistPage() {
     };
 
     const handleSubmit = async () => {
+        if (isSubmitting) return;
         const pts = Number(form.points);
 
         if (!form.label.trim() || !Number.isFinite(pts) || pts < 0)
             return;
 
-        const deadline = fromLocalInput(form.deadline);
-        const flagId = form.flagId || null;
+        setIsSubmitting(true);
+        try {
+            const deadline = fromLocalInput(form.deadline);
+            const flagId = form.flagId || null;
 
-        if (editingItem) {
-            await updateChecklistItem(editingItem.id, {
-                label: form.label.trim(),
-                points: Math.floor(pts),
-                deadline,
-                flagId,
-                autoCompleteOnSubtasks: form.autoCompleteOnSubtasks
-            });
-        } else {
-            await addChecklistItem({
-                label: form.label.trim(),
-                points: Math.floor(pts),
-                kind: "long_term",
-                deadline,
-                flagId,
-                autoCompleteOnSubtasks: form.autoCompleteOnSubtasks
-            });
+            if (editingItem) {
+                await updateChecklistItem(editingItem.id, {
+                    label: form.label.trim(),
+                    points: Math.floor(pts),
+                    deadline,
+                    flagId,
+                    autoCompleteOnSubtasks: form.autoCompleteOnSubtasks
+                });
+            } else {
+                await addChecklistItem({
+                    label: form.label.trim(),
+                    points: Math.floor(pts),
+                    kind: "long_term",
+                    deadline,
+                    flagId,
+                    autoCompleteOnSubtasks: form.autoCompleteOnSubtasks
+                });
+            }
+        } finally {
+            setIsSubmitting(false);
         }
 
         closeDialog();
@@ -318,7 +325,7 @@ function LongTermChecklistPage() {
         if (!editingItem)
             return;
 
-        await removeChecklistItem(editingItem.id);
+        await updateChecklistItem(editingItem.id, { archived: true });
         setShowDeleteConfirm(false);
         setShowDialog(false);
         setEditingItem(null);
@@ -427,7 +434,7 @@ function LongTermChecklistPage() {
                         <h1 className="text-2xl font-semibold text-[#171e19] tracking-tight">Long-term Checklist
                                         </h1>
                         <p className="text-sm text-[#b7c6c2] font-medium mt-0.5">
-                            {longTermItems.length}active{" "}
+                            {longTermItems.length} active{" "}
                             {longTermItems.length === 1 ? "task" : "tasks"}
                         </p>
                     </div>
@@ -622,7 +629,7 @@ function LongTermChecklistPage() {
             {}
             <div className="px-5 mb-3">
                 <button
-                    onClick={() => navigate("/checklist/long-term/archive")}
+                    onClick={() => navigate("/checklist/archive")}
                     className="w-full flex items-center justify-center gap-2.5 rounded-[1.5rem] p-3.5 bg-white border border-[#b7c6c2]/20 text-[#171e19] font-semibold hover:bg-[#eeebe3] transition-all active:scale-[0.98]">
                     <Archive size={16} className="text-[#b7c6c2]" />
                     <span>See the Archive</span>
@@ -653,7 +660,7 @@ function LongTermChecklistPage() {
                                 }))}
                                 placeholder="e.g. Renew car insurance"
                                 className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-[#69D2A6] focus:ring-[#69D2A6]"
-                                onKeyDown={e => e.key === "Enter" && handleSubmit()} />
+                                onKeyDown={e => e.key === "Enter" && !isSubmitting && handleSubmit()} />
                         </div>
                         <div>
                             <label className="section-header block mb-2">Points</label>
@@ -726,12 +733,12 @@ function LongTermChecklistPage() {
                                                 </button>
                             <button
                                 onClick={handleSubmit}
-                                disabled={!form.label.trim() || form.points === "" || !Number.isFinite(Number(form.points)) || Number(form.points) < 0}
+                                disabled={isSubmitting || !form.label.trim() || form.points === "" || !Number.isFinite(Number(form.points)) || Number(form.points) < 0}
                                 className="flex-1 py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]">Save
                                                 </button>
                         </div>) : (<button
                             onClick={handleSubmit}
-                            disabled={!form.label.trim() || form.points === "" || !Number.isFinite(Number(form.points)) || Number(form.points) < 0}
+                            disabled={isSubmitting || !form.label.trim() || form.points === "" || !Number.isFinite(Number(form.points)) || Number(form.points) < 0}
                             className="w-full py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]">Add Task
                                           </button>)}
                     </div>
@@ -746,24 +753,19 @@ function LongTermChecklistPage() {
                     onClick={e => e.stopPropagation()}>
                     <div className="flex flex-col items-center text-center mb-5">
                         <div
-                            className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-3">
-                            <Trash2 className="text-[#ca0013]" size={28} />
+                            className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
+                            <Archive className="text-[#171e19]" size={28} />
                         </div>
-                        <h3 className="text-lg font-semibold text-[#171e19]">Delete this task?
-                                          </h3>
-                        <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">"{editingItem.label}" and its sub-tasks will be removed
-                                            permanently. This can't be undone.
-                                          </p>
+                        <h3 className="text-lg font-semibold text-[#171e19]">Move to Archive?</h3>
+                        <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">"{editingItem.label}" will be moved to the Archive, where you can delete it permanently or reinstate it to the Long-term checklist.</p>
                     </div>
                     <div className="flex gap-3">
                         <button
                             onClick={() => setShowDeleteConfirm(false)}
-                            className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]">Cancel
-                                          </button>
+                            className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]">Cancel</button>
                         <button
                             onClick={handleDelete}
-                            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]">Delete
-                                          </button>
+                            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]">Move to Archive</button>
                     </div>
                 </div>
             </div>)}
@@ -1129,6 +1131,7 @@ function FlagSelector(
             </button>
             {open && createPortal(<div
                 ref={listRef}
+                onPointerDown={e => e.stopPropagation()}
                 className="fixed z-[300] bg-white rounded-[1.25rem] border border-[#b7c6c2]/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] p-1.5 max-h-60 overflow-y-auto animate-fade-in-up">
                 <button
                     type="button"

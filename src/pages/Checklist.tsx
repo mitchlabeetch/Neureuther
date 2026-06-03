@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
-import { Check, Plus, Trash2, Pencil, Star, X, CalendarDays, User, LayoutGrid, ChevronRight, PartyPopper } from 'lucide-react';
+import { Check, Plus, Trash2, Pencil, Star, X, CalendarDays, User, LayoutGrid, ChevronRight, PartyPopper, Archive } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
@@ -39,8 +39,8 @@ function ChecklistPage() {
 
   const navigate = useNavigate();
 
-  const completed = state.checklistItems.filter((i) => i.completed).length;
-  const total = state.checklistItems.length;
+  const completed = state.checklistItems.filter((i) => i.kind === "daily" && !i.archived && i.completed).length;
+  const total = state.checklistItems.filter((i) => i.kind === "daily" && !i.archived).length;
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   const triggerSuccess = (points: number) => {
@@ -49,8 +49,10 @@ function ChecklistPage() {
     successTimeoutRef.current = setTimeout(() => setSuccessAnimation(null), 1800);
   };
 
+  const dailyItems = state.checklistItems.filter((i) => i.kind === "daily" && !i.archived);
+
   const completeItem = (itemId: string, userId: string) => {
-    const item = state.checklistItems.find((i) => i.id === itemId);
+    const item = dailyItems.find((i) => i.id === itemId);
     if (!item) return;
     toggleChecklistItem(itemId, userId);
     awardPoints(userId, item.points, `Completed: ${item.label}`);
@@ -58,7 +60,7 @@ function ChecklistPage() {
   };
 
   const handleToggle = (id: string) => {
-    const item = state.checklistItems.find((i) => i.id === id);
+    const item = dailyItems.find((i) => i.id === id);
     if (!item) return;
     if (!item.completed) {
       if (state.users.length > 1) {
@@ -118,9 +120,9 @@ function ChecklistPage() {
     closeEdit();
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!editingItem) return;
-    removeChecklistItem(editingItem.id);
+    await updateChecklistItem(editingItem.id, { archived: true });
     setShowDeleteConfirm(false);
     setEditingItem(null);
   };
@@ -150,7 +152,7 @@ function ChecklistPage() {
 
       {/* List */}
       <div className="px-5 space-y-2.5 mb-3">
-        {state.checklistItems.map((item, index) => {
+        {state.checklistItems.filter((i) => i.kind === "daily" && !i.archived).map((item, index) => {
           const completedBy = item.completedBy
             ? getUserById(item.completedBy)
             : null;
@@ -206,7 +208,7 @@ function ChecklistPage() {
             </div>
           );
         })}
-        {state.checklistItems.length === 0 && (
+        {state.checklistItems.filter((i) => i.kind === "daily" && !i.archived).length === 0 && (
           <div className="text-center py-8 text-[#b7c6c2] text-sm">
             No tasks yet — tap <strong>Add new task</strong> below to create one
           </div>
@@ -348,14 +350,14 @@ function ChecklistPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col items-center text-center mb-5">
-              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-3">
-                <Trash2 className="text-[#ca0013]" size={28} />
+              <div className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
+                <Archive className="text-[#171e19]" size={28} />
               </div>
               <h3 className="text-lg font-semibold text-[#171e19]">
-                Delete this task?
+                Move to Archive?
               </h3>
               <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">
-                "{editingItem.label}" will be removed permanently. This can't be undone.
+                "{editingItem.label}" will be moved to the Archive, where you can delete it permanently or reinstate it to the Daily checklist.
               </p>
             </div>
             <div className="flex gap-3">
@@ -369,7 +371,7 @@ function ChecklistPage() {
                 onClick={handleDeleteConfirm}
                 className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
               >
-                Delete
+                Move to Archive
               </button>
             </div>
           </div>
@@ -410,7 +412,7 @@ function ChecklistPage() {
             </div>
             <div className="space-y-2">
               {state.users.map((u) => {
-                const pickerItem = state.checklistItems.find(
+                const pickerItem = dailyItems.find(
                   (i) => i.id === activePicker
                 );
                 const points = pickerItem?.points ?? 5;
@@ -490,6 +492,20 @@ function ChecklistPage() {
             <div className="flex-1 text-left">
               <div className="text-sm font-medium text-[#171e19]">See all checklists</div>
               <div className="text-xs text-[#b7c6c2] mt-0.5">Browse every checklist</div>
+            </div>
+            <ChevronRight size={16} className="text-[#b7c6c2]" />
+          </button>
+
+          <button
+            onClick={() => navigate("/checklist/archive")}
+            className="w-full flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all active:scale-[0.99] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#eeebe3] flex items-center justify-center shrink-0">
+              <Archive className="text-[#95a5a0]" size={20} />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-[#171e19]">Archive</div>
+              <div className="text-xs text-[#b7c6c2] mt-0.5">Archived tasks & checklists</div>
             </div>
             <ChevronRight size={16} className="text-[#b7c6c2]" />
           </button>

@@ -11,6 +11,7 @@ import {
   ListTree,
   Inbox,
   Users,
+  RotateCcw,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { describeDeadline } from "@/lib/deadline";
@@ -19,6 +20,7 @@ function LongTermArchivePage() {
   const {
     state,
     removeChecklistItem,
+    updateChecklistItem,
     getUserById,
     getFlagById,
   } = useApp();
@@ -46,7 +48,9 @@ function LongTermArchivePage() {
   }, [state.checklistSubtasks]);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [restoreId, setRestoreId] = useState<string | null>(null);
   const itemToDelete = archived.find((i) => i.id === deleteId);
+  const itemToRestore = archived.find((i) => i.id === restoreId);
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
@@ -193,7 +197,24 @@ function LongTermArchivePage() {
                 </span>
               </div>
 
-              <div className="flex justify-end mt-3">
+              <div className="flex justify-end gap-2 mt-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setRestoreId(item.id)}
+                      className="px-3 py-1.5 rounded-full bg-[#eeebe3] text-[#b7c6c2] hover:text-[#10B981] hover:bg-green-50 transition-all active:scale-90 flex items-center gap-1.5 text-[11px] font-semibold"
+                      aria-label="Reinstate task"
+                    >
+                      <RotateCcw size={12} /> Reinstate
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className="rounded-xl bg-[#171e19] text-white border-none text-[11px] font-medium px-2.5 py-1.5 shadow-lg"
+                  >
+                    Move back to Long-term checklist
+                  </TooltipContent>
+                </Tooltip>
                 <button
                   onClick={() => setDeleteId(item.id)}
                   className="px-3 py-1.5 rounded-full bg-[#eeebe3] text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90 flex items-center gap-1.5 text-[11px] font-semibold"
@@ -244,6 +265,53 @@ function LongTermArchivePage() {
                 className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reinstate confirmation */}
+      {restoreId && itemToRestore && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center px-5"
+          onClick={() => setRestoreId(null)}
+        >
+          <div
+            className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-3">
+                <RotateCcw className="text-[#10B981]" size={28} />
+              </div>
+              <h3 className="text-lg font-semibold text-[#171e19]">
+                Reinstate this task?
+              </h3>
+              <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">
+                "{itemToRestore.label}" will be moved back to the <strong>Long-term</strong> checklist.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRestoreId(null)}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await updateChecklistItem(itemToRestore.id, {
+                    archived: false,
+                    completed: false,
+                    completedBy: null,
+                    completedAt: null,
+                  });
+                  setRestoreId(null);
+                }}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#10B981] hover:bg-[#059669] transition-all active:scale-[0.98]"
+              >
+                Reinstate
               </button>
             </div>
           </div>

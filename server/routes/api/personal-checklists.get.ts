@@ -11,9 +11,9 @@ export default defineHandler(async (event) => {
 
   const rows = await sql`
     SELECT pc.id, pc.user_id, pc.name, pc.bg_color, pc.flag_id, pc.deadline,
-           pc.sort_order, pc.created_at, pc.updated_at
+           pc.archived, pc.sort_order, pc.created_at, pc.updated_at
     FROM personal_checklists pc
-    WHERE pc.user_id = ${userId}
+    WHERE pc.user_id = ${userId} AND pc.archived = FALSE
     ORDER BY pc.sort_order, pc.created_at
   `;
 
@@ -33,8 +33,8 @@ export default defineHandler(async (event) => {
 
   return (rows as Array<{
     id: string; user_id: string; name: string; bg_color: string;
-    flag_id: string | null; deadline: string | null; sort_order: number;
-    created_at: string; updated_at: string;
+    flag_id: string | null; deadline: string | null; archived: boolean;
+    sort_order: number; created_at: string; updated_at: string;
   }>).map((r) => {
     const counts = countMap.get(r.id) ?? { total: 0, done: 0 };
     return {
@@ -44,6 +44,7 @@ export default defineHandler(async (event) => {
       bgColor: r.bg_color,
       flagId: r.flag_id,
       deadline: r.deadline ? new Date(r.deadline).toISOString() : null,
+      archived: Boolean(r.archived),
       sortOrder: r.sort_order,
       createdAt: new Date(r.created_at).toISOString(),
       updatedAt: new Date(r.updated_at).toISOString(),

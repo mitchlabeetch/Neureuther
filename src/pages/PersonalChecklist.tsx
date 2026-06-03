@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/lib/store";
 import { BottomNav } from "@/components/BottomNav";
@@ -13,12 +13,45 @@ import {
   Palette,
   Clock,
   ChevronRight,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { describeDeadline } from "@/lib/deadline";
 import type { PersonalChecklist } from "@/lib/store";
+
+// ── PIN lock helpers ──
+const PIN_LOCK_KEY = "personal-checklist-pin-lock";
+
+function getLockUsers(): string[] {
+  try {
+    const raw = localStorage.getItem(PIN_LOCK_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function isUserLocked(userId: string): boolean {
+  return getLockUsers().includes(userId);
+}
+
+function setUserLocked(userId: string, locked: boolean) {
+  const users = getLockUsers();
+  if (locked && !users.includes(userId)) {
+    users.push(userId);
+  } else if (!locked) {
+    const idx = users.indexOf(userId);
+    if (idx >= 0) users.splice(idx, 1);
+  }
+  localStorage.setItem(PIN_LOCK_KEY, JSON.stringify(users));
+}
+
+async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } });
+  if (!res.ok) throw new Error("Request failed");
+  return await res.json() as T;
+}
 
 const BG_COLORS = [
   "#ffffff", "#fff8e1", "#e8f5e9", "#e3f2fd", "#fce4ec",
@@ -75,10 +108,25 @@ export default function PersonalChecklistPage() {
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
+  // ── PIN lock state ──
+  const [pinLocked, setPinLocked] = useState(false);
+  const [showPinEntry, setShowPinEntry] = useState(false);
+  const [pin, setPin] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [pinError, setPinError] = useState("");
+  const [verifying, setVerifying] = useState(false);
+
+  useEffect(() => {
+    if (selectedUserId) {
+      setPinLocked(isUserLocked(selectedUserId));
+    }
+  }, [selectedUserId]);
+
   const userChecklists = useMemo(
     () =>
       selectedUserId
-        ? state.personalChecklists.filter((c) => c.userId === selectedUserId)
+        ? state.personalChecklists.filter((c) => c.userId === selectedUserId && !c.archived)
         : [],
     [state.personalChecklists, selectedUserId],
   );
@@ -145,10 +193,10 @@ export default function PersonalChecklistPage() {
 
   const handleDelete = useCallback(async () => {
     if (!editingChecklist) return;
-    await removePersonalChecklist(editingChecklist.id);
+    await updatePersonalChecklist(editingChecklist.id, { archived: true });
     setShowDeleteConfirm(false);
     closeDialog();
-  }, [editingChecklist, removePersonalChecklist, closeDialog]);
+  }, [editingChecklist, updatePersonalChecklist, closeDialog]);
 
   // ── Flag helpers ──
   const openFlagCreate = useCallback(() => {
@@ -178,6 +226,66 @@ export default function PersonalChecklistPage() {
     }
     closeFlagManager();
   }, [flagForm, editingFlag, addFlag, updateFlag, closeFlagManager]);
+
+  // ── PIN lock helpers ──
+  const handleSelectUser = useCallback((userId: string) => {
+    setSelectedUserId(userId);
+    setPinLocked(isUserLocked(userId));
+    if (isUserLocked(userId)) {
+      setPin("");
+      setPinConfirm("");
+      setPinError("");
+      setIsFirstTime(false);
+      setShowPinEntry(true);
+    } else {
+      setShowPinEntry(false);
+    }
+  }, []);
+
+  const handlePinSubmit = useCallback(async () => {
+    if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+      setPinError("Enter a 4-digit PIN");
+      return;
+    }
+    if (isFirstTime && pinConfirm !== pin) {
+      setPinError("PINs do not match");
+      return;
+    }
+    setVerifying(true);
+    try {
+      const result = await api<{ action: string; valid: boolean }>("/api/money/personal/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ userId: selectedUserId, pin }),
+      });
+      if (result.action === "set" || result.valid) {
+        setPin("");
+        setPinConfirm("");
+        setPinError("");
+        setIsFirstTime(false);
+        setShowPinEntry(false);
+      } else {
+        setPinError("Wrong PIN. Try again.");
+        setPin("");
+      }
+    } catch {
+      setPinError("Something went wrong");
+      setPin("");
+    }
+    setVerifying(false);
+  }, [pin, pinConfirm, isFirstTime, selectedUserId]);
+
+  const togglePinLock = useCallback(() => {
+    if (!selectedUserId) return;
+    const newLocked = !pinLocked;
+    if (newLocked) {
+      // Enabling lock — check if user has a pin
+      setUserLocked(selectedUserId, true);
+      setPinLocked(true);
+    } else {
+      setUserLocked(selectedUserId, false);
+      setPinLocked(false);
+    }
+  }, [selectedUserId, pinLocked]);
 
   // ── If no user selected: show user picker ──
   if (!selectedUserId) {
@@ -223,11 +331,12 @@ export default function PersonalChecklistPage() {
                 Who are you?
               </p>
               {state.users.map((u) => {
-                const count = state.personalChecklists.filter((c) => c.userId === u.id).length;
+                const count = state.personalChecklists.filter((c) => c.userId === u.id && !c.archived).length;
+                const locked = isUserLocked(u.id);
                 return (
                   <button
                     key={u.id}
-                    onClick={() => setSelectedUserId(u.id)}
+                    onClick={() => handleSelectUser(u.id)}
                     className="w-full flex items-center gap-4 p-5 rounded-[1.5rem] bg-white border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] transition-all duration-300 active:scale-[0.98] group"
                   >
                     <div
@@ -242,6 +351,7 @@ export default function PersonalChecklistPage() {
                         {count} {count === 1 ? "checklist" : "checklists"}
                       </span>
                     </div>
+                    {locked && <Lock size={18} className="text-[#b7c6c2]" />}
                     <ChevronRight size={20} className="text-[#b7c6c2] group-hover:text-[#171e19] transition-colors" />
                   </button>
                 );
@@ -251,6 +361,123 @@ export default function PersonalChecklistPage() {
         </div>
 
         <BottomNav />
+      </div>
+    );
+  }
+
+  // ── PIN Entry Screen ──
+  if (showPinEntry) {
+    const user = state.users.find((u) => u.id === selectedUserId)!;
+    return (
+      <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
+        <div className="px-5 pt-14 pb-4 flex flex-col items-center animate-fade-in-up">
+          <button
+            onClick={() => { setSelectedUserId(null); setShowPinEntry(false); setPin(""); setPinConfirm(""); setPinError(""); setIsFirstTime(false); }}
+            className="self-start flex items-center gap-1.5 text-sm font-medium text-[#b7c6c2] hover:text-[#171e19] transition-colors mb-6"
+          >
+            <ChevronRight size={16} className="rotate-180" /> All users
+          </button>
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center text-3xl mb-4"
+            style={{ backgroundColor: user.color + "20" }}
+          >
+            {user.emoji}
+          </div>
+          <h2 className="text-xl font-semibold text-[#171e19] mb-1">{user.name}'s Space</h2>
+          {isFirstTime ? (
+            <>
+              <p className="text-sm text-[#b7c6c2] font-medium mb-1">
+                {pin.length === 0 ? "First time! Set a 4-digit PIN" : "Confirm your PIN"}
+              </p>
+              {pin.length === 4 && (
+                <p className="text-xs text-[#b7c6c2] font-medium mb-4">Re-enter to confirm</p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-[#b7c6c2] font-medium mb-6">Enter your PIN</p>
+          )}
+
+          {/* PIN dots */}
+          <div className="flex gap-4 mb-6">
+            {Array.from({ length: 4 }).map((_, i) => {
+              const filled = isFirstTime && pin.length === 4
+                ? i < pinConfirm.length
+                : i < pin.length;
+              return (
+                <div
+                  key={i}
+                  className={`w-4 h-4 rounded-full transition-all duration-200 ${
+                    filled ? "bg-[#171e19] scale-110" : "bg-[#b7c6c2]/30"
+                  }`}
+                />
+              );
+            })}
+          </div>
+
+          {pinError && <p className="text-sm text-[#ca0013] font-medium mb-4">{pinError}</p>}
+
+          {/* Numpad */}
+          <div className="grid grid-cols-3 gap-3 max-w-[240px]">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+              <button
+                key={n}
+                onClick={() => {
+                  if (isFirstTime && pin.length === 4) {
+                    if (pinConfirm.length < 4) setPinConfirm(prev => prev + n);
+                  } else {
+                    if (pin.length < 4) setPin(prev => prev + n);
+                  }
+                  setPinError("");
+                }}
+                className="w-16 h-16 rounded-2xl bg-white border border-[#b7c6c2]/20 text-xl font-semibold text-[#171e19] hover:bg-[#eeebe3] transition-all active:scale-95"
+              >
+                {n}
+              </button>
+            ))}
+            <div />
+            <button
+              onClick={() => {
+                if (isFirstTime && pin.length === 4) setPinConfirm(prev => prev.slice(0, -1));
+                else if (pin.length > 0) setPin(prev => prev.slice(0, -1));
+                setPinError("");
+              }}
+              className="w-16 h-16 rounded-2xl bg-white border border-[#b7c6c2]/20 flex items-center justify-center text-[#b7c6c2] hover:bg-red-50 hover:text-[#ca0013] transition-all active:scale-95"
+            >
+              <X size={20} />
+            </button>
+            <button
+              key={0}
+              onClick={() => {
+                if (isFirstTime && pin.length === 4) {
+                  if (pinConfirm.length < 4) setPinConfirm(prev => prev + '0');
+                } else {
+                  if (pin.length < 4) setPin(prev => prev + '0');
+                }
+                setPinError("");
+              }}
+              className="w-16 h-16 rounded-2xl bg-white border border-[#b7c6c2]/20 text-xl font-semibold text-[#171e19] hover:bg-[#eeebe3] transition-all active:scale-95"
+            >
+              0
+            </button>
+          </div>
+
+          <button
+            onClick={handlePinSubmit}
+            disabled={verifying || (isFirstTime ? (pin.length !== 4 || pinConfirm.length !== 4) : pin.length !== 4)}
+            className="mt-6 w-full max-w-[240px] py-3.5 rounded-2xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
+          >
+            {verifying ? "Verifying…" : isFirstTime ? "Set PIN" : "Unlock"}
+          </button>
+
+          {!isFirstTime && (
+            <button
+              onClick={() => { setIsFirstTime(true); setPin(""); setPinConfirm(""); setPinError(""); }}
+              className="mt-3 text-xs text-[#b7c6c2] underline"
+            >
+              First time? Set PIN
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -283,6 +510,25 @@ export default function PersonalChecklistPage() {
               {userChecklists.length} {userChecklists.length === 1 ? "checklist" : "checklists"} · no points here
             </p>
           </div>
+          {/* PIN lock toggle */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={togglePinLock}
+                className={`p-2.5 rounded-full transition-all active:scale-90 ${
+                  pinLocked
+                    ? "bg-[#171e19] text-white"
+                    : "bg-[#eeebe3] text-[#b7c6c2] hover:text-[#171e19]"
+                }`}
+                aria-label={pinLocked ? "Unlock space (disable PIN)" : "Lock space with PIN"}
+              >
+                {pinLocked ? <Lock size={18} /> : <Unlock size={18} />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="rounded-xl bg-[#171e19] text-white border-none text-[11px] font-medium px-2.5 py-1.5 shadow-lg">
+              {pinLocked ? "PIN lock on — tap to disable" : "Tap to lock with your PIN"}
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -536,7 +782,7 @@ export default function PersonalChecklistPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirmation */}
+      {/* Delete confirmation — asks if willing to "share" by archiving */}
       {showDeleteConfirm && editingChecklist && (
         <div
           className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center px-5"
@@ -544,26 +790,26 @@ export default function PersonalChecklistPage() {
         >
           <div className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col items-center text-center mb-5">
-              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-3">
-                <Trash2 className="text-[#ca0013]" size={28} />
+              <div className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
+                <Trash2 className="text-[#171e19]" size={28} />
               </div>
-              <h3 className="text-lg font-semibold text-[#171e19]">Delete this checklist?</h3>
+              <h3 className="text-lg font-semibold text-[#171e19]">Move to Archive?</h3>
               <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">
-                "{editingChecklist.name}" and all its tasks will be removed permanently. This can't be undone.
+                "{editingChecklist.name}" will be moved to the shared Archive. This means others in the household will be able to see and reuse it. Are you okay with sharing it?
               </p>
             </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]"
-              >
-                Cancel
-              </button>
+            <div className="flex flex-col gap-2">
               <button
                 onClick={handleDelete}
-                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
+                className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
               >
-                Delete
+                Yes, move to shared Archive
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="w-full py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]"
+              >
+                Cancel
               </button>
             </div>
           </div>

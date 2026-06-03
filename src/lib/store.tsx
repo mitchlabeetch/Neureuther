@@ -13,7 +13,7 @@ export interface User {
   emoji: string;
 }
 
-export type TaskKind = "daily" | "long_term";
+export type TaskKind = "daily" | "long_term" | "random";
 
 export interface ChecklistItem {
   id: string;
@@ -75,6 +75,7 @@ export interface PersonalChecklist {
   bgColor: string;
   flagId: string | null;
   deadline: string | null;
+  archived: boolean;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -173,8 +174,8 @@ interface AppContextValue {
   getUserPoints: (userId: string) => number;
   getUserById: (id: string) => User | undefined;
   getFlagById: (id: string | null | undefined) => TaskFlag | undefined;
-  addPersonalChecklist: (data: Omit<PersonalChecklist, "id" | "sortOrder" | "createdAt" | "updatedAt" | "totalTasks" | "doneTasks">) => Promise<void>;
-  updatePersonalChecklist: (id: string, data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline">>) => Promise<void>;
+  addPersonalChecklist: (data: Omit<PersonalChecklist, "id" | "sortOrder" | "createdAt" | "updatedAt" | "totalTasks" | "doneTasks" | "archived">) => Promise<void>;
+  updatePersonalChecklist: (id: string, data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline" | "archived">>) => Promise<void>;
   removePersonalChecklist: (id: string) => Promise<void>;
   addPersonalChecklistTask: (data: Omit<PersonalChecklistTask, "id" | "completed" | "completedAt" | "sortOrder" | "createdAt">) => Promise<void>;
   updatePersonalChecklistTask: (id: string, data: Partial<Pick<PersonalChecklistTask, "label" | "completed" | "deadline">>) => Promise<void>;
@@ -438,7 +439,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // ── Personal Checklists mutations ────────────────────────────────────
   const addPersonalChecklistMut = useMutation({
-    mutationFn: (data: Omit<PersonalChecklist, "id" | "sortOrder" | "createdAt" | "updatedAt" | "totalTasks" | "doneTasks">) =>
+    mutationFn: (data: Omit<PersonalChecklist, "id" | "sortOrder" | "createdAt" | "updatedAt" | "totalTasks" | "doneTasks" | "archived">) =>
       api<PersonalChecklist>("/api/personal-checklists", {
         method: "POST",
         body: JSON.stringify(data),
@@ -447,7 +448,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   const updatePersonalChecklistMut = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline">> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline" | "archived">> }) =>
       api<{ ok: true }>(`/api/personal-checklists/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),

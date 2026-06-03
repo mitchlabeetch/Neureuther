@@ -12,14 +12,16 @@ export default defineHandler(async (event) => {
     bgColor?: string;
     flagId?: string | null;
     deadline?: string | null;
+    archived?: boolean;
   }>(event);
 
   const hasName = typeof body?.name === "string" && body.name.trim().length > 0;
   const hasBgColor = typeof body?.bgColor === "string";
   const hasFlag = body && Object.prototype.hasOwnProperty.call(body, "flagId");
   const hasDeadline = body && Object.prototype.hasOwnProperty.call(body, "deadline");
+  const hasArchived = body && Object.prototype.hasOwnProperty.call(body, "archived");
 
-  if (!hasName && !hasBgColor && !hasFlag && !hasDeadline) {
+  if (!hasName && !hasBgColor && !hasFlag && !hasDeadline && !hasArchived) {
     throw createError({ statusCode: 400, statusMessage: "no updatable fields" });
   }
 
@@ -34,6 +36,10 @@ export default defineHandler(async (event) => {
       deadline = CASE
         WHEN ${hasDeadline}::boolean THEN ${body.deadline ? new Date(body.deadline).toISOString() : null}::timestamptz
         ELSE deadline
+      END,
+      archived = CASE
+        WHEN ${hasArchived}::boolean THEN ${body.archived ?? false}::boolean
+        ELSE archived
       END,
       updated_at = now()
     WHERE id = ${id}
