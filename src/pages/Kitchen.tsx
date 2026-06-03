@@ -14,6 +14,8 @@ import {
   Plus,
   Pencil,
   X,
+  ShoppingBasket,
+  Croissant,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -166,9 +168,35 @@ function KitchenPage() {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Category cards */}
+              </div>
+        
+              {/* Meals & Groceries quick links */}
+              <div className="px-5 pb-5 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => navigate('/meals')}
+                    className="group bg-white rounded-[1.5rem] p-4 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_12px_32px_-10px_rgba(0,0,0,0.12)] hover:-translate-y-1 active:scale-[0.97]"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-[#FDA172]/15 flex items-center justify-center mb-3 transition-transform group-hover:scale-110">
+                      <Croissant size={22} className="text-[#FDA172]" />
+                    </div>
+                    <h4 className="text-sm font-semibold text-[#171e19] mb-0.5">Meals</h4>
+                    <p className="text-[11px] text-[#b7c6c2] font-medium">Plan & track meals</p>
+                  </button>
+                  <button
+                    onClick={() => navigate('/groceries')}
+                    className="group bg-white rounded-[1.5rem] p-4 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_12px_32px_-10px_rgba(0,0,0,0.12)] hover:-translate-y-1 active:scale-[0.97]"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-[#69D2A6]/15 flex items-center justify-center mb-3 transition-transform group-hover:scale-110">
+                      <ShoppingBasket size={22} className="text-[#69D2A6]" />
+                    </div>
+                    <h4 className="text-sm font-semibold text-[#171e19] mb-0.5">Groceries</h4>
+                    <p className="text-[11px] text-[#b7c6c2] font-medium">Shopping list</p>
+                  </button>
+                </div>
+              </div>
+        
+              {/* Category cards */}
       <div className="px-5 mb-5">
         <div className="grid grid-cols-2 gap-3">
           {categories.map((cat) => {

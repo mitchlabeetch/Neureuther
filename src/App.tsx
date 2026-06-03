@@ -21,6 +21,8 @@ import RewardsPage from "./pages/Rewards";
 import SettingsPage from "./pages/Settings";
 import MoneyPage from "./pages/Money";
 import KitchenPage from "./pages/Kitchen";
+import MealsPage from "./pages/Meals";
+import GroceriesPage from "./pages/Groceries";
 import DocumentsPage from "./pages/Documents";
 import DailyHabitsPage from "./pages/DailyHabits";
 import AuthPage from "./pages/auth/AuthPage";
@@ -53,7 +55,9 @@ const App = () => (
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/money" element={<MoneyPage />} />
                 <Route path="/kitchen" element={<KitchenPage />} />
-                <Route path="/documents" element={<DocumentsPage />} />
+                                <Route path="/meals" element={<MealsPage />} />
+                                <Route path="/groceries" element={<GroceriesPage />} />
+                                <Route path="/documents" element={<DocumentsPage />} />
                 <Route path="/daily-habits/:userId" element={<DailyHabitsPage />} />
                 <Route path="/auth/:path" element={<AuthPage />} />
                 <Route path="*" element={<NotFound />} />
