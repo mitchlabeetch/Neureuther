@@ -419,10 +419,10 @@ export function TogetherView(
             </div>
             {}
             {showAdd && (<div
-                className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
+                className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm"
                 onClick={() => setShowAdd(false)}>
                 <div
-                    className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-8 animate-slide-up max-h-[85vh] overflow-y-auto"
+                    className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-32 animate-slide-up max-h-[85vh] overflow-y-auto"
                     onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-xl font-semibold text-[#171e19]">New Expense</h3>

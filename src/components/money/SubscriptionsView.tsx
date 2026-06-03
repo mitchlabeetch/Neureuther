@@ -280,9 +280,9 @@ export function SubscriptionsView({ onBack }: { onBack: () => void }) {
 
       {/* Add Modal */}
       {showAdd && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowAdd(false)}>
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowAdd(false)}>
           <div
-            className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-8 animate-slide-up max-h-[85vh] overflow-y-auto"
+            className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-32 animate-slide-up max-h-[85vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">

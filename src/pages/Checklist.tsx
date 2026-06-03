@@ -392,7 +392,7 @@ function ChecklistPage() {
       {/* User picker modal */}
       {activePicker && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center"
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-end justify-center"
           onClick={() => setActivePicker(null)}
         >
           <div

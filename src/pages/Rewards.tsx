@@ -211,7 +211,7 @@ function RewardsPage() {
       {/* Redeem — Step 1: pick user */}
       {redeemItemId && !confirmingUser && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center"
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-end justify-center"
           onClick={() => setRedeemItemId(null)}
         >
           <div
@@ -274,11 +274,11 @@ function RewardsPage() {
       {/* Redeem — Step 2: confirm */}
       {redeemItemId && confirmingUser && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center px-5"
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center px-5"
           onClick={() => { setConfirmingUser(null); setRedeemItemId(null); }}
         >
           <div
-            className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 animate-scale-in"
+            className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 pb-10 animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col items-center text-center mb-5">

@@ -712,8 +712,8 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
 
       {/* Add Widget Modal */}
       {showAddWidget && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowAddWidget(false)}>
-          <div className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-8 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowAddWidget(false)}>
+          <div className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-32 animate-slide-up" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-[#171e19]">Add Widget</h3>
               <button onClick={() => setShowAddWidget(false)} className="w-10 h-10 rounded-full bg-[#eeebe3] flex items-center justify-center">
@@ -758,8 +758,8 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
 
       {/* Add Expense Modal */}
       {showAddExpense && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowAddExpense(false)}>
-          <div className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-8 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowAddExpense(false)}>
+          <div className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-32 animate-slide-up" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-[#171e19]">New Expense</h3>
               <button onClick={() => setShowAddExpense(false)} className="w-10 h-10 rounded-full bg-[#eeebe3] flex items-center justify-center">
@@ -806,8 +806,8 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
 
       {/* Add Subscription Modal */}
       {showAddSub && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowAddSub(false)}>
-          <div className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-8 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowAddSub(false)}>
+          <div className="bg-white rounded-t-[2.5rem] w-full max-w-lg p-6 pb-32 animate-slide-up" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-[#171e19]">New Subscription</h3>
               <button onClick={() => setShowAddSub(false)} className="w-10 h-10 rounded-full bg-[#eeebe3] flex items-center justify-center">

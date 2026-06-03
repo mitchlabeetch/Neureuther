@@ -774,11 +774,11 @@ function LongTermChecklistPage() {
       {/* User picker */}
       {activePicker && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center"
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-end justify-center"
           onClick={() => setActivePicker(null)}
         >
           <div
-            className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 animate-slide-up"
+            className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 pb-32 animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
@@ -877,11 +877,11 @@ function LongTermChecklistPage() {
       {/* Flag manager dialog */}
       {flagManagerOpen && (
         <div
-          className="fixed inset-0 z-[55] bg-black/40 backdrop-blur-sm flex items-end justify-center"
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-end justify-center"
           onClick={closeFlagManager}
         >
           <div
-            className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 animate-slide-up max-h-[80vh] overflow-y-auto"
+            className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 pb-32 animate-slide-up max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -1131,9 +1131,23 @@ function FlagSelector({
     apply();
     window.addEventListener("scroll", apply, true);
     window.addEventListener("resize", apply, true);
+
+    // Click-outside listener — closes the dropdown when the user clicks
+    // anywhere outside the trigger and the list. Using a doc-level
+    // listener avoids needing a full-viewport backdrop that could
+    // accidentally swallow events on the dropdown itself.
+    const onDocPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (trigger.contains(target) || list.contains(target)) return;
+      setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDocPointerDown);
+
     return () => {
       window.removeEventListener("scroll", apply, true);
       window.removeEventListener("resize", apply, true);
+      document.removeEventListener("pointerdown", onDocPointerDown);
     };
   }, [open]);
 
@@ -1171,17 +1185,10 @@ function FlagSelector({
 
       {open &&
         createPortal(
-          <>
-            {/* Backdrop overlay */}
-            <div
-              className="fixed inset-0 z-[299]"
-              onClick={() => setOpen(false)}
-            />
-            {/* Dropdown list */}
-            <div
-              ref={listRef}
-              className="fixed z-[300] bg-white rounded-[1.25rem] border border-[#b7c6c2]/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] p-1.5 max-h-60 overflow-y-auto animate-fade-in-up"
-            >
+          <div
+            ref={listRef}
+            className="fixed z-[300] bg-white rounded-[1.25rem] border border-[#b7c6c2]/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] p-1.5 max-h-60 overflow-y-auto animate-fade-in-up"
+          >
               <button
                 type="button"
                 onClick={() => {
@@ -1256,7 +1263,7 @@ function FlagSelector({
                 </button>
               </div>
             </div>
-          </>,
+          </div>,
           document.body,
         )}
     </div>
