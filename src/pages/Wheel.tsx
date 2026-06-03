@@ -544,7 +544,7 @@ function WheelPage() {
                 className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center"
                 onClick={() => setConfirmRemoveUser(null)}>
                 <div
-                    className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 animate-slide-up"
+                    className="bg-white rounded-t-[2.5rem] w-[calc(100%-2rem)] max-w-[480px] p-6 animate-slide-up"
                     onClick={e => e.stopPropagation()}>
                     <h3 className="text-lg font-extrabold text-[#2D2B2A] mb-3">Should {confirmRemoveUser.name}be taken out of this wheel?
                                                             </h3>
