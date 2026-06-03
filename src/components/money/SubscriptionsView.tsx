@@ -245,7 +245,13 @@ export function SubscriptionsView({ onBack }: { onBack: () => void }) {
                   <div className="flex-1 min-w-0">
                     <h4 className="text-[#171e19] font-semibold text-base truncate">{s.name}</h4>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-sm text-[#b7c6c2]">{s.paymentDate}</span>
+                      <span className="text-sm text-[#b7c6c2]">
+                        {new Date(s.paymentDate).toLocaleDateString(undefined, {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
                       <span className="text-sm font-bold text-[#171e19]">${s.amount.toFixed(2)}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
