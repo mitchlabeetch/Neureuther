@@ -59,24 +59,31 @@ function calculateBalances(expenses: SplitExpense[], userIds: string[]): Balance
         balances[uid] = 0;
 
     for (const exp of expenses) {
+        // Skip malformed expenses with an empty split (avoids division by zero).
+        if (exp.splitUserIds.length === 0)
+            continue;
+
         const perPerson = exp.amount / exp.splitUserIds.length;
-        balances[exp.paidBy] += exp.amount - perPerson;
+
+        // The payer is credited the full amount they paid.
+        // Then every person in the split owes their `perPerson` share —
+        // including the payer when they are part of the split.
+        // This conserves money: sum of all balances is always 0.
+        balances[exp.paidBy] = (balances[exp.paidBy] ?? 0) + exp.amount;
 
         for (const uid of exp.splitUserIds) {
-            if (uid !== exp.paidBy) {
-                balances[uid] -= perPerson;
-            }
+            balances[uid] = (balances[uid] ?? 0) - perPerson;
         }
     }
 
     return userIds.map(userId => ({
         userId,
-        balance: Math.round(balances[userId] * 100) / 100
+        balance: Math.round((balances[userId] ?? 0) * 100) / 100
     }));
 }
 
 function formatCurrency(amount: number): string {
-    return amount < 0 ? `-$${Math.abs(amount).toFixed(2)}` : `$${amount.toFixed(2)}`;
+    return amount < 0 ? `-€${Math.abs(amount).toFixed(2)}` : `€${amount.toFixed(2)}`;
 }
 
 export function TogetherView(
@@ -268,7 +275,8 @@ export function TogetherView(
                     }[] = [];
 
                     for (const c of creditors) {
-                        if (remaining <= 0.01)
+                        // Use a small epsilon to absorb floating-point dust from division.
+                        if (remaining <= 0.005)
                             break;
 
                         const pay = Math.min(remaining, c.balance);
@@ -278,7 +286,7 @@ export function TogetherView(
                             amount: Math.round(pay * 100) / 100
                         });
 
-                        remaining -= pay;
+                        remaining = Math.round((remaining - pay) * 100) / 100;
                     }
 
                     if (settlements.length === 0)
@@ -293,7 +301,7 @@ export function TogetherView(
                             <p
                                 key={`${b.userId}-${s.toUserId}`}
                                 className="text-xs text-[#b7c6c2] font-medium mt-2">
-                                {debtor?.name}owes {creditor?.name}${s.amount.toFixed(2)}
+                                {debtor?.name} owes {creditor?.name} €{s.amount.toFixed(2)}
                             </p>
                         );
                     });
@@ -387,7 +395,7 @@ export function TogetherView(
                                     <h4 className="text-[#171e19] font-semibold text-base truncate">{exp.title}</h4>
                                     <div className="flex items-center gap-2 mt-0.5">
                                         <span className="text-sm text-[#b7c6c2]">{exp.date}</span>
-                                        <span className="text-sm font-bold text-[#171e19]">${exp.amount.toFixed(2)}</span>
+                                        <span className="text-sm font-bold text-[#171e19]">€{exp.amount.toFixed(2)}</span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                                         <span className="text-xs text-[#b7c6c2]">Paid by: <span className="font-semibold text-[#171e19]">{payer?.emoji} {payer?.name}</span>
@@ -445,7 +453,7 @@ export function TogetherView(
                         <div className="flex gap-3">
                             <div className="flex-1">
                                 <label
-                                    className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#b7c6c2] block mb-1">Amount ($)</label>
+                                    className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#b7c6c2] block mb-1">Amount (€)</label>
                                 <input
                                     type="number"
                                     value={newAmount}

@@ -148,7 +148,7 @@ export function SubscriptionsView({ onBack }: { onBack: () => void }) {
       {/* Total Card */}
       <div className="bg-white rounded-[2.5rem] p-6 border border-[#b7c6c2]/20 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08)] mb-5 animate-fade-in-up">
         <p className="text-xs font-extrabold text-[#b7c6c2] uppercase tracking-[0.1em] mb-1">Monthly Total</p>
-        <p className="text-4xl font-bold text-[#171e19] tracking-tight">${total.toFixed(2)}</p>
+        <p className="text-4xl font-bold text-[#171e19] tracking-tight">€{total.toFixed(2)}</p>
         <p className="text-sm text-[#b7c6c2] font-medium mt-1">{subs.length} active subscription{subs.length !== 1 ? 's' : ''}</p>
       </div>
 
@@ -252,7 +252,7 @@ export function SubscriptionsView({ onBack }: { onBack: () => void }) {
                           return `${day}${suffix}`;
                         })()}
                       </span>
-                      <span className="text-sm font-bold text-[#171e19]">${s.amount.toFixed(2)}</span>
+                      <span className="text-sm font-bold text-[#171e19]">€{s.amount.toFixed(2)}</span>
                     </div>
                     {(() => {
                       const renewalDay = new Date(s.paymentDate).getDate();
@@ -322,7 +322,7 @@ export function SubscriptionsView({ onBack }: { onBack: () => void }) {
               </div>
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#b7c6c2] block mb-1">Amount ($)</label>
+                  <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#b7c6c2] block mb-1">Amount (€)</label>
                   <input
                     type="number"
                     value={newAmount}

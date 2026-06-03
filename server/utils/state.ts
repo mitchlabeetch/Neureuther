@@ -94,6 +94,66 @@ export interface PersonalChecklistTaskEntry {
   createdAt: string;
 }
 
+export interface MealRecipeEntry {
+  id: string;
+  name: string;
+  emoji: string;
+  notes: string;
+  cuisine: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MealRecipeIngredientEntry {
+  id: string;
+  recipeId: string;
+  name: string;
+  quantity: string | null;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface MealPlanEntryEntry {
+  id: string;
+  weekStartDate: string;
+  dayOfWeek: number;
+  slot: "lunch" | "dinner";
+  recipeId: string | null;
+  customName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GroceryMainItemEntry {
+  id: string;
+  name: string;
+  quantity: string | null;
+  checked: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface GroceryListEntry {
+  id: string;
+  name: string;
+  emoji: string;
+  archived: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GroceryListItemEntry {
+  id: string;
+  listId: string;
+  name: string;
+  quantity: string | null;
+  checked: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
 export interface AppStatePayload {
   users: User[];
   checklistItems: ChecklistItem[];
@@ -104,6 +164,12 @@ export interface AppStatePayload {
   pointsLog: PointsLogEntry[];
   personalChecklists: PersonalChecklistEntry[];
   personalChecklistTasks: PersonalChecklistTaskEntry[];
+  mealRecipes: MealRecipeEntry[];
+  mealRecipeIngredients: MealRecipeIngredientEntry[];
+  mealPlanEntries: MealPlanEntryEntry[];
+  groceryMainItems: GroceryMainItemEntry[];
+  groceryLists: GroceryListEntry[];
+  groceryListItems: GroceryListItemEntry[];
 }
 
 function todayUtc(): string {
@@ -160,6 +226,12 @@ export async function loadAppState(
     pointsLog,
     personalChecklists,
     personalChecklistTasksRaw,
+    mealRecipes,
+    mealRecipeIngredients,
+    mealPlanEntries,
+    groceryMainItems,
+    groceryLists,
+    groceryListItems,
   ] = await Promise.all([
     sql`SELECT id, name, color, emoji FROM users ORDER BY sort_order, created_at`,
     sql`SELECT id, label, completed, completed_by, completed_at, points,
@@ -189,6 +261,20 @@ export async function loadAppState(
         ORDER BY pc.sort_order, pc.created_at`,
     sql`SELECT id, checklist_id, label, completed, completed_at, deadline, sort_order, created_at
         FROM personal_checklist_tasks ORDER BY sort_order, created_at`,
+    sql`SELECT id, name, emoji, notes, cuisine, sort_order, created_at, updated_at
+        FROM meal_recipes ORDER BY sort_order, created_at`,
+    sql`SELECT id, recipe_id, name, quantity, sort_order, created_at
+        FROM meal_recipe_ingredients ORDER BY sort_order, created_at`,
+    sql`SELECT id, week_start_date, day_of_week, slot, recipe_id, custom_name,
+               created_at, updated_at
+        FROM meal_plan_entries ORDER BY week_start_date, day_of_week, slot`,
+    sql`SELECT id, name, quantity, checked, sort_order, created_at
+        FROM grocery_main_items ORDER BY sort_order, created_at`,
+    sql`SELECT id, name, emoji, archived, sort_order, created_at, updated_at
+        FROM grocery_lists WHERE archived = FALSE
+        ORDER BY sort_order, created_at`,
+    sql`SELECT id, list_id, name, quantity, checked, sort_order, created_at
+        FROM grocery_list_items ORDER BY sort_order, created_at`,
   ]);
 
   const usersByConfig = new Map<string, string[]>();
@@ -273,21 +359,21 @@ export async function loadAppState(
       createdAt: new Date(f.created_at).toISOString(),
     })),
     wheelConfigs: (
-          wheels as Array<{
-            id: string;
-            title: string;
-            points_per_task: number;
-            last_pick_user_id: string | null;
-            last_pick_at: string | null;
-          }>
-        ).map((w) => ({
-          id: w.id,
-          title: w.title,
-          pointsPerTask: w.points_per_task,
-          users: usersByConfig.get(w.id) ?? [],
-          lastPickUserId: w.last_pick_user_id,
-          lastPickAt: w.last_pick_at ? new Date(w.last_pick_at).toISOString() : null,
-        })),
+      wheels as Array<{
+        id: string;
+        title: string;
+        points_per_task: number;
+        last_pick_user_id: string | null;
+        last_pick_at: string | null;
+      }>
+    ).map((w) => ({
+      id: w.id,
+      title: w.title,
+      pointsPerTask: w.points_per_task,
+      users: usersByConfig.get(w.id) ?? [],
+      lastPickUserId: w.last_pick_user_id,
+      lastPickAt: w.last_pick_at ? new Date(w.last_pick_at).toISOString() : null,
+    })),
     rewardItems: (
       rewards as Array<{
         id: string;
@@ -371,6 +457,123 @@ export async function loadAppState(
       deadline: t.deadline ? new Date(t.deadline).toISOString() : null,
       sortOrder: t.sort_order,
       createdAt: new Date(t.created_at).toISOString(),
+    })),
+    mealRecipes: (
+      mealRecipes as Array<{
+        id: string;
+        name: string;
+        emoji: string;
+        notes: string;
+        cuisine: string | null;
+        sort_order: number;
+        created_at: string;
+        updated_at: string;
+      }>
+    ).map((r) => ({
+      id: r.id,
+      name: r.name,
+      emoji: r.emoji || "🍽️",
+      notes: r.notes || "",
+      cuisine: r.cuisine,
+      sortOrder: Number(r.sort_order) || 0,
+      createdAt: new Date(r.created_at).toISOString(),
+      updatedAt: new Date(r.updated_at).toISOString(),
+    })),
+    mealRecipeIngredients: (
+      mealRecipeIngredients as Array<{
+        id: string;
+        recipe_id: string;
+        name: string;
+        quantity: string | null;
+        sort_order: number;
+        created_at: string;
+      }>
+    ).map((i) => ({
+      id: i.id,
+      recipeId: i.recipe_id,
+      name: i.name,
+      quantity: i.quantity,
+      sortOrder: Number(i.sort_order) || 0,
+      createdAt: new Date(i.created_at).toISOString(),
+    })),
+    mealPlanEntries: (
+      mealPlanEntries as Array<{
+        id: string;
+        week_start_date: string;
+        day_of_week: number;
+        slot: string;
+        recipe_id: string | null;
+        custom_name: string | null;
+        created_at: string;
+        updated_at: string;
+      }>
+    ).map((p) => ({
+      id: p.id,
+      weekStartDate:
+        typeof p.week_start_date === "string"
+          ? p.week_start_date.slice(0, 10)
+          : new Date(p.week_start_date).toISOString().slice(0, 10),
+      dayOfWeek: p.day_of_week,
+      slot: p.slot === "dinner" ? "dinner" : "lunch",
+      recipeId: p.recipe_id,
+      customName: p.custom_name,
+      createdAt: new Date(p.created_at).toISOString(),
+      updatedAt: new Date(p.updated_at).toISOString(),
+    })),
+    groceryMainItems: (
+      groceryMainItems as Array<{
+        id: string;
+        name: string;
+        quantity: string | null;
+        checked: boolean;
+        sort_order: number;
+        created_at: string;
+      }>
+    ).map((g) => ({
+      id: g.id,
+      name: g.name,
+      quantity: g.quantity,
+      checked: Boolean(g.checked),
+      sortOrder: Number(g.sort_order) || 0,
+      createdAt: new Date(g.created_at).toISOString(),
+    })),
+    groceryLists: (
+      groceryLists as Array<{
+        id: string;
+        name: string;
+        emoji: string;
+        archived: boolean;
+        sort_order: number;
+        created_at: string;
+        updated_at: string;
+      }>
+    ).map((l) => ({
+      id: l.id,
+      name: l.name,
+      emoji: l.emoji || "🛒",
+      archived: Boolean(l.archived),
+      sortOrder: Number(l.sort_order) || 0,
+      createdAt: new Date(l.created_at).toISOString(),
+      updatedAt: new Date(l.updated_at).toISOString(),
+    })),
+    groceryListItems: (
+      groceryListItems as Array<{
+        id: string;
+        list_id: string;
+        name: string;
+        quantity: string | null;
+        checked: boolean;
+        sort_order: number;
+        created_at: string;
+      }>
+    ).map((g) => ({
+      id: g.id,
+      listId: g.list_id,
+      name: g.name,
+      quantity: g.quantity,
+      checked: Boolean(g.checked),
+      sortOrder: Number(g.sort_order) || 0,
+      createdAt: new Date(g.created_at).toISOString(),
     })),
   };
 }

@@ -99,6 +99,74 @@ export interface PersonalChecklistTask {
   createdAt: string;
 }
 
+export interface MealRecipe {
+  id: string;
+  name: string;
+  emoji: string;
+  notes: string;
+  cuisine: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MealRecipeIngredient {
+  id: string;
+  recipeId: string;
+  name: string;
+  quantity: string | null;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface MealPlanEntry {
+  id: string;
+  weekStartDate: string;
+  dayOfWeek: number;
+  slot: "lunch" | "dinner";
+  recipeId: string | null;
+  customName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GroceryMainItem {
+  id: string;
+  name: string;
+  quantity: string | null;
+  checked: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface GroceryList {
+  id: string;
+  name: string;
+  emoji: string;
+  archived: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GroceryListItem {
+  id: string;
+  listId: string;
+  name: string;
+  quantity: string | null;
+  checked: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export type MealSlot = "lunch" | "dinner";
+
+export interface IngredientSuggestion {
+  name: string;
+  useCount: number;
+  lastUsedAt: string;
+}
+
 interface AppState {
   users: User[];
   checklistItems: ChecklistItem[];
@@ -109,6 +177,12 @@ interface AppState {
   pointsLog: PointsLog[];
   personalChecklists: PersonalChecklist[];
   personalChecklistTasks: PersonalChecklistTask[];
+  mealRecipes: MealRecipe[];
+  mealRecipeIngredients: MealRecipeIngredient[];
+  mealPlanEntries: MealPlanEntry[];
+  groceryMainItems: GroceryMainItem[];
+  groceryLists: GroceryList[];
+  groceryListItems: GroceryListItem[];
 }
 
 const EMPTY_STATE: AppState = {
@@ -121,6 +195,12 @@ const EMPTY_STATE: AppState = {
   pointsLog: [],
   personalChecklists: [],
   personalChecklistTasks: [],
+  mealRecipes: [],
+  mealRecipeIngredients: [],
+  mealPlanEntries: [],
+  groceryMainItems: [],
+  groceryLists: [],
+  groceryListItems: [],
 };
 
 const STATE_QUERY_KEY = ["app", "state"] as const;
@@ -200,6 +280,63 @@ interface AppContextValue {
   updatePersonalChecklistTask: (id: string, data: Partial<Pick<PersonalChecklistTask, "label" | "completed" | "deadline">>) => Promise<void>;
   removePersonalChecklistTask: (id: string) => Promise<void>;
   syncPersonalChecklistDeadline: (checklistId: string) => Promise<void>;
+  addMealRecipe: (data: {
+    name: string;
+    emoji?: string;
+    notes?: string;
+    cuisine?: string | null;
+    ingredients?: Array<{ name: string; quantity?: string }>;
+  }) => Promise<MealRecipe>;
+  updateMealRecipe: (
+    id: string,
+    data: {
+      name?: string;
+      emoji?: string;
+      notes?: string;
+      cuisine?: string | null;
+      ingredients?: Array<{ name: string; quantity?: string }>;
+    },
+  ) => Promise<void>;
+  removeMealRecipe: (id: string) => Promise<void>;
+  addMealPlanEntry: (data: {
+    weekStartDate: string;
+    dayOfWeek: number;
+    slot: MealSlot;
+    recipeId?: string | null;
+    customName?: string | null;
+  }) => Promise<MealPlanEntry>;
+  updateMealPlanEntry: (
+    id: string,
+    data: { recipeId?: string | null; customName?: string | null },
+  ) => Promise<void>;
+  removeMealPlanEntry: (id: string) => Promise<void>;
+  addGroceryMainItem: (data: {
+    name: string;
+    quantity?: string;
+  }) => Promise<GroceryMainItem>;
+  updateGroceryMainItem: (
+    id: string,
+    data: { name?: string; quantity?: string | null; checked?: boolean },
+  ) => Promise<void>;
+  removeGroceryMainItem: (id: string) => Promise<void>;
+  clearGroceryMain: () => Promise<void>;
+  addGroceryList: (data: { name: string; emoji?: string }) => Promise<GroceryList>;
+  updateGroceryList: (
+    id: string,
+    data: { name?: string; emoji?: string; archived?: boolean },
+  ) => Promise<void>;
+  removeGroceryList: (id: string) => Promise<void>;
+  addGroceryListItem: (data: {
+    listId: string;
+    name: string;
+    quantity?: string;
+  }) => Promise<GroceryListItem>;
+  updateGroceryListItem: (
+    id: string,
+    data: { name?: string; quantity?: string | null; checked?: boolean },
+  ) => Promise<void>;
+  removeGroceryListItem: (id: string) => Promise<void>;
+  fetchIngredientSuggestions: (q: string) => Promise<IngredientSuggestion[]>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -534,6 +671,184 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     onSuccess: invalidate,
   });
 
+  // ── Meal Recipes mutations ───────────────────────────────────────────
+  const addMealRecipeMut = useMutation({
+    mutationFn: (data: {
+      name: string;
+      emoji?: string;
+      notes?: string;
+      cuisine?: string | null;
+      ingredients?: Array<{ name: string; quantity?: string }>;
+    }) =>
+      api<MealRecipe>("/api/meal-recipes", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updateMealRecipeMut = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        name?: string;
+        emoji?: string;
+        notes?: string;
+        cuisine?: string | null;
+        ingredients?: Array<{ name: string; quantity?: string }>;
+      };
+    }) =>
+      api<{ ok: true }>(`/api/meal-recipes/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removeMealRecipeMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/meal-recipes/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  // ── Meal Plan mutations ─────────────────────────────────────────────
+  const addMealPlanEntryMut = useMutation({
+    mutationFn: (data: {
+      weekStartDate: string;
+      dayOfWeek: number;
+      slot: MealSlot;
+      recipeId?: string | null;
+      customName?: string | null;
+    }) =>
+      api<MealPlanEntry>("/api/meal-plan-entries", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updateMealPlanEntryMut = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { recipeId?: string | null; customName?: string | null };
+    }) =>
+      api<{ ok: true }>(`/api/meal-plan-entries/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removeMealPlanEntryMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/meal-plan-entries/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  // ── Grocery main list mutations ─────────────────────────────────────
+  const addGroceryMainItemMut = useMutation({
+    mutationFn: (data: { name: string; quantity?: string }) =>
+      api<GroceryMainItem>("/api/grocery-main-items", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updateGroceryMainItemMut = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name?: string; quantity?: string | null; checked?: boolean };
+    }) =>
+      api<{ ok: true }>(`/api/grocery-main-items/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removeGroceryMainItemMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/grocery-main-items/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  const clearGroceryMainMut = useMutation({
+    mutationFn: () =>
+      api<{ ok: true }>("/api/grocery-main-items/clear", { method: "POST" }),
+    onSuccess: invalidate,
+  });
+
+  // ── Custom grocery lists mutations ──────────────────────────────────
+  const addGroceryListMut = useMutation({
+    mutationFn: (data: { name: string; emoji?: string }) =>
+      api<GroceryList>("/api/grocery-lists", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updateGroceryListMut = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name?: string; emoji?: string; archived?: boolean };
+    }) =>
+      api<{ ok: true }>(`/api/grocery-lists/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removeGroceryListMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/grocery-lists/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  const addGroceryListItemMut = useMutation({
+    mutationFn: (data: { listId: string; name: string; quantity?: string }) =>
+      api<GroceryListItem>("/api/grocery-list-items", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updateGroceryListItemMut = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name?: string; quantity?: string | null; checked?: boolean };
+    }) =>
+      api<{ ok: true }>(`/api/grocery-list-items/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removeGroceryListItemMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/grocery-list-items/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
   // ── Public action wrappers ───────────────────────────────────────────
   const addUser = useCallback(
     async (user: Omit<User, "id">) => {
@@ -758,6 +1073,156 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [syncPersonalChecklistDeadlineMut],
   );
 
+  const addMealRecipe = useCallback(
+    async (data: {
+      name: string;
+      emoji?: string;
+      notes?: string;
+      cuisine?: string | null;
+      ingredients?: Array<{ name: string; quantity?: string }>;
+    }) => {
+      return await addMealRecipeMut.mutateAsync(data);
+    },
+    [addMealRecipeMut],
+  );
+
+  const updateMealRecipe = useCallback(
+    async (
+      id: string,
+      data: {
+        name?: string;
+        emoji?: string;
+        notes?: string;
+        cuisine?: string | null;
+        ingredients?: Array<{ name: string; quantity?: string }>;
+      },
+    ) => {
+      await updateMealRecipeMut.mutateAsync({ id, data });
+    },
+    [updateMealRecipeMut],
+  );
+
+  const removeMealRecipe = useCallback(
+    async (id: string) => {
+      await removeMealRecipeMut.mutateAsync(id);
+    },
+    [removeMealRecipeMut],
+  );
+
+  const addMealPlanEntry = useCallback(
+    async (data: {
+      weekStartDate: string;
+      dayOfWeek: number;
+      slot: MealSlot;
+      recipeId?: string | null;
+      customName?: string | null;
+    }) => {
+      return await addMealPlanEntryMut.mutateAsync(data);
+    },
+    [addMealPlanEntryMut],
+  );
+
+  const updateMealPlanEntry = useCallback(
+    async (
+      id: string,
+      data: { recipeId?: string | null; customName?: string | null },
+    ) => {
+      await updateMealPlanEntryMut.mutateAsync({ id, data });
+    },
+    [updateMealPlanEntryMut],
+  );
+
+  const removeMealPlanEntry = useCallback(
+    async (id: string) => {
+      await removeMealPlanEntryMut.mutateAsync(id);
+    },
+    [removeMealPlanEntryMut],
+  );
+
+  const addGroceryMainItem = useCallback(
+    async (data: { name: string; quantity?: string }) => {
+      return await addGroceryMainItemMut.mutateAsync(data);
+    },
+    [addGroceryMainItemMut],
+  );
+
+  const updateGroceryMainItem = useCallback(
+    async (
+      id: string,
+      data: { name?: string; quantity?: string | null; checked?: boolean },
+    ) => {
+      await updateGroceryMainItemMut.mutateAsync({ id, data });
+    },
+    [updateGroceryMainItemMut],
+  );
+
+  const removeGroceryMainItem = useCallback(
+    async (id: string) => {
+      await removeGroceryMainItemMut.mutateAsync(id);
+    },
+    [removeGroceryMainItemMut],
+  );
+
+  const clearGroceryMain = useCallback(async () => {
+    await clearGroceryMainMut.mutateAsync();
+  }, [clearGroceryMainMut]);
+
+  const addGroceryList = useCallback(
+    async (data: { name: string; emoji?: string }) => {
+      return await addGroceryListMut.mutateAsync(data);
+    },
+    [addGroceryListMut],
+  );
+
+  const updateGroceryList = useCallback(
+    async (
+      id: string,
+      data: { name?: string; emoji?: string; archived?: boolean },
+    ) => {
+      await updateGroceryListMut.mutateAsync({ id, data });
+    },
+    [updateGroceryListMut],
+  );
+
+  const removeGroceryList = useCallback(
+    async (id: string) => {
+      await removeGroceryListMut.mutateAsync(id);
+    },
+    [removeGroceryListMut],
+  );
+
+  const addGroceryListItem = useCallback(
+    async (data: { listId: string; name: string; quantity?: string }) => {
+      return await addGroceryListItemMut.mutateAsync(data);
+    },
+    [addGroceryListItemMut],
+  );
+
+  const updateGroceryListItem = useCallback(
+    async (
+      id: string,
+      data: { name?: string; quantity?: string | null; checked?: boolean },
+    ) => {
+      await updateGroceryListItemMut.mutateAsync({ id, data });
+    },
+    [updateGroceryListItemMut],
+  );
+
+  const removeGroceryListItem = useCallback(
+    async (id: string) => {
+      await removeGroceryListItemMut.mutateAsync(id);
+    },
+    [removeGroceryListItemMut],
+  );
+
+  const fetchIngredientSuggestions = useCallback(
+    async (q: string): Promise<IngredientSuggestion[]> => {
+      const params = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
+      return api<IngredientSuggestion[]>(`/api/ingredient-suggestions${params}`);
+    },
+    [],
+  );
+
   const state: AppState = stateQuery.data ?? EMPTY_STATE;
 
   const getUserPoints = useCallback(
@@ -819,6 +1284,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updatePersonalChecklistTask,
         removePersonalChecklistTask,
         syncPersonalChecklistDeadline,
+        addMealRecipe,
+        updateMealRecipe,
+        removeMealRecipe,
+        addMealPlanEntry,
+        updateMealPlanEntry,
+        removeMealPlanEntry,
+        addGroceryMainItem,
+        updateGroceryMainItem,
+        removeGroceryMainItem,
+        clearGroceryMain,
+        addGroceryList,
+        updateGroceryList,
+        removeGroceryList,
+        addGroceryListItem,
+        updateGroceryListItem,
+        removeGroceryListItem,
+        fetchIngredientSuggestions,
       }}
     >
       {children}

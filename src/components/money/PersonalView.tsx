@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Plus, Pencil, Trash2, Lock, X, Check, Eye, EyeOff, Grid3X3, Receipt, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, Lock, X, Check, Eye, EyeOff, Grid3X3, Receipt, BarChart3, Delete } from 'lucide-react';
 import { useApp } from '@/lib/store';
 
 interface PersonalExpense {
@@ -448,10 +448,10 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
                 else if (pin.length > 0) setPin(prev => prev.slice(0, -1));
                 setPinError('');
               }}
-              className="w-16 h-16 rounded-2xl bg-transparent text-[#b7c6c2] text-sm font-semibold active:scale-95 transition-all"
+              className="w-16 h-16 rounded-2xl bg-transparent text-[#b7c6c2] text-sm font-semibold active:scale-95 transition-all flex items-center justify-center"
               aria-label="Backspace"
             >
-              ⌫
+              <Delete size={20} />
             </button>
             <button
               onClick={() => handleNumberPress('0')}
@@ -533,11 +533,11 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white/80 backdrop-blur-sm rounded-[1rem] p-3 border border-[#b7c6c2]/20">
                   <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#b7c6c2]">Total Expenses</p>
-                  <p className="text-lg font-bold text-[#171e19]">${totalExpenses.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-[#171e19]">€{totalExpenses.toFixed(2)}</p>
                 </div>
                 <div className="bg-white/80 backdrop-blur-sm rounded-[1rem] p-3 border border-[#b7c6c2]/20">
                   <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#b7c6c2]">Subscriptions</p>
-                  <p className="text-lg font-bold text-[#171e19]">${totalSubs.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-[#171e19]">€{totalSubs.toFixed(2)}</p>
                 </div>
                 <div className="bg-white/80 backdrop-blur-sm rounded-[1rem] p-3 border border-[#b7c6c2]/20">
                   <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#b7c6c2]"># Expenses</p>
@@ -615,7 +615,7 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
 
               <div className="bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-sm mb-2">
                 <p className="text-xs text-[#b7c6c2] font-medium">Total</p>
-                <p className="text-2xl font-bold text-[#171e19]">${totalExpenses.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-[#171e19]">€{totalExpenses.toFixed(2)}</p>
               </div>
 
               {expenses.length === 0 && (
@@ -658,7 +658,7 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
                         <h4 className="text-[#171e19] font-semibold text-base truncate">{exp.title}</h4>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-sm text-[#b7c6c2]">{exp.date}</span>
-                          <span className="text-sm font-bold text-[#171e19]">${exp.amount.toFixed(2)}</span>
+                          <span className="text-sm font-bold text-[#171e19]">€{exp.amount.toFixed(2)}</span>
                         </div>
                         <span className="text-xs bg-[#eeebe3] px-2 py-0.5 rounded-full text-[#b7c6c2] font-medium mt-1 inline-block">
                           {CATEGORY_LABELS[exp.category]}
@@ -692,7 +692,7 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
 
               <div className="bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-sm mb-2">
                 <p className="text-xs text-[#b7c6c2] font-medium">Monthly Total</p>
-                <p className="text-2xl font-bold text-[#171e19]">${totalSubs.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-[#171e19]">€{totalSubs.toFixed(2)}</p>
               </div>
 
               {subs.length === 0 && (
@@ -735,7 +735,7 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
                         <h4 className="text-[#171e19] font-semibold text-base truncate">{s.name}</h4>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-sm text-[#b7c6c2]">{s.paymentDate}</span>
-                          <span className="text-sm font-bold text-[#171e19]">${s.amount.toFixed(2)}</span>
+                          <span className="text-sm font-bold text-[#171e19]">€{s.amount.toFixed(2)}</span>
                         </div>
                         <span className="text-xs bg-[#eeebe3] px-2 py-0.5 rounded-full text-[#b7c6c2] font-medium mt-1 inline-block">
                           {SERVICE_LABELS[s.serviceType]}
@@ -796,7 +796,7 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
                 <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#b7c6c2] block mb-1">Value</label>
                 <input value={newWidgetValue} onChange={e => setNewWidgetValue(e.target.value)}
                   className="w-full px-4 py-3 rounded-2xl border border-[#b7c6c2]/30 text-[#171e19] bg-white outline-none focus:border-[#ca0013] text-base font-medium"
-                  placeholder="e.g. $500" />
+                  placeholder="e.g. €500" />
               </div>
               <button onClick={handleAddWidget} disabled={!newWidgetTitle.trim()}
                 className="w-full py-4 rounded-2xl bg-[#ca0013] text-white font-bold text-base disabled:opacity-40 active:scale-[0.98] transition-all">
