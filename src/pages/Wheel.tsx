@@ -29,6 +29,9 @@ import { Input } from "@/components/ui/input";
 interface PendingPick {
   userId: string;
   points: number;
+  /** Which wheel this local pick belongs to. Used to avoid leaking
+   *  picks across wheels when switching. */
+  wheelId: string;
 }
 
 interface TempUser {
@@ -86,57 +89,66 @@ function WheelPage() {
   const [tempUsers, setTempUsers] = useState<TempUser[]>([]);
   const [tempUserName, setTempUserName] = useState("");
 
-  const activeConfig = state.wheelConfigs.find(
-    (w) => w.id === (activeConfigId || state.wheelConfigs[0]?.id)
-  );
-  const realActiveUsers =
-    activeConfig?.users.map((id) => getUserById(id)).filter(Boolean) ?? [];
-
   const tempSegments = tempUsers.map((tu, i) => ({
-    label: tu.name,
-    color: "#94A3B8",
-    emoji: tu.emoji,
-    _tempIdx: i,
-  }));
-
-  const realSegments = realActiveUsers.map((u) => ({
-    label: u!.name,
-    color: u!.color,
-    emoji: u!.emoji,
-  }));
-
-  const allSegments = [...realSegments, ...tempSegments];
-  const resetTempUsers = () => setTempUsers([]);
-
-  // When the active wheel changes (or data refreshes), restore its last pick
+      label: tu.name,
+      color: "#94A3B8",
+      emoji: tu.emoji,
+      _tempIdx: i,
+    }));
+  
+    const resetTempUsers = () => setTempUsers([]);
+  
+    // Derived visible pick — takes the local pendingPick if it belongs to
+    // the active wheel, otherwise falls back to the backend-persisted pick.
+    // This avoids any race between state refetch and activeConfigId changes.
+    const currentActiveId = activeConfigId || state.wheelConfigs[0]?.id || "";
+    const activeConfig = state.wheelConfigs.find((w) => w.id === currentActiveId);
+    const realActiveUsers =
+      activeConfig?.users.map((id) => getUserById(id)).filter(Boolean) ?? [];
+  
+    const realSegments = realActiveUsers.map((u) => ({
+      label: u!.name,
+      color: u!.color,
+      emoji: u!.emoji,
+    }));
+  
+    const allSegments = [...realSegments, ...tempSegments];
+  
+    // Clear stale local pick when the active wheel changes (don't carry
+    // a pick from one wheel into another).
     useEffect(() => {
-      const config = state.wheelConfigs.find(
-        (w) => w.id === (activeConfigId || state.wheelConfigs[0]?.id)
-      );
-      if (config?.lastPickUserId) {
-        const user = getUserById(config.lastPickUserId);
+      if (pendingPick && pendingPick.wheelId !== currentActiveId) {
+        setPendingPick(null);
+        setDoneAnimation(false);
+      }
+    }, [currentActiveId]); // eslint-disable-line react-hooks/exhaustive-deps
+  
+    // Derive the visible pick: local pendingPick for the active wheel takes
+    // priority; otherwise the backend-persisted last pick is used.
+    const visiblePick: PendingPick | null = (() => {
+      if (!activeConfig) return null;
+  
+      // Local override (just spun, or local temp user)
+      if (pendingPick && pendingPick.wheelId === currentActiveId) {
+        return pendingPick;
+      }
+  
+      // Backend-persisted pick
+      if (activeConfig.lastPickUserId) {
+        const user = getUserById(activeConfig.lastPickUserId);
         if (user) {
-          // Only update if the pick actually differs (avoids flicker on refetch)
-          setPendingPick((prev) => {
-            if (prev?.userId === config.lastPickUserId) return prev;
-            return {
-              userId: config.lastPickUserId!,
-              points: isRandomPickWheel(config) ? 0 : config.pointsPerTask,
-            };
-          });
-          setDoneAnimation(false);
-          resetTempUsers();
-          return;
+          return {
+            userId: activeConfig.lastPickUserId,
+            points: isRandomPickWheel(activeConfig)
+              ? 0
+              : activeConfig.pointsPerTask,
+            wheelId: currentActiveId,
+          };
         }
       }
-      // No persisted pick — clear the UI (unless we already have a non-persisted temp pick)
-      setPendingPick((prev) => {
-        if (!prev || prev.userId.startsWith("temp-")) return prev;
-        return null;
-      });
-      setDoneAnimation(false);
-      resetTempUsers();
-    }, [activeConfigId, state.wheelConfigs]); // eslint-disable-line react-hooks/exhaustive-deps
+  
+      return null;
+    })();
   
     const resetPick = async () => {
       setPendingPick(null);
@@ -156,31 +168,33 @@ function WheelPage() {
       const isTemp = "_tempIdx" in segment && typeof (segment as any)._tempIdx === "number";
   
       if (isTemp) {
-        const tempIdx = (segment as any)._tempIdx as number;
-  
-        // Clear persisted pick for this wheel (temp users aren't persisted)
-        saveLastPick(activeConfig.id, null).catch(() => {});
-  
-        setPendingPick({
-          userId: `temp-${tempIdx}`,
-          points: 0,
-        });
-      } else {
-        const realUser = realActiveUsers.find(
-          (u) => u!.emoji === segment.emoji && u!.name === segment.label
-        );
-  
-        if (realUser) {
-          // Persist the pick to the backend so it survives navigation
-          saveLastPick(activeConfig.id, realUser.id).catch(() => {});
-  
-          setPendingPick({
-            userId: realUser.id,
-            // Random-pick wheels are pure tiebreakers — no points awarded.
-            points: isRandomPickWheel(activeConfig) ? 0 : activeConfig.pointsPerTask,
-          });
-        }
-      }
+            const tempIdx = (segment as any)._tempIdx as number;
+      
+            // Clear persisted pick for this wheel (temp users aren't persisted)
+            saveLastPick(activeConfig.id, null).catch(() => {});
+      
+            setPendingPick({
+              userId: `temp-${tempIdx}`,
+              points: 0,
+              wheelId: activeConfig.id,
+            });
+          } else {
+            const realUser = realActiveUsers.find(
+              (u) => u!.emoji === segment.emoji && u!.name === segment.label
+            );
+      
+            if (realUser) {
+              // Persist the pick to the backend so it survives navigation
+              saveLastPick(activeConfig.id, realUser.id).catch(() => {});
+      
+              setPendingPick({
+                userId: realUser.id,
+                // Random-pick wheels are pure tiebreakers — no points awarded.
+                points: isRandomPickWheel(activeConfig) ? 0 : activeConfig.pointsPerTask,
+                wheelId: activeConfig.id,
+              });
+            }
+          }
   
       setDoneAnimation(false);
     };
@@ -339,25 +353,25 @@ function WheelPage() {
   };
 
   const lastPickUser =
-    pendingPick && !pendingPick.userId.startsWith("temp-")
-      ? getUserById(pendingPick.userId)
-      : null;
-  const lastPickTempUser =
-    pendingPick && pendingPick.userId.startsWith("temp-")
-      ? tempUsers[parseInt(pendingPick.userId.replace("temp-", ""))]
-      : null;
-
-  const lastPickDisplay =
-    lastPickUser ||
-    (lastPickTempUser
-      ? {
-          name: lastPickTempUser.name,
-          emoji: lastPickTempUser.emoji,
-        }
-      : null);
-
-  const isTempPick = pendingPick ? pendingPick.userId.startsWith("temp-") : false;
-  const isRandomPick = isRandomPickWheel(activeConfig);
+      visiblePick && !visiblePick.userId.startsWith("temp-")
+        ? getUserById(visiblePick.userId)
+        : null;
+    const lastPickTempUser =
+      visiblePick && visiblePick.userId.startsWith("temp-")
+        ? tempUsers[parseInt(visiblePick.userId.replace("temp-", ""))]
+        : null;
+  
+    const lastPickDisplay =
+      lastPickUser ||
+      (lastPickTempUser
+        ? {
+            name: lastPickTempUser.name,
+            emoji: lastPickTempUser.emoji,
+          }
+        : null);
+  
+    const isTempPick = visiblePick ? visiblePick.userId.startsWith("temp-") : false;
+    const isRandomPick = isRandomPickWheel(activeConfig);
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
@@ -692,54 +706,54 @@ function WheelPage() {
       )}
 
       {/* Last pick with Done button */}
-      {pendingPick && lastPickDisplay && (
-        <div className="px-5 mt-3 mb-3 animate-fade-in-up">
-          <div
-            className={`flex items-center gap-3 bg-white rounded-[1.5rem] px-4 py-3 border shadow-sm transition-all duration-500 ${
-              doneAnimation
-                ? "border-green-300 bg-green-50/50 scale-[1.02]"
-                : "border-[#b7c6c2]/20"
-            }`}
-          >
-            <span className="text-[10px] font-semibold text-[#b7c6c2] uppercase tracking-[0.1em]">
-              {isRandomPick ? "Lucky Pick" : "Last Pick"}
-            </span>
-            <span className="text-xl">{lastPickDisplay.emoji}</span>
-            <span className="text-sm font-semibold text-[#171e19]">
-              {lastPickDisplay.name}
-            </span>
-            <button
-              onClick={resetPick}
-              aria-label="Reset selection and temp users"
-              className="p-1.5 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-[#171e19] hover:bg-[#d5ddd9] transition-all active:scale-90 ml-auto"
-            >
-              <RotateCcw size={14} />
-            </button>
-            {!doneAnimation ? (
-              isRandomPick ? (
-                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-mint/15 text-mint text-xs font-semibold">
-                  <Dices size={12} strokeWidth={2.5} /> Lucky pick!
-                </span>
-              ) : isTempPick ? (
-                <span className="ml-auto text-xs font-medium text-[#b7c6c2] italic">
-                  Guest pick
-                </span>
-              ) : (
-                <button
-                  onClick={handleDone}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#69D2A6] text-white text-xs font-semibold hover:bg-[#5BCA9B] transition-all active:scale-90 shadow-sm"
+            {visiblePick && lastPickDisplay && (
+              <div className="px-5 mt-3 mb-3 animate-fade-in-up">
+                <div
+                  className={`flex items-center gap-3 bg-white rounded-[1.5rem] px-4 py-3 border shadow-sm transition-all duration-500 ${
+                    doneAnimation
+                      ? "border-green-300 bg-green-50/50 scale-[1.02]"
+                      : "border-[#b7c6c2]/20"
+                  }`}
                 >
-                  <Check size={14} strokeWidth={3} /> Done
-                </button>
-              )
-            ) : (
-              <div className="ml-auto flex items-center gap-1.5 text-[#69D2A6] font-semibold text-sm animate-bounce-in">
-                <PartyPopper size={16} />+{pendingPick.points} pts!
+                  <span className="text-[10px] font-semibold text-[#b7c6c2] uppercase tracking-[0.1em]">
+                    {isRandomPick ? "Lucky Pick" : "Last Pick"}
+                  </span>
+                  <span className="text-xl">{lastPickDisplay.emoji}</span>
+                  <span className="text-sm font-semibold text-[#171e19]">
+                    {lastPickDisplay.name}
+                  </span>
+                  <button
+                    onClick={resetPick}
+                    aria-label="Reset selection and temp users"
+                    className="p-1.5 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-[#171e19] hover:bg-[#d5ddd9] transition-all active:scale-90 ml-auto"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                  {!doneAnimation ? (
+                    isRandomPick ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-mint/15 text-mint text-xs font-semibold">
+                        <Dices size={12} strokeWidth={2.5} /> Lucky pick!
+                      </span>
+                    ) : isTempPick ? (
+                      <span className="ml-auto text-xs font-medium text-[#b7c6c2] italic">
+                        Guest pick
+                      </span>
+                    ) : (
+                      <button
+                        onClick={handleDone}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#69D2A6] text-white text-xs font-semibold hover:bg-[#5BCA9B] transition-all active:scale-90 shadow-sm"
+                      >
+                        <Check size={14} strokeWidth={3} /> Done
+                      </button>
+                    )
+                  ) : (
+                    <div className="ml-auto flex items-center gap-1.5 text-[#69D2A6] font-semibold text-sm animate-bounce-in">
+                      <PartyPopper size={16} />+{visiblePick.points} pts!
+                    </div>
+                  )}
+                </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
 
       {/* Confirm remove user */}
       {confirmRemoveUser && (
