@@ -486,7 +486,7 @@ function LongTermChecklistPage() {
                                 <button
                                     onClick={() => setExpandedTaskId(isExpanded ? null : item.id)}
                                     className="flex-1 min-w-0 text-left active:scale-[0.99] transition-transform">
-                                    <span className="text-sm font-medium block truncate text-[#171e19]">
+                                    <span className="text-xs font-medium line-clamp-2 leading-snug text-[#171e19]">
                                         {item.label}
                                     </span>
                                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">

@@ -309,7 +309,7 @@ export default function ChecklistArchivePage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-[#b7c6c2] line-through truncate">
+                      <h3 className="text-xs font-semibold text-[#b7c6c2] line-through line-clamp-2 leading-snug">
                         {cl.name}
                       </h3>
                       <div className="flex items-center gap-2 mt-1 text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#b7c6c2]">

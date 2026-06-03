@@ -388,7 +388,7 @@ export default function PersonalChecklistDetailPage() {
                   <Check size={16} strokeWidth={3} />
                 </button>
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium block truncate text-[#171e19]">{task.label}</span>
+                  <span className="text-xs font-medium line-clamp-2 leading-snug text-[#171e19]">{task.label}</span>
                   {taskDeadline && (
                     <span
                       className="text-[10px] font-extrabold uppercase tracking-[0.08em] inline-flex items-center gap-1 mt-0.5"
@@ -440,7 +440,7 @@ export default function PersonalChecklistDetailPage() {
                       <Check size={16} strokeWidth={3} />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm font-medium block truncate text-[#b7c6c2] line-through">{task.label}</span>
+                      <span className="text-xs font-medium line-clamp-2 leading-snug text-[#b7c6c2] line-through">{task.label}</span>
                       {taskDeadline && (
                         <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#b7c6c2] mt-0.5 inline-flex items-center gap-1">
                           {taskDeadline.label}

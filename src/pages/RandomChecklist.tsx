@@ -196,7 +196,7 @@ function RandomChecklistPage() {
               </button>
               <div className="flex-1 min-w-0">
                 <span
-                  className={`text-sm font-medium block truncate transition-colors ${
+                  className={`text-xs font-medium line-clamp-2 leading-snug transition-colors ${
                     item.completed
                       ? "text-[#b7c6c2] line-through"
                       : "text-[#171e19]"
