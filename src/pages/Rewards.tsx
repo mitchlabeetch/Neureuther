@@ -5,10 +5,9 @@ import { Plus, Trash2, Gift, Star } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function RewardsPage() {
-  const { state, getUserPoints, addRewardItem, removeRewardItem, awardPoints } = useApp();
+  const { state, getUserPoints, addRewardItem, removeRewardItem, claimReward } = useApp();
   const [showDialog, setShowDialog] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [newCost, setNewCost] = useState('');
@@ -33,16 +32,16 @@ function RewardsPage() {
   };
 
   const handleRedeem = (itemId: string, userId: string) => {
-    const item = state.rewardItems.find((r) => r.id === itemId);
-    const userPts = getUserPoints(userId);
-    if (!item || userPts < item.pointsCost) {
+    const success = claimReward(userId, itemId);
+    if (!success) {
       toast.error('Not enough points!');
       return;
     }
-    awardPoints(userId, -item.pointsCost, `Redeemed: ${item.label}`);
-    toast.success(
-      `${state.users.find((u) => u.id === userId)?.name} redeemed ${item.label}! 🎉`
-    );
+    const item = state.rewardItems.find((r) => r.id === itemId);
+    const user = state.users.find((u) => u.id === userId);
+    if (item && user) {
+      toast.success(`${user.name} claimed ${item.label}! 🎉`);
+    }
     setShowRedeem(null);
   };
 
@@ -182,32 +181,19 @@ function RewardsPage() {
                 <Star size={12} /> {item.pointsCost} pts
               </div>
               <div className="flex gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => setShowRedeem(item.id)}
-                      className="flex-1 py-1.5 rounded-xl text-xs font-medium text-white bg-cantaloupe hover:bg-[#fda172dd] transition-all active:scale-95"
-                    >
-                      Redeem
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                    Spend points to claim this reward
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => removeRewardItem(item.id)}
-                      className="p-1.5 rounded-xl text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                    Remove this reward
-                  </TooltipContent>
-                </Tooltip>
+                <button
+                  onClick={() => setShowRedeem(item.id)}
+                  className="flex-1 py-1.5 rounded-xl text-xs font-medium text-white bg-cantaloupe hover:bg-[#fda172dd] transition-all active:scale-95"
+                >
+                  Redeem
+                </button>
+                <button
+                  onClick={() => removeRewardItem(item.id)}
+                  aria-label="Remove this reward"
+                  className="p-1.5 rounded-xl text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all"
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
             </div>
           ))}

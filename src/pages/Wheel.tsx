@@ -25,7 +25,6 @@ import { BottomNav } from "@/components/BottomNav";
 import { Plus, Trash2, Check, PartyPopper, Pencil, UserPlus, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PendingPick {
   userId: string;
@@ -310,18 +309,14 @@ function WheelPage() {
             <div className="flex items-center gap-0.5 mt-1">
               {/* Add temp user */}
               <Dialog open={showTempUserDialog} onOpenChange={setShowTempUserDialog}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DialogTrigger asChild>
-                      <button className="p-2.5 rounded-full text-[#b7c6c2] hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 active:scale-90">
-                        <UserPlus size={16} />
-                      </button>
-                    </DialogTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
-                    Add temporary user for this run
-                  </TooltipContent>
-                </Tooltip>
+                <DialogTrigger asChild>
+                  <button
+                    aria-label="Add temporary user"
+                    className="p-2.5 rounded-full text-[#b7c6c2] hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 active:scale-90"
+                  >
+                    <UserPlus size={16} />
+                  </button>
+                </DialogTrigger>
                 <DialogContent className="rounded-[2rem] max-w-[360px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
                   <DialogHeader className="px-6 pt-6 pb-3">
                     <DialogTitle className="text-xl font-semibold text-[#171e19]">
@@ -367,33 +362,21 @@ function WheelPage() {
                 </DialogContent>
               </Dialog>
               {/* Edit wheel */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={openEditDialog}
-                    className="p-2.5 rounded-full text-[#b7c6c2] hover:text-cantaloupe hover:bg-[#FFF1E6] transition-all duration-200 active:scale-90"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                  Edit this wheel
-                </TooltipContent>
-              </Tooltip>
+              <button
+                onClick={openEditDialog}
+                aria-label="Edit this wheel"
+                className="p-2.5 rounded-full text-[#b7c6c2] hover:text-cantaloupe hover:bg-[#FFF1E6] transition-all duration-200 active:scale-90"
+              >
+                <Pencil size={16} />
+              </button>
               {/* Delete wheel */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => removeWheelConfig(activeConfig.id)}
-                    className="p-2.5 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all duration-200 active:scale-90"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                  Delete this wheel
-                </TooltipContent>
-              </Tooltip>
+              <button
+                onClick={() => removeWheelConfig(activeConfig.id)}
+                aria-label="Delete this wheel"
+                className="p-2.5 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all duration-200 active:scale-90"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           )}
         </div>
@@ -419,18 +402,14 @@ function WheelPage() {
             </button>
           ))}
           <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DialogTrigger asChild>
-                  <button className="shrink-0 w-10 h-10 rounded-full text-white flex items-center justify-center shadow-[0_2px_8px_rgba(253,161,114,0.4)] hover:shadow-[0_4px_12px_rgba(253,161,114,0.5)] transition-all duration-200 active:scale-90 bg-cantaloupe">
-                    <Plus size={20} />
-                  </button>
-                </DialogTrigger>
-              </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                Create a new wheel
-              </TooltipContent>
-            </Tooltip>
+            <DialogTrigger asChild>
+              <button
+                aria-label="Create a new wheel"
+                className="shrink-0 w-10 h-10 rounded-full text-white flex items-center justify-center shadow-[0_2px_8px_rgba(253,161,114,0.4)] hover:shadow-[0_4px_12px_rgba(253,161,114,0.5)] transition-all duration-200 active:scale-90 bg-cantaloupe"
+              >
+                <Plus size={20} />
+              </button>
+            </DialogTrigger>
             <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
               <DialogHeader className="px-6 pt-6 pb-3">
                 <DialogTitle className="text-xl font-semibold text-[#171e19]">
@@ -500,33 +479,28 @@ function WheelPage() {
         <div className="px-5 mb-3 flex items-center gap-2 flex-wrap">
           <span className="section-header">People:</span>
           {realActiveUsers.map((u) => (
-            <Tooltip key={u!.id}>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() =>
-                    setConfirmRemoveUser({
-                      userId: u!.id,
-                      name: u!.name,
-                    })
-                  }
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 active:scale-90 ${
-                    activeConfig.users.includes(u!.id)
-                      ? "text-white"
-                      : "bg-[#eeebe3] text-[#b7c6c2] line-through"
-                  }`}
-                  style={
-                    activeConfig.users.includes(u!.id)
-                      ? { backgroundColor: u!.color }
-                      : {}
-                  }
-                >
-                  {u!.emoji} {u!.name}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                Remove {u!.name} from this wheel
-              </TooltipContent>
-            </Tooltip>
+            <button
+              key={u!.id}
+              onClick={() =>
+                setConfirmRemoveUser({
+                  userId: u!.id,
+                  name: u!.name,
+                })
+              }
+              aria-label={`Remove ${u!.name} from this wheel`}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 active:scale-90 ${
+                activeConfig.users.includes(u!.id)
+                  ? "text-white"
+                  : "bg-[#eeebe3] text-[#b7c6c2] line-through"
+              }`}
+              style={
+                activeConfig.users.includes(u!.id)
+                  ? { backgroundColor: u!.color }
+                  : {}
+              }
+            >
+              {u!.emoji} {u!.name}
+            </button>
           ))}
           {tempUsers.map((tu, i) => (
             <span
@@ -631,19 +605,13 @@ function WheelPage() {
             <span className="text-sm font-semibold text-[#171e19]">
               {lastPickDisplay.name}
             </span>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={resetPick}
-                  className="p-1.5 rounded-full text-[#b7c6c2] hover:text-[#171e19] hover:bg-[#eeebe3] transition-all active:scale-90 ml-auto"
-                >
-                  <RotateCcw size={14} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                Reset selection & temp users
-              </TooltipContent>
-            </Tooltip>
+            <button
+              onClick={resetPick}
+              aria-label="Reset selection and temp users"
+              className="p-1.5 rounded-full text-[#b7c6c2] hover:text-[#171e19] hover:bg-[#eeebe3] transition-all active:scale-90 ml-auto"
+            >
+              <RotateCcw size={14} />
+            </button>
             {!doneAnimation && !isTempPick ? (
               <button
                 onClick={handleDone}

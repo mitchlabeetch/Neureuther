@@ -6,6 +6,16 @@
 /* Center clickable spin button */
 import { useState, useRef, useEffect } from "react";
 
+async function haptic(type: 'light' | 'medium' | 'heavy' = 'medium') {
+  try {
+    const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+    const style = type === 'light' ? ImpactStyle.Light : type === 'heavy' ? ImpactStyle.Heavy : ImpactStyle.Medium;
+    await Haptics.impact({ style });
+  } catch {
+    // Haptics not available (web browser)
+  }
+}
+
 interface ConfettiPiece {
   id: number;
   x: number;
@@ -75,6 +85,7 @@ export function SpinWheel(
 
     setSpinning(true);
     setRotation(totalRotation);
+    haptic('heavy');
 
     setTimeout(() => {
       setSpinning(false);

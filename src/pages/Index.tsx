@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Disc, ListChecks, Trophy, ArrowRight, CheckCircle2, Circle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 function HomePage() {
   const { state, getUserById, getUserPoints } = useApp();
@@ -46,19 +45,14 @@ function HomePage() {
         </div>
         <div className="flex -space-x-2">
           {state.users.slice(0, 4).map((u) => (
-            <Tooltip key={u.id}>
-              <TooltipTrigger asChild>
-                <div
-                  className="w-11 h-11 rounded-full border-[2.5px] border-white flex items-center justify-center text-lg shadow-sm cursor-default transition-transform hover:scale-110 hover:z-10 relative"
-                  style={{ backgroundColor: u.color + "30" }}
-                >
-                  {u.emoji}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                {u.name} — {getUserPoints(u.id)} pts
-              </TooltipContent>
-            </Tooltip>
+            <div
+              key={u.id}
+              className="w-11 h-11 rounded-full border-[2.5px] border-white flex items-center justify-center text-lg shadow-sm cursor-default transition-transform hover:scale-110 hover:z-10 relative"
+              style={{ backgroundColor: u.color + "30" }}
+              aria-label={`${u.name}: ${getUserPoints(u.id)} pts`}
+            >
+              {u.emoji}
+            </div>
           ))}
           {state.users.length > 4 && (
             <div className="w-11 h-11 rounded-full border-[2.5px] border-white bg-[#eeebe3] flex items-center justify-center text-xs font-semibold text-[#b7c6c2] shadow-sm">
@@ -81,16 +75,9 @@ function HomePage() {
                 {completedToday} / {totalToday} done
               </p>
             </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="w-16 h-16 rounded-full bg-[#FFF1E6] flex items-center justify-center cursor-default transition-transform hover:scale-105">
-                  <span className="text-xl font-semibold text-cantaloupe">{Math.round(progressVal)}%</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                {completedToday} of {totalToday} tasks completed today
-              </TooltipContent>
-            </Tooltip>
+            <div className="w-16 h-16 rounded-full bg-[#FFF1E6] flex items-center justify-center cursor-default">
+              <span className="text-xl font-semibold text-cantaloupe">{Math.round(progressVal)}%</span>
+            </div>
           </div>
           <Progress
             value={progressVal}
@@ -156,10 +143,10 @@ function HomePage() {
             <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
               🏆
             </div>
-            <div className="text-xl font-semibold text-[#171e19] mt-1 truncate">
-              {topUser?.emoji} {topUser?.name}
+            <div className="text-xl font-semibold text-[#171e19] mt-1 min-w-0">
+              <span className="truncate block">{topUser?.emoji} {topUser?.name}</span>
             </div>
-            <div className="text-xs text-[#b7c6c2] font-medium mt-1">
+            <div className="text-xs text-[#b7c6c2] font-medium mt-1 truncate">
               {topUser?.points || 0} pts — Top earner
             </div>
           </div>

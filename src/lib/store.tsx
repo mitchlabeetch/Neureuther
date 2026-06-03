@@ -89,13 +89,6 @@ function saveState(state: AppState) {
   localStorage.setItem('neureuther-state', JSON.stringify(state));
 }
 
-function resetDailyChecklist(items: ChecklistItem[]): ChecklistItem[] {
-  const today = new Date().toDateString();
-  const lastReset = localStorage.getItem('neureuther-checklist-date');
-  if (lastReset === today) return items;
-  localStorage.setItem('neureuther-checklist-date', today);
-  return items.map(item => ({ ...item, completed: false, completedBy: undefined, completedAt: undefined }));
-}
 
 interface AppContextValue {
   state: AppState;
@@ -113,21 +106,56 @@ interface AppContextValue {
   updateRewardItem: (id: string, data: Partial<RewardItem>) => void;
   removeRewardItem: (id: string) => void;
   awardPoints: (userId: string, points: number, reason: string) => void;
+  claimReward: (userId: string, rewardId: string) => boolean;
   getUserPoints: (userId: string) => number;
   getUserById: (id: string) => User | undefined;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
+function isNewDay(): boolean {
+  const today = new Date().toDateString();
+  const lastReset = localStorage.getItem('neureuther-checklist-date');
+  return lastReset !== today;
+}
+
+function markDayReset() {
+  localStorage.setItem('neureuther-checklist-date', new Date().toDateString());
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(() => {
     const s = loadState();
-    return { ...s, checklistItems: resetDailyChecklist(s.checklistItems) };
+    if (isNewDay()) {
+      markDayReset();
+      return { ...s, checklistItems: s.checklistItems.map(item => ({ ...item, completed: false, completedBy: undefined, completedAt: undefined })) };
+    }
+    return s;
   });
 
   useEffect(() => {
     saveState(state);
   }, [state]);
+
+  // Daily reset on app resume (mobile background → foreground)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && isNewDay()) {
+        markDayReset();
+        setState(prev => ({
+          ...prev,
+          checklistItems: prev.checklistItems.map(item => ({
+            ...item,
+            completed: false,
+            completedBy: undefined,
+            completedAt: undefined,
+          })),
+        }));
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   const update = useCallback((fn: (s: AppState) => AppState) => {
     setState(prev => {
@@ -222,6 +250,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .reduce((sum, log) => sum + log.points, 0);
   }, [state.pointsLog]);
 
+  const claimReward = useCallback((userId: string, rewardId: string): boolean => {
+    const reward = state.rewardItems.find(r => r.id === rewardId);
+    if (!reward) return false;
+    const balance = getUserPoints(userId);
+    if (balance < reward.pointsCost) return false;
+    update(s => ({
+      ...s,
+      pointsLog: [
+        ...s.pointsLog,
+        {
+          userId,
+          points: -reward.pointsCost,
+          reason: `Claimed: ${reward.label}`,
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    }));
+    return true;
+  }, [update, state.rewardItems, getUserPoints]);
+
   const getUserById = useCallback((id: string) => state.users.find(u => u.id === id), [state.users]);
 
   return (
@@ -230,7 +278,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toggleChecklistItem, updateChecklistItem, addChecklistItem, removeChecklistItem,
       addWheelConfig, updateWheelConfig, removeWheelConfig,
       addRewardItem, updateRewardItem, removeRewardItem,
-      awardPoints, getUserPoints, getUserById,
+      awardPoints, claimReward, getUserPoints, getUserById,
     }}>
       {children}
     </AppContext.Provider>

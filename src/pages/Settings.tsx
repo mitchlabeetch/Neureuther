@@ -4,7 +4,6 @@ import { BottomNav } from '@/components/BottomNav';
 import { Plus, Pencil, Trash2, Users, X, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const USER_COLORS = [
   '#FDA172', '#FF6B6B', '#A78BFA', '#69D2A6', '#FBBF24',
@@ -95,32 +94,20 @@ function SettingsPage() {
                   style={{ backgroundColor: user.color }}
                 />
               </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => openEdit(user)}
-                    className="p-2.5 rounded-full text-[#b7c6c2] hover:text-cantaloupe hover:bg-[#FFF1E6] transition-all active:scale-90"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                  Edit {user.name}
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => removeUser(user.id)}
-                    className="p-2.5 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                  Remove {user.name}
-                </TooltipContent>
-              </Tooltip>
+              <button
+                onClick={() => openEdit(user)}
+                aria-label={`Edit ${user.name}`}
+                className="p-2.5 rounded-full text-[#b7c6c2] hover:text-cantaloupe hover:bg-[#FFF1E6] transition-all active:scale-90"
+              >
+                <Pencil size={16} />
+              </button>
+              <button
+                onClick={() => removeUser(user.id)}
+                aria-label={`Remove ${user.name}`}
+                className="p-2.5 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           ))}
         </div>

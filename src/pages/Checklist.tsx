@@ -5,7 +5,6 @@ import { Check, Plus, Trash2, Circle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function ChecklistPage() {
   const {
@@ -99,23 +98,17 @@ function ChecklistPage() {
                 animationDelay: `${index * 50}ms`,
               }}
             >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => handleToggle(item.id)}
-                    className={`shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all duration-300 active:scale-90 ${
-                      item.completed
-                        ? 'bg-green-400 border-green-400 text-white'
-                        : 'border-[#b7c6c2]/30 text-transparent hover:border-cantaloupe hover:bg-[#FFF1E6]'
-                    }`}
-                  >
-                    <Check size={16} strokeWidth={3} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                  {item.completed ? 'Mark as incomplete' : 'Mark as complete'}
-                </TooltipContent>
-              </Tooltip>
+              <button
+                onClick={() => handleToggle(item.id)}
+                aria-label={item.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                className={`shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all duration-300 active:scale-90 ${
+                  item.completed
+                    ? 'bg-green-400 border-green-400 text-white'
+                    : 'border-[#b7c6c2]/30 text-transparent hover:border-cantaloupe hover:bg-[#FFF1E6]'
+                }`}
+              >
+                <Check size={16} strokeWidth={3} />
+              </button>
               <div className="flex-1 min-w-0">
                 <span
                   className={`text-sm font-medium block truncate transition-colors ${
@@ -132,19 +125,13 @@ function ChecklistPage() {
                   </span>
                 )}
               </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => removeChecklistItem(item.id)}
-                    className="p-2 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
-                  Remove this task
-                </TooltipContent>
-              </Tooltip>
+              <button
+                onClick={() => removeChecklistItem(item.id)}
+                aria-label="Remove this task"
+                className="p-2 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           );
         })}
