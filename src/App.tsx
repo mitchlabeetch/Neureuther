@@ -7,6 +7,7 @@ import { AppProvider } from "@/lib/store";
 import HomePage from "./pages/Index";
 import ChecklistPage from "./pages/Checklist";
 import LongTermChecklistPage from "./pages/LongTermChecklist";
+import LongTermArchivePage from "./pages/LongTermArchive";
 import PersonalChecklistPage from "./pages/PersonalChecklist";
 import AllChecklistsPage from "./pages/AllChecklists";
 import WheelPage from "./pages/Wheel";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/" element={<HomePage />} />
             <Route path="/checklist" element={<ChecklistPage />} />
             <Route path="/checklist/long-term" element={<LongTermChecklistPage />} />
+            <Route path="/checklist/long-term/archive" element={<LongTermArchivePage />} />
             <Route path="/checklist/personal" element={<PersonalChecklistPage />} />
             <Route path="/checklists" element={<AllChecklistsPage />} />
             <Route path="/wheel" element={<WheelPage />} />
