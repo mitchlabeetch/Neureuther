@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
-import { Check, Plus, Trash2, Circle, X } from 'lucide-react';
+import { Check, Plus, Trash2, Circle, X, CalendarDays, User, LayoutGrid, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
@@ -18,6 +19,7 @@ function ChecklistPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [activePicker, setActivePicker] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const completed = state.checklistItems.filter((i) => i.completed).length;
   const total = state.checklistItems.length;
@@ -221,11 +223,58 @@ function ChecklistPage() {
       )}
 
       {/* Reset info */}
-      <div className="px-5 mb-16">
+      <div className="px-5 mb-4">
         <div className="bg-[#FFF1E6] rounded-[1.5rem] p-4 text-center border border-[#b7c6c2]/20">
           <p className="text-xs font-medium text-cantaloupe">
             🔄 Checklist resets every day at midnight
           </p>
+        </div>
+      </div>
+
+      {/* Checklist navigation */}
+      <div className="px-5 mb-16">
+        <div className="space-y-2.5">
+          <button
+            onClick={() => navigate("/checklist/long-term")}
+            className="w-full flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all active:scale-[0.99] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#69D2A6]/15 flex items-center justify-center shrink-0">
+              <CalendarDays className="text-[#69D2A6]" size={20} />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-[#171e19]">Long-term checklist</div>
+              <div className="text-xs text-[#b7c6c2] mt-0.5">Goals and recurring tasks</div>
+            </div>
+            <ChevronRight size={16} className="text-[#b7c6c2]" />
+          </button>
+
+          <button
+            onClick={() => navigate("/checklist/personal")}
+            className="w-full flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all active:scale-[0.99] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#A78BFA]/15 flex items-center justify-center shrink-0">
+              <User className="text-[#A78BFA]" size={20} />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-[#171e19]">Personal checklist</div>
+              <div className="text-xs text-[#b7c6c2] mt-0.5">My own private tasks</div>
+            </div>
+            <ChevronRight size={16} className="text-[#b7c6c2]" />
+          </button>
+
+          <button
+            onClick={() => navigate("/checklists")}
+            className="w-full flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all active:scale-[0.99] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center shrink-0">
+              <LayoutGrid className="text-cantaloupe" size={20} />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-[#171e19]">See all checklists</div>
+              <div className="text-xs text-[#b7c6c2] mt-0.5">Browse every checklist</div>
+            </div>
+            <ChevronRight size={16} className="text-[#b7c6c2]" />
+          </button>
         </div>
       </div>
 

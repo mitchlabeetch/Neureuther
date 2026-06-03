@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/lib/store";
 import HomePage from "./pages/Index";
 import ChecklistPage from "./pages/Checklist";
+import LongTermChecklistPage from "./pages/LongTermChecklist";
+import PersonalChecklistPage from "./pages/PersonalChecklist";
+import AllChecklistsPage from "./pages/AllChecklists";
 import WheelPage from "./pages/Wheel";
 import RewardsPage from "./pages/Rewards";
 import SettingsPage from "./pages/Settings";
@@ -26,6 +29,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/checklist" element={<ChecklistPage />} />
+            <Route path="/checklist/long-term" element={<LongTermChecklistPage />} />
+            <Route path="/checklist/personal" element={<PersonalChecklistPage />} />
+            <Route path="/checklists" element={<AllChecklistsPage />} />
             <Route path="/wheel" element={<WheelPage />} />
             <Route path="/rewards" element={<RewardsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
