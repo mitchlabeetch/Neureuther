@@ -351,7 +351,7 @@ function ChecklistPage() {
           >
             <div className="flex flex-col items-center text-center mb-5">
               <div className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
-                <Archive className="text-[#171e19]" size={28} />
+                <ArchiveIcon className="text-[#171e19]" size={28} />
               </div>
               <h3 className="text-lg font-semibold text-[#171e19]">
                 Move to Archive?
@@ -501,7 +501,7 @@ function ChecklistPage() {
             className="w-full flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all active:scale-[0.99] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
           >
             <div className="w-10 h-10 rounded-xl bg-[#eeebe3] flex items-center justify-center shrink-0">
-              <Archive className="text-[#95a5a0]" size={20} />
+              <ArchiveIcon className="text-[#95a5a0]" size={20} />
             </div>
             <div className="flex-1 text-left">
               <div className="text-sm font-medium text-[#171e19]">Archive</div>

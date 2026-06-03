@@ -14,7 +14,7 @@ import {
   ChevronRight,
   CircleAlert,
   Settings2,
-  Archive,
+  Archive as ArchiveIcon,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -363,7 +363,7 @@ export default function PersonalChecklistDetailPage() {
             onClick={() => setShowArchiveConfirm(true)}
             className="w-full flex items-center justify-center gap-2 rounded-[1.25rem] p-3 bg-[#eeebe3] border border-[#b7c6c2]/20 text-[#171e19] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98] text-xs font-semibold"
           >
-            <Archive size={14} />
+            <ArchiveIcon size={14} />
             Archive this completed checklist
           </button>
         </div>
@@ -779,7 +779,7 @@ export default function PersonalChecklistDetailPage() {
           <div className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col items-center text-center mb-5">
               <div className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
-                <Archive className="text-[#171e19]" size={28} />
+                <ArchiveIcon className="text-[#171e19]" size={28} />
               </div>
               <h3 className="text-lg font-semibold text-[#171e19]">Archive this checklist?</h3>
               <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">
