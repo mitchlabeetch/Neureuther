@@ -163,7 +163,7 @@ interface AppContextValue {
   addFlag: (data: { name: string; color: string }) => Promise<void>;
   updateFlag: (id: string, data: Partial<Pick<TaskFlag, "name" | "color">>) => Promise<void>;
   removeFlag: (id: string) => Promise<void>;
-  addWheelConfig: (config: Omit<WheelConfig, "id">) => Promise<void>;
+  addWheelConfig: (config: Omit<WheelConfig, "id">) => Promise<WheelConfig>;
   updateWheelConfig: (id: string, data: Partial<WheelConfig>) => Promise<void>;
   removeWheelConfig: (id: string) => Promise<void>;
   addRewardItem: (item: Omit<RewardItem, "id">) => Promise<void>;
@@ -597,8 +597,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addWheelConfig = useCallback(
-    async (config: Omit<WheelConfig, "id">) => {
-      await addWheelConfigMut.mutateAsync(config);
+    async (config: Omit<WheelConfig, "id">): Promise<WheelConfig> => {
+      return await addWheelConfigMut.mutateAsync(config);
     },
     [addWheelConfigMut],
   );

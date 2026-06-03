@@ -52,6 +52,18 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Custom palette defined in globals.css. These were being used
+        // throughout the app (bg-cantaloupe, text-mint, etc.) but were
+        // missing from the Tailwind config, which made the affected
+        // classes render with no color at all.
+        cantaloupe: "#FDA172",
+        "cantaloupe-light": "#FED7B8",
+        "cantaloupe-lighter": "#FFF1E6",
+        coral: "#FF6B6B",
+        mint: "#69D2A6",
+        lavender: "#A78BFA",
+        gold: "#FBBF24",
+        charcoal: "#2D2B2A",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

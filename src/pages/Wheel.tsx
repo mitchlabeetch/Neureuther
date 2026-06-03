@@ -22,7 +22,7 @@ import { useState } from "react";
 import { useApp } from "@/lib/store";
 import { SpinWheel } from "@/components/SpinWheel";
 import { BottomNav } from "@/components/BottomNav";
-import { Plus, Trash2, Check, PartyPopper, Pencil, UserPlus, RotateCcw } from "lucide-react";
+import { Plus, Trash2, Check, PartyPopper, Pencil, UserPlus, RotateCcw, Dices } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
@@ -37,6 +37,12 @@ interface TempUser {
 }
 
 const TEMP_EMOJIS = ["👤", "🤷", "🎭", "🃏", "❓", "👻", "🤖", "🐲"];
+
+// Marker used to identify the "no subject" / random-pick wheel both when
+// seeding it in the database and when the user creates one from the UI.
+const RANDOM_PICK_TITLE = "🎲 Random Pick";
+const isRandomPickWheel = (config?: { title?: string } | null) =>
+  !!config?.title?.trim().startsWith("🎲");
 
 function WheelPage() {
   const {
@@ -129,7 +135,8 @@ function WheelPage() {
       if (realUser) {
         setPendingPick({
           userId: realUser.id,
-          points: activeConfig.pointsPerTask,
+          // Random-pick wheels are pure tiebreakers — no points awarded.
+          points: isRandomPickWheel(activeConfig) ? 0 : activeConfig.pointsPerTask,
         });
       }
     }
@@ -139,6 +146,10 @@ function WheelPage() {
 
   const handleDone = () => {
     if (!pendingPick || !activeConfig) return;
+
+    // "No subject" / random-pick wheels never award points — the pick
+    // is just an oral tiebreaker, not a completed task.
+    if (isRandomPickWheel(activeConfig)) return;
 
     setDoneAnimation(true);
 
@@ -177,19 +188,49 @@ function WheelPage() {
     }, 2200);
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!newTitle.trim() || selectedUsers.length < 2) return;
 
-    addWheelConfig({
+    const newConfig = await addWheelConfig({
       title: newTitle.trim(),
       users: selectedUsers,
       pointsPerTask: Number(newPoints) || 10,
     });
 
+    // Switch to the newly created wheel so the user immediately sees
+    // their new question rather than staying on whichever wheel was
+    // active before.
+    setActiveConfigId(newConfig.id);
+    resetPick();
+
     setNewTitle("");
     setNewPoints("15");
     setSelectedUsers(state.users.map((u) => u.id));
     setShowNewDialog(false);
+  };
+
+  // Sets the active wheel to the persistent "no subject" / random-pick
+  // wheel. Creates it on the backend on first use and reuses it after
+  // that — so users always have a one-tap shortcut for oral "whoever
+  // goes next" decisions.
+  const handleRandomPick = async () => {
+    if (state.users.length < 2) return;
+
+    const existing = state.wheelConfigs.find(isRandomPickWheel);
+    if (existing) {
+      setActiveConfigId(existing.id);
+      resetPick();
+      return;
+    }
+
+    const newConfig = await addWheelConfig({
+      title: RANDOM_PICK_TITLE,
+      users: state.users.map((u) => u.id),
+      pointsPerTask: 0,
+    });
+
+    setActiveConfigId(newConfig.id);
+    resetPick();
   };
 
   const handleEdit = () => {
@@ -274,6 +315,7 @@ function WheelPage() {
       : null);
 
   const isTempPick = pendingPick ? pendingPick.userId.startsWith("temp-") : false;
+  const isRandomPick = isRandomPickWheel(activeConfig);
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
@@ -405,6 +447,7 @@ function WheelPage() {
             <DialogTrigger asChild>
               <button
                 aria-label="Create a new wheel"
+                title="Add a subject"
                 className="shrink-0 w-10 h-10 rounded-full text-white flex items-center justify-center shadow-[0_2px_8px_rgba(253,161,114,0.4)] hover:shadow-[0_4px_12px_rgba(253,161,114,0.5)] transition-all duration-200 active:scale-90 bg-cantaloupe"
               >
                 <Plus size={20} />
@@ -471,6 +514,24 @@ function WheelPage() {
               </div>
             </DialogContent>
           </Dialog>
+          {/* Random pick / "no subject" shortcut. One-tap setup for
+              in-the-moment oral decisions — creates a persistent
+              "🎲 Random Pick" wheel on the backend on first use and
+              reuses it afterwards. */}
+          <button
+            type="button"
+            onClick={handleRandomPick}
+            disabled={state.users.length < 2}
+            aria-label="Pick someone at random (no subject)"
+            title="No subject — just pick someone"
+            className={`shrink-0 w-10 h-10 rounded-full text-white flex items-center justify-center shadow-[0_2px_8px_rgba(105,210,166,0.4)] hover:shadow-[0_4px_12px_rgba(105,210,166,0.5)] transition-all duration-200 active:scale-90 bg-mint ${
+              isRandomPick
+                ? "ring-2 ring-offset-2 ring-mint/60 ring-offset-[#fdf7f2]"
+                : ""
+            }`}
+          >
+            <Dices size={18} />
+          </button>
         </div>
       </div>
 
@@ -599,7 +660,7 @@ function WheelPage() {
             }`}
           >
             <span className="text-[10px] font-semibold text-[#b7c6c2] uppercase tracking-[0.1em]">
-              Last Pick
+              {isRandomPick ? "Lucky Pick" : "Last Pick"}
             </span>
             <span className="text-xl">{lastPickDisplay.emoji}</span>
             <span className="text-sm font-semibold text-[#171e19]">
@@ -612,17 +673,23 @@ function WheelPage() {
             >
               <RotateCcw size={14} />
             </button>
-            {!doneAnimation && !isTempPick ? (
-              <button
-                onClick={handleDone}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#69D2A6] text-white text-xs font-semibold hover:bg-[#5BCA9B] transition-all active:scale-90 shadow-sm"
-              >
-                <Check size={14} strokeWidth={3} /> Done
-              </button>
-            ) : !doneAnimation && isTempPick ? (
-              <span className="ml-auto text-xs font-medium text-[#b7c6c2] italic">
-                Guest pick
-              </span>
+            {!doneAnimation ? (
+              isRandomPick ? (
+                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-mint/15 text-mint text-xs font-semibold">
+                  <Dices size={12} strokeWidth={2.5} /> Lucky pick!
+                </span>
+              ) : isTempPick ? (
+                <span className="ml-auto text-xs font-medium text-[#b7c6c2] italic">
+                  Guest pick
+                </span>
+              ) : (
+                <button
+                  onClick={handleDone}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#69D2A6] text-white text-xs font-semibold hover:bg-[#5BCA9B] transition-all active:scale-90 shadow-sm"
+                >
+                  <Check size={14} strokeWidth={3} /> Done
+                </button>
+              )
             ) : (
               <div className="ml-auto flex items-center gap-1.5 text-[#69D2A6] font-semibold text-sm animate-bounce-in">
                 <PartyPopper size={16} />+{pendingPick.points} pts!
