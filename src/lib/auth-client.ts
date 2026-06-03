@@ -65,17 +65,48 @@ export const authClient = _wrapAuthChain(_rawAuthClient);
 
 // Typed accessor: Neo's published types mistype useSession as an Atom,
 // but at runtime it's the better-auth/react hook. Cast through unknown.
-type SessionState = {
-  data: {
-    user: {
-      id: string;
-      name: string;
-      email: string;
-      emailVerified: boolean;
-    };
-  } | null;
-  isPending: boolean;
+type SessionUser = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
 };
 
-export const useAuthSession = (): SessionState =>
-  (authClient.useSession as unknown as () => SessionState)();
+type SessionState = {
+  data: {
+    user: SessionUser;
+  } | null;
+  isPending: boolean;
+  /** Force the underlying session store to re-fetch from the server. */
+  refresh: () => Promise<unknown>;
+};
+
+export const useAuthSession = (): SessionState => {
+  // The real better-auth useSession returns { data, isPending, refetch, error }.
+  // The published @neondatabase/auth types mistype it as an Atom, so we cast.
+  const result = (authClient.useSession as unknown as () => {
+    data: SessionState["data"];
+    isPending: boolean;
+    refetch?: () => Promise<unknown>;
+    mutate?: () => Promise<unknown>;
+  })();
+  const refresh = result.refetch ?? result.mutate ?? (() => Promise.resolve());
+  return {
+    data: result.data,
+    isPending: Boolean(result.isPending),
+    refresh,
+  };
+};
+
+/**
+ * Imperatively fetch the current session from the server. Useful right
+ * after a sign-in / sign-up so the in-memory store is up to date before
+ * the next page boots and re-reads it.
+ */
+export async function refreshSession(): Promise<void> {
+  try {
+    await (authClient.getSession as unknown as () => Promise<unknown>)();
+  } catch {
+    /* ignore — caller will fall back to a hard navigation */
+  }
+}

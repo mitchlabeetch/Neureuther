@@ -6,7 +6,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, FolderLock, Lock } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { authClient, refreshSession } from "@/lib/auth-client";
 
 /**
  * Whitelist the path the user should land on after a successful auth.
@@ -91,7 +91,6 @@ export default function AuthPage() {
 
 // ── Sign in ────────────────────────────────────────────────────────
 function SignInForm({ returnTo }: { returnTo: string }) {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -116,7 +115,12 @@ function SignInForm({ returnTo }: { returnTo: string }) {
         setLoading(false);
         return;
       }
-      navigate(returnTo, { replace: true });
+      // Make sure the in-memory session store sees the new cookies, then
+      // hard-navigate so the destination page boots with a fresh session
+      // fetch (avoids a stale "no session" render on the new mount).
+      await refreshSession();
+      window.location.assign(returnTo);
+      return;
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -186,7 +190,6 @@ function SignInForm({ returnTo }: { returnTo: string }) {
 
 // ── Sign up ────────────────────────────────────────────────────────
 function SignUpForm({ returnTo }: { returnTo: string }) {
-  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -217,7 +220,11 @@ function SignUpForm({ returnTo }: { returnTo: string }) {
         setLoading(false);
         return;
       }
-      navigate(returnTo, { replace: true });
+      // Same reasoning as the sign-in form: refresh the in-memory session
+      // store, then hard-navigate so the destination page boots cleanly.
+      await refreshSession();
+      window.location.assign(returnTo);
+      return;
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
