@@ -105,19 +105,6 @@ function SettingsPage() {
         </div>
       </div>
 
-      <div className="px-5 mb-4">
-        <div className="bg-white rounded-[1.5rem] p-5 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]">
-          <h3 className="text-sm font-semibold text-[#171e19] mb-2">About Neureuther</h3>
-          <p className="text-sm text-[#95a5a0] font-medium leading-relaxed">
-            Your fun household companion! Manage chores, spin the wheel, earn points, and keep your home running smoothly.
-          </p>
-          <div className="flex items-center gap-2 mt-3 text-xs text-[#95a5a0] font-medium">
-            <span className="px-2.5 py-1 bg-[#FFF1E6] rounded-full text-cantaloupe">v1.0</span>
-            <span>Built with ❤️</span>
-          </div>
-        </div>
-      </div>
-
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
           <DialogHeader className="px-6 pt-6 pb-3">
