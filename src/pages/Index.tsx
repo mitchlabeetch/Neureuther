@@ -12,12 +12,17 @@ import {
     Disc,
     ListChecks,
     ArrowRight,
-    CheckCircle2,
-    Circle,
     ClipboardList,
     Wallet,
     ChefHat,
     FolderLock,
+    Moon,
+    IceCream,
+    Heart,
+    Lightbulb,
+    Star,
+    Trophy,
+    Sparkles,
 } from "lucide-react";
 
 import { useState, useEffect } from "react";
@@ -46,18 +51,23 @@ function HomePage() {
         else
             setGreeting("Good evening");
 
-        const completed = state.checklistItems.filter(i => i.completed).length;
-        const total = state.checklistItems.length;
+        const dailyItems = state.checklistItems.filter(i => i.kind === "daily" && !i.archived);
+        const completed = dailyItems.filter(i => i.completed).length;
+        const total = dailyItems.length;
         setProgressVal(total > 0 ? (completed / total) * 100 : 0);
     }, [state.checklistItems]);
 
-    const completedToday = state.checklistItems.filter(i => i.completed).length;
-    const totalToday = state.checklistItems.length;
+    const completedToday = state.checklistItems.filter(i => i.kind === "daily" && !i.archived && i.completed).length;
+    const totalToday = state.checklistItems.filter(i => i.kind === "daily" && !i.archived).length;
 
     const topUser = state.users.map(u => ({
         ...u,
         points: getUserPoints(u.id)
     })).sort((a, b) => b.points - a.points)[0];
+
+    // Frenchie / Widdy habits from the document
+    const frenchieDone = state.checklistItems.some(i => i.kind === "random" && !i.archived && i.completed && i.label.includes("Frenchie: Minimum 15 series"));
+    const widdyDone = state.checklistItems.some(i => i.kind === "random" && !i.archived && i.completed && i.label.includes("Widdy: Minimum 3 workouts"));
 
     return (
         <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
@@ -119,6 +129,104 @@ function HomePage() {
                         className="mt-4 w-full flex items-center justify-between px-4 py-2.5 rounded-[1.25rem] bg-[#eeebe3] border border-[#b7c6c2]/20 text-xs font-medium text-[#171e19] transition-all active:scale-[0.99] hover:bg-[#b7c6c2]/15 relative z-10">
                         <span>See long-term checklist</span>
                         <ArrowRight size={14} className="text-[#b7c6c2]" />
+                    </button>
+                </div>
+            </div>
+
+            {/* ── Evening Routine Mini-Card ── */}
+            <div className="px-5 mb-5">
+                <button
+                    onClick={() => navigate("/checklist")}
+                    className="w-full rounded-[1.5rem] p-5 bg-[#171e19] text-left shadow-[0_12px_40px_-8px_rgba(23,30,25,0.35)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden group"
+                >
+                    <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/[0.04]" />
+                    <div className="flex items-center gap-3 mb-3 relative z-10">
+                        <div className="w-10 h-10 rounded-xl bg-[#ca0013] flex items-center justify-center">
+                            <Moon size={20} className="text-white" />
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-white text-base tracking-tight">10-Min Evening Clean Up</h4>
+                            <p className="text-white/60 text-xs font-medium">Walk, tea, prep, tidy, plan</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 relative z-10">
+                        <span className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#b7c6c2]">
+                            Evening Routine
+                        </span>
+                        <ArrowRight size={12} className="text-[#b7c6c2] group-hover:translate-x-1 transition-transform" />
+                    </div>
+                </button>
+            </div>
+
+            {/* ── Reflection + Ice Cream Rules ── */}
+            <div className="px-5 mb-5">
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        onClick={() => navigate("/checklist/random")}
+                        className="group bg-white rounded-[1.5rem] p-4 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden"
+                    >
+                        <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                            <Lightbulb size={20} className="text-[#3B82F6]" />
+                        </div>
+                        <h4 className="font-semibold text-[#171e19] text-sm mb-1 tracking-tight">Reflect</h4>
+                        <p className="text-[11px] text-[#b7c6c2] font-medium leading-snug">
+                            How was it? What was good? What needs to improve?
+                        </p>
+                    </button>
+                    <button
+                        onClick={() => navigate("/checklist/random")}
+                        className="group bg-white rounded-[1.5rem] p-4 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden"
+                    >
+                        <div className="w-10 h-10 rounded-2xl bg-pink-50 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                            <IceCream size={20} className="text-[#F472B6]" />
+                        </div>
+                        <h4 className="font-semibold text-[#171e19] text-sm mb-1 tracking-tight">Ice Cream Rules</h4>
+                        <p className="text-[11px] text-[#b7c6c2] font-medium leading-snug">
+                            Once a week only if checklist is done ✓
+                        </p>
+                    </button>
+                </div>
+            </div>
+
+            {/* ── Individual Daily Habits ── */}
+            <div className="px-5 mb-5">
+                <h3 className="section-header mb-3">DAILY HABITS</h3>
+                <div className="space-y-3">
+                    {/* Frenchie */}
+                    <button
+                        onClick={() => navigate("/checklist/random")}
+                        className="w-full flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all active:scale-[0.99] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] text-left"
+                    >
+                        <div className="w-10 h-10 rounded-full bg-[#A78BFA]/15 flex items-center justify-center text-lg shrink-0">
+                            👩‍💻
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-[#171e19]">Frenchie</div>
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <span className="text-[11px] font-medium text-[#b7c6c2]">15 series · 2 messages · Groomed</span>
+                            </div>
+                        </div>
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${frenchieDone ? "bg-[#69D2A6] border-[#69D2A6] text-white" : "border-[#b7c6c2]/30 text-transparent"}`}>
+                            <Star size={12} />
+                        </div>
+                    </button>
+                    {/* Widdy */}
+                    <button
+                        onClick={() => navigate("/checklist/random")}
+                        className="w-full flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all active:scale-[0.99] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] text-left"
+                    >
+                        <div className="w-10 h-10 rounded-full bg-[#38BDF8]/15 flex items-center justify-center text-lg shrink-0">
+                            🤴
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-[#171e19]">Widdy</div>
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <span className="text-[11px] font-medium text-[#b7c6c2]">Outside · 3 workouts · 2 messages · Groomed</span>
+                            </div>
+                        </div>
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${widdyDone ? "bg-[#69D2A6] border-[#69D2A6] text-white" : "border-[#b7c6c2]/30 text-transparent"}`}>
+                            <Star size={12} />
+                        </div>
                     </button>
                 </div>
             </div>
@@ -190,7 +298,7 @@ function HomePage() {
                             <ChefHat size={24} className="text-green-500" />
                         </div>
                         <h4 className="font-semibold text-[#171e19] text-base mb-1 tracking-tight">Kitchen</h4>
-                        <p className="text-xs text-[#b7c6c2] font-medium">Recipes and groceries list</p>
+                        <p className="text-xs text-[#b7c6c2] font-medium">Rules, fridge, and cleaning</p>
                     </a>
                     <a
                         href="/documents"

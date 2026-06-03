@@ -9,7 +9,7 @@ export default function AllChecklistsPage() {
     {
       id: "daily",
       label: "Daily Checklist",
-      desc: "Everyday shared tasks",
+      desc: "Evening routine & everyday shared tasks",
       icon: ListChecks,
       path: "/checklist",
       color: "#FDA172",
@@ -17,7 +17,7 @@ export default function AllChecklistsPage() {
     {
       id: "longterm",
       label: "Long-term Checklist",
-      desc: "Goals and recurring tasks",
+      desc: "To-dos and bigger goals",
       icon: CalendarDays,
       path: "/checklist/long-term",
       color: "#69D2A6",
@@ -31,20 +31,20 @@ export default function AllChecklistsPage() {
       color: "#A78BFA",
     },
     {
+      id: "random",
+      label: "Random Checklist",
+      desc: "Habits, rules & quick quests",
+      icon: Shuffle,
+      path: "/checklist/random",
+      color: "#F472B6",
+    },
+    {
       id: "archive",
       label: "Checklist Archive",
       desc: "Archived tasks & checklists",
       icon: ArchiveIcon,
       path: "/checklist/archive",
       color: "#95a5a0",
-    },
-    {
-      id: "random",
-      label: "Random Checklist",
-      desc: "Quick everyday quest lists",
-      icon: Shuffle,
-      path: "/checklist/random",
-      color: "#F472B6",
     },
   ];
 
