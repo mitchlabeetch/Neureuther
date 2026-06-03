@@ -1107,10 +1107,12 @@ function FlagSelector({
 }) {
   const [open, setOpen] = useState(false);
   const selected = flags.find((f) => f.id === value);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
     <div className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center gap-2 px-3.5 h-11 rounded-xl bg-[#eeebe3] border border-[#b7c6c2]/20 hover:border-[#69D2A6]/30 transition-all"
@@ -1145,7 +1147,16 @@ function FlagSelector({
             className="fixed inset-0 z-10"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute z-20 mt-1.5 left-0 right-0 bg-white rounded-[1.25rem] border border-[#b7c6c2]/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] p-1.5 max-h-60 overflow-y-auto animate-fade-in-up">
+          <div
+            ref={(el) => {
+              if (!el || !triggerRef.current) return;
+              const rect = triggerRef.current.getBoundingClientRect();
+              el.style.top = `${rect.bottom + 6}px`;
+              el.style.left = `${rect.left}px`;
+              el.style.width = `${rect.width}px`;
+            }}
+            className="fixed z-[200] bg-white rounded-[1.25rem] border border-[#b7c6c2]/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] p-1.5 max-h-60 overflow-y-auto animate-fade-in-up"
+          >
             <button
               type="button"
               onClick={() => {
