@@ -1,5 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
-import { RotateCw } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 
 interface ConfettiPiece {
   id: number;
@@ -11,35 +10,55 @@ interface ConfettiPiece {
 
 const SEGMENT_COLORS = ['#FDA172', '#FF6B6B', '#A78BFA', '#69D2A6', '#FBBF24', '#FB7185', '#38BDF8', '#A3E635'];
 
-interface SpinWheelProps {
-  segments: { label: string; color: string; emoji?: string }[];
-  onResult: (index: number, label: string) => void;
-  spinning: boolean;
-  result: number | null;
-  onSpin: () => void;
-  onSpinEnd: () => void;
+export interface WheelSegment {
+  label: string;
+  color: string;
+  emoji?: string;
 }
 
-export function SpinWheel({ segments, onResult, spinning, result, onSpin, onSpinEnd }: SpinWheelProps) {
+interface SpinWheelProps {
+  segments: WheelSegment[];
+  onResult: (index: number, label: string) => void;
+}
+
+export function SpinWheel({ segments, onResult }: SpinWheelProps) {
+  const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
 
-  const spin = useCallback(() => {
-    if (spinning || segments.length < 2) return;
-    onSpin();
+  // Ref to always call the latest onResult without stale closure
+  const onResultRef = useRef(onResult);
+  useEffect(() => { onResultRef.current = onResult; }, [onResult]);
 
+  // Winner computed at trigger time, stored in ref for setTimeout
+  const winnerRef = useRef<{ index: number; label: string } | null>(null);
+
+  const spin = () => {
+    if (spinning || segments.length < 2) return;
+
+    // ── Compute winner NOW from CURRENT segments ──
     const spins = 5 + Math.floor(Math.random() * 5);
     const extraAngle = Math.random() * 360;
     const totalRotation = rotation + spins * 360 + extraAngle;
-    setRotation(totalRotation);
 
     const segmentAngle = 360 / segments.length;
     const targetAngle = (360 - (extraAngle % 360)) % 360;
     const winnerIndex = Math.floor(targetAngle / segmentAngle);
 
+    winnerRef.current = {
+      index: winnerIndex,
+      label: segments[winnerIndex]?.label ?? '',
+    };
+
+    setSpinning(true);
+    setRotation(totalRotation);
+
     setTimeout(() => {
-      onSpinEnd();
-      onResult(winnerIndex, segments[winnerIndex].label);
+      setSpinning(false);
+      const w = winnerRef.current;
+      if (w) {
+        onResultRef.current(w.index, w.label);
+      }
 
       const pieces: ConfettiPiece[] = [];
       for (let i = 0; i < 30; i++) {
@@ -54,9 +73,8 @@ export function SpinWheel({ segments, onResult, spinning, result, onSpin, onSpin
       setConfetti(pieces);
       setTimeout(() => setConfetti([]), 2500);
     }, 3500);
-  }, [spinning, segments, rotation, onSpin, onSpinEnd, onResult]);
+  };
 
-  const arrowSize = 16;
   const svgSize = 300;
   const center = svgSize / 2;
   const radius = svgSize / 2 - 8;
@@ -87,7 +105,7 @@ export function SpinWheel({ segments, onResult, spinning, result, onSpin, onSpin
       <div className="relative">
         {/* Arrow */}
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-          <svg width={arrowSize * 2} height={arrowSize * 2} viewBox="0 0 32 32">
+          <svg width={32} height={32} viewBox="0 0 32 32">
             <polygon points="16,28 4,4 28,4" fill="#2D2B2A" />
           </svg>
         </div>
@@ -120,7 +138,7 @@ export function SpinWheel({ segments, onResult, spinning, result, onSpin, onSpin
               const labelPos = polarToCartesian(midAngle, radius * 0.65);
 
               return (
-                <g key={i}>
+                <g key={`${seg.label}-${i}`}>
                   <path d={pathData} fill={seg.color} stroke="white" strokeWidth={2} />
                   <text
                     x={labelPos.x}
@@ -136,16 +154,19 @@ export function SpinWheel({ segments, onResult, spinning, result, onSpin, onSpin
               );
             })}
           </g>
+
           {/* Center clickable spin button */}
           <g
             onClick={spin}
-            className={`cursor-pointer ${spinning ? 'pointer-events-none' : ''}`}
+            style={{ cursor: spinning ? 'default' : 'pointer' }}
           >
-            <circle cx={center} cy={center} r={30} fill="white" stroke="#2D2B2A" strokeWidth={3}
-              className={`transition-all duration-200 ${!spinning ? 'hover:fill-orange-50' : ''}`}
+            <circle
+              cx={center} cy={center} r={34}
+              fill="white" stroke="#2D2B2A" strokeWidth={3}
             />
-            <circle cx={center} cy={center} r={23} fill="#FDA172"
-              className={`transition-all duration-200 ${!spinning ? 'hover:fill-[#e88c5e] active:scale-90' : ''}`}
+            <circle
+              cx={center} cy={center} r={26}
+              fill="#FDA172"
             />
             <text
               x={center}
@@ -153,7 +174,7 @@ export function SpinWheel({ segments, onResult, spinning, result, onSpin, onSpin
               textAnchor="middle"
               dominantBaseline="middle"
               className="fill-white font-extrabold select-none pointer-events-none"
-              style={{ fontSize: 13 }}
+              style={{ fontSize: 14 }}
             >
               SPIN
             </text>

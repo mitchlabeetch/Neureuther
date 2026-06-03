@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '@/lib/store';
 import { SpinWheel } from '@/components/SpinWheel';
 import { BottomNav } from '@/components/BottomNav';
-import { Plus, Trash2, Check, PartyPopper, Pencil, UserPlus, RotateCcw, X } from 'lucide-react';
+import { Plus, Trash2, Check, PartyPopper, Pencil, UserPlus, RotateCcw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -32,8 +32,6 @@ function WheelPage() {
   const [pendingPick, setPendingPick] = useState<PendingPick | null>(null);
   const [doneAnimation, setDoneAnimation] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState<Array<{ id: number; x: number; color: string; delay: number }>>([]);
-  const [wheelSpinning, setWheelSpinning] = useState(false);
-  const [wheelResult, setWheelResult] = useState<number | null>(null);
 
   // Edit dialog state
   const [editTitle, setEditTitle] = useState('');
@@ -64,7 +62,6 @@ function WheelPage() {
   const resetTempUsers = () => setTempUsers([]);
   const resetPick = () => {
     setPendingPick(null);
-    setWheelResult(null);
     setDoneAnimation(false);
     resetTempUsers();
   };
@@ -119,7 +116,6 @@ function WheelPage() {
       setPendingPick(null);
       setDoneAnimation(false);
       setConfettiPieces([]);
-      setWheelResult(null);
       resetTempUsers();
     }, 2200);
   };
@@ -465,14 +461,7 @@ function WheelPage() {
       {/* Wheel */}
       {allSegments.length >= 2 ? (
         <div className="px-5">
-          <SpinWheel
-            segments={allSegments}
-            onResult={handleResult}
-            spinning={wheelSpinning}
-            result={wheelResult}
-            onSpin={() => setWheelSpinning(true)}
-            onSpinEnd={() => setWheelSpinning(false)}
-          />
+          <SpinWheel segments={allSegments} onResult={handleResult} />
         </div>
       ) : (
         <div className="px-5 py-20 text-center">
