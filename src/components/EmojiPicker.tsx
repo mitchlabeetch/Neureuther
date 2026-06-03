@@ -167,7 +167,7 @@ export function EmojiPicker({ value, onChange, className }: EmojiPickerProps) {
         align="center"
         side="top"
         sideOffset={8}
-        className="w-[320px] max-h-[380px] p-3 rounded-[1.5rem] border-[#b7c6c2]/20 bg-white shadow-[0_20px_50px_-12px_rgba(0,0,0,0.16)]"
+        className="z-[70] w-[320px] max-h-[380px] p-3 rounded-[1.5rem] border-[#b7c6c2]/20 bg-white shadow-[0_20px_50px_-12px_rgba(0,0,0,0.16)]"
       >
         <div className="flex items-center gap-2 bg-[#eeebe3] rounded-xl px-3 py-2 mb-3">
           <Search size={14} className="text-[#b7c6c2] shrink-0" />
