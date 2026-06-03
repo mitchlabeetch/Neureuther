@@ -447,7 +447,7 @@ function SignedOutHero({ onSignIn }: { onSignIn: () => void }) {
                 className="flex items-center gap-2.5 text-[#171e19]"
               >
                 <row.icon size={15} className="text-[#A78BFA]" />
-                <span className="text-sm font-medium">{row.label}</span>
+                <span className="text-sm font-medium">Pretty safe I mean I think</span>
               </div>
             ))}
           </div>
