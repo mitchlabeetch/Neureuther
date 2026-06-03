@@ -6,7 +6,7 @@
 import { useApp } from "@/lib/store";
 import { BottomNav } from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, ListChecks, Trophy, ArrowRight, CheckCircle2, Circle } from "lucide-react";
+import { Disc, ListChecks, Trophy, ArrowRight, CheckCircle2, Circle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -122,7 +122,7 @@ function HomePage() {
                         className="group bg-white rounded-3xl p-5 shadow-md shadow-orange-100/30 border border-orange-50 text-left hover:shadow-lg transition-all active:scale-[0.98]">
                         <div
                             className="w-12 h-12 rounded-2xl bg-cantaloupe-lighter flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <Sparkles size={24} className="text-cantaloupe" />
+                            <Disc size={24} className="text-cantaloupe" />
                         </div>
                         <h4 className="font-extrabold text-[#2D2B2A] text-base mb-1">Spin Wheel</h4>
                         <p className="text-xs text-gray-400 font-semibold">Pick who does what!</p>
