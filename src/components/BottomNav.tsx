@@ -1,11 +1,11 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, ListChecks, Sparkles, Trophy, Settings } from 'lucide-react';
+import { Home, ListChecks, Disc, Trophy, Settings } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/checklist', icon: ListChecks, label: 'Checklist' },
-  { to: '/wheel', icon: Sparkles, label: 'Spin the Wheel' },
+  { to: '/wheel', icon: Disc, label: 'Spin the Wheel' },
   { to: '/rewards', icon: Trophy, label: 'Rewards' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
