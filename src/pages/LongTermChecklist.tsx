@@ -457,7 +457,7 @@ function LongTermChecklistPage() {
                     return (
                         <div
                             key={item.id}
-                            className="rounded-[1.5rem] overflow-hidden border transition-all duration-300 bg-white border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]"
+                            className="rounded-[1.5rem] overflow-hidden border transition-all duration-300 bg-[#EEF2F5] border-[#b7c6c2]/25 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]"
                             style={{
                                 animationDelay: `${index * 50}ms`,
                                 boxShadow: flag ? `0 0 0 2px ${flag.color}30, 0 4px 20px -4px rgba(0,0,0,0.04)` : undefined

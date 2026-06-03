@@ -163,10 +163,10 @@ function ChecklistPage() {
             <div
               key={item.id}
               className={`relative flex items-center gap-3 rounded-[1.5rem] p-4 border transition-all duration-300 active:scale-[0.99] ${
-                              item.completed
-                                ? 'bg-green-50/50 border-green-200/50'
-                                : 'bg-white border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]'
-                            } hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] animate-fade-in-up`}
+                                            item.completed
+                                              ? 'bg-green-50/50 border-green-200/50'
+                                              : 'bg-[#FFFBF5] border-[#F5E6D3]/40 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]'
+                                          } hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] animate-fade-in-up`}
                             style={{
                               animationDelay: item.completed ? '0ms' : `${index * 50}ms`,
                             }}
