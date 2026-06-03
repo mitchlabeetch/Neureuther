@@ -40,7 +40,7 @@ function HomePage() {
           <p className="text-xs font-extrabold text-[#b7c6c2] uppercase tracking-[0.1em]">
             {greeting}
           </p>
-          <h1 className="text-[1.875rem] font-black text-[#171e19] mt-0.5 tracking-tight leading-tight">
+          <h1 className="text-[1.875rem] font-semibold text-[#171e19] mt-0.5 tracking-tight leading-tight">
             Neureuther
           </h1>
         </div>
@@ -55,13 +55,13 @@ function HomePage() {
                   {u.emoji}
                 </div>
               </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                 {u.name} — {getUserPoints(u.id)} pts
               </TooltipContent>
             </Tooltip>
           ))}
           {state.users.length > 4 && (
-            <div className="w-11 h-11 rounded-full border-[2.5px] border-white bg-[#eeebe3] flex items-center justify-center text-xs font-black text-[#b7c6c2] shadow-sm">
+            <div className="w-11 h-11 rounded-full border-[2.5px] border-white bg-[#eeebe3] flex items-center justify-center text-xs font-semibold text-[#b7c6c2] shadow-sm">
               +{state.users.length - 4}
             </div>
           )}
@@ -76,18 +76,18 @@ function HomePage() {
           
           <div className="flex items-center justify-between mb-5 relative z-10">
             <div>
-              <h3 className="text-lg font-black text-[#171e19] tracking-tight">Today's Checklist</h3>
-              <p className="text-sm text-[#b7c6c2] font-bold mt-1">
+              <h3 className="text-lg font-semibold text-[#171e19] tracking-tight">Today's Checklist</h3>
+              <p className="text-sm text-[#b7c6c2] font-medium mt-1">
                 {completedToday} / {totalToday} done
               </p>
             </div>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="w-16 h-16 rounded-full bg-[#FFF1E6] flex items-center justify-center cursor-default transition-transform hover:scale-105">
-                  <span className="text-xl font-black text-cantaloupe">{Math.round(progressVal)}%</span>
+                  <span className="text-xl font-semibold text-cantaloupe">{Math.round(progressVal)}%</span>
                 </div>
               </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                 {completedToday} of {totalToday} tasks completed today
               </TooltipContent>
             </Tooltip>
@@ -100,7 +100,7 @@ function HomePage() {
             {state.checklistItems.slice(0, 5).map((item) => (
               <div
                 key={item.id}
-                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
                   item.completed
                     ? "bg-green-50 text-green-600"
                     : "bg-[#eeebe3] text-[#b7c6c2]"
@@ -111,7 +111,7 @@ function HomePage() {
               </div>
             ))}
             {state.checklistItems.length > 5 && (
-              <span className="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-[#eeebe3] text-[#b7c6c2]">
+              <span className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-[#eeebe3] text-[#b7c6c2]">
                 +{state.checklistItems.length - 5} more
               </span>
             )}
@@ -131,8 +131,8 @@ function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-[#FFF1E6] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
               <Disc size={24} className="text-cantaloupe" />
             </div>
-            <h4 className="font-black text-[#171e19] text-base mb-1 tracking-tight">Spin Wheel</h4>
-            <p className="text-xs text-[#b7c6c2] font-bold">Pick who does what!</p>
+            <h4 className="font-semibold text-[#171e19] text-base mb-1 tracking-tight">Spin Wheel</h4>
+            <p className="text-xs text-[#b7c6c2] font-medium">Pick who does what!</p>
           </button>
           <button
             onClick={() => navigate("/checklist")}
@@ -142,8 +142,8 @@ function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
               <ListChecks size={24} className="text-green-500" />
             </div>
-            <h4 className="font-black text-[#171e19] text-base mb-1 tracking-tight">Checklist</h4>
-            <p className="text-xs text-[#b7c6c2] font-bold">Track daily tasks</p>
+            <h4 className="font-semibold text-[#171e19] text-base mb-1 tracking-tight">Checklist</h4>
+            <p className="text-xs text-[#b7c6c2] font-medium">Track daily tasks</p>
           </button>
         </div>
       </div>
@@ -156,10 +156,10 @@ function HomePage() {
             <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
               🏆
             </div>
-            <div className="text-xl font-black text-[#171e19] mt-1 truncate">
+            <div className="text-xl font-semibold text-[#171e19] mt-1 truncate">
               {topUser?.emoji} {topUser?.name}
             </div>
-            <div className="text-xs text-[#b7c6c2] font-bold mt-1">
+            <div className="text-xs text-[#b7c6c2] font-medium mt-1">
               {topUser?.points || 0} pts — Top earner
             </div>
           </div>
@@ -167,28 +167,28 @@ function HomePage() {
             <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
               🔥
             </div>
-            <div className="text-xl font-black text-[#ca0013] mt-1">
+            <div className="text-xl font-semibold text-[#ca0013] mt-1">
               {completedToday} tasks
             </div>
-            <div className="text-xs text-[#b7c6c2] font-bold mt-1">Completed today</div>
+            <div className="text-xs text-[#b7c6c2] font-medium mt-1">Completed today</div>
           </div>
           <div className="stat-card">
             <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
               🎡
             </div>
-            <div className="text-xl font-black text-[#A78BFA] mt-1">
+            <div className="text-xl font-semibold text-[#A78BFA] mt-1">
               {state.wheelConfigs.length}
             </div>
-            <div className="text-xs text-[#b7c6c2] font-bold mt-1">Spin wheels</div>
+            <div className="text-xs text-[#b7c6c2] font-medium mt-1">Spin wheels</div>
           </div>
           <div className="stat-card">
             <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
               🎁
             </div>
-            <div className="text-xl font-black text-[#69D2A6] mt-1">
+            <div className="text-xl font-semibold text-[#69D2A6] mt-1">
               {state.rewardItems.length}
             </div>
-            <div className="text-xs text-[#b7c6c2] font-bold mt-1">Rewards available</div>
+            <div className="text-xs text-[#b7c6c2] font-medium mt-1">Rewards available</div>
           </div>
         </div>
       </div>
@@ -202,8 +202,8 @@ function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#ca0013] to-[#e31b30] opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="flex items-center justify-between relative z-10">
             <div>
-              <h4 className="font-black text-white text-lg mb-1 tracking-tight">Earn Rewards!</h4>
-              <p className="text-white/70 text-sm font-bold">
+              <h4 className="font-semibold text-white text-lg mb-1 tracking-tight">Earn Rewards!</h4>
+              <p className="text-white/70 text-sm font-medium">
                 Complete tasks &amp; spin the wheel to earn points
               </p>
             </div>

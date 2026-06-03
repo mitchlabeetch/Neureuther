@@ -52,8 +52,8 @@ function RewardsPage() {
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
       {/* Header */}
       <div className="px-5 pt-14 pb-4 animate-fade-in-up">
-        <h1 className="text-3xl font-black text-[#171e19] tracking-tight">Rewards</h1>
-        <p className="text-sm text-[#b7c6c2] font-bold mt-1">
+        <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">Rewards</h1>
+        <p className="text-sm text-[#b7c6c2] font-medium mt-1">
           Earn points, redeem rewards!
         </p>
       </div>
@@ -68,7 +68,7 @@ function RewardsPage() {
               className="flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 active:scale-[0.99]"
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
                   i === 0
                     ? 'bg-yellow-50 text-yellow-600'
                     : i === 1
@@ -87,7 +87,7 @@ function RewardsPage() {
                 {user.emoji}
               </div>
               <div className="flex-1">
-                <div className="text-sm font-black text-[#171e19]">
+                <div className="text-sm font-medium text-[#171e19]">
                   {user.name}
                 </div>
                 <div className="w-full h-2 bg-[#eeebe3] rounded-full mt-1.5 overflow-hidden">
@@ -100,7 +100,7 @@ function RewardsPage() {
                   />
                 </div>
               </div>
-              <span className="text-lg font-black" style={{ color: user.color }}>
+              <span className="text-lg font-semibold" style={{ color: user.color }}>
                 {points}
               </span>
             </div>
@@ -114,13 +114,13 @@ function RewardsPage() {
           <h3 className="section-header">Reward Shop</h3>
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
-              <button className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-cantaloupe bg-[#FFF1E6] hover:bg-cantaloupe hover:text-white transition-all active:scale-90">
+              <button className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium text-cantaloupe bg-[#FFF1E6] hover:bg-cantaloupe hover:text-white transition-all active:scale-90">
                 <Plus size={14} /> Add
               </button>
             </DialogTrigger>
             <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
               <DialogHeader className="px-6 pt-6 pb-3">
-                <DialogTitle className="text-xl font-black text-[#171e19]">
+                <DialogTitle className="text-xl font-semibold text-[#171e19]">
                   New Reward
                 </DialogTitle>
               </DialogHeader>
@@ -158,7 +158,7 @@ function RewardsPage() {
                 <button
                   onClick={handleCreate}
                   disabled={!newLabel.trim() || !newCost || Number(newCost) <= 0}
-                  className="w-full py-3 rounded-xl font-black text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
+                  className="w-full py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
                 >
                   Add Reward
                 </button>
@@ -175,10 +175,10 @@ function RewardsPage() {
               <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
                 {item.icon}
               </div>
-              <h4 className="text-sm font-black text-[#171e19] mb-1 truncate">
+              <h4 className="text-sm font-medium text-[#171e19] mb-1 truncate">
                 {item.label}
               </h4>
-              <div className="flex items-center gap-1 text-cantaloupe text-xs font-bold mb-3">
+              <div className="flex items-center gap-1 text-cantaloupe text-xs font-medium mb-3">
                 <Star size={12} /> {item.pointsCost} pts
               </div>
               <div className="flex gap-1">
@@ -186,12 +186,12 @@ function RewardsPage() {
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => setShowRedeem(item.id)}
-                      className="flex-1 py-1.5 rounded-xl text-xs font-bold text-white bg-cantaloupe hover:bg-[#fda172dd] transition-all active:scale-95"
+                      className="flex-1 py-1.5 rounded-xl text-xs font-medium text-white bg-cantaloupe hover:bg-[#fda172dd] transition-all active:scale-95"
                     >
                       Redeem
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                  <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                     Spend points to claim this reward
                   </TooltipContent>
                 </Tooltip>
@@ -204,7 +204,7 @@ function RewardsPage() {
                       <Trash2 size={14} />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                  <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                     Remove this reward
                   </TooltipContent>
                 </Tooltip>
@@ -224,8 +224,8 @@ function RewardsPage() {
             className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-black text-[#171e19] mb-1">Who's redeeming?</h3>
-            <p className="text-sm text-[#b7c6c2] font-bold mb-4">
+            <h3 className="text-lg font-semibold text-[#171e19] mb-1">Who's redeeming?</h3>
+            <p className="text-sm text-[#b7c6c2] font-medium mb-4">
               {state.rewardItems.find((r) => r.id === showRedeem)?.label} —{' '}
               {state.rewardItems.find((r) => r.id === showRedeem)?.pointsCost} pts
             </p>
@@ -247,11 +247,11 @@ function RewardsPage() {
                     >
                       {u.emoji}
                     </div>
-                    <span className="text-base font-black text-[#171e19]">
+                    <span className="text-base font-medium text-[#171e19]">
                       {u.name}
                     </span>
                     <span
-                      className="ml-auto text-sm font-bold"
+                      className="ml-auto text-sm font-medium"
                       style={{ color: pts < cost ? '#FF6B6B' : '#69D2A6' }}
                     >
                       {pts} pts {pts < cost ? '❌' : '✅'}

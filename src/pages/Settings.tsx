@@ -53,10 +53,10 @@ function SettingsPage() {
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
       {/* Header */}
       <div className="px-5 pt-14 pb-4 animate-fade-in-up">
-        <h1 className="text-3xl font-black text-[#171e19] tracking-tight">
+        <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">
           Settings
         </h1>
-        <p className="text-sm text-[#b7c6c2] font-bold mt-1">
+        <p className="text-sm text-[#b7c6c2] font-medium mt-1">
           Manage your household
         </p>
       </div>
@@ -69,7 +69,7 @@ function SettingsPage() {
           </h3>
           <button
             onClick={openNew}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-cantaloupe bg-[#FFF1E6] hover:bg-cantaloupe hover:text-white transition-all active:scale-90"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium text-cantaloupe bg-[#FFF1E6] hover:bg-cantaloupe hover:text-white transition-all active:scale-90"
           >
             <Plus size={14} /> Add Person
           </button>
@@ -87,7 +87,7 @@ function SettingsPage() {
                 {user.emoji}
               </div>
               <div className="flex-1">
-                <div className="text-sm font-black text-[#171e19]">
+                <div className="text-sm font-medium text-[#171e19]">
                   {user.name}
                 </div>
                 <div
@@ -104,7 +104,7 @@ function SettingsPage() {
                     <Pencil size={16} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                   Edit {user.name}
                 </TooltipContent>
               </Tooltip>
@@ -117,7 +117,7 @@ function SettingsPage() {
                     <Trash2 size={16} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                   Remove {user.name}
                 </TooltipContent>
               </Tooltip>
@@ -129,11 +129,11 @@ function SettingsPage() {
       {/* About section */}
       <div className="px-5 mb-4">
         <div className="bg-white rounded-[1.5rem] p-5 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]">
-          <h3 className="text-sm font-black text-[#171e19] mb-2">About Neureuther</h3>
-          <p className="text-sm text-[#b7c6c2] font-bold leading-relaxed">
+          <h3 className="text-sm font-semibold text-[#171e19] mb-2">About Neureuther</h3>
+          <p className="text-sm text-[#b7c6c2] font-medium leading-relaxed">
             Your fun household companion! Manage chores, spin the wheel, earn points, and keep your home running smoothly.
           </p>
-          <div className="flex items-center gap-2 mt-3 text-xs text-[#b7c6c2] font-bold">
+          <div className="flex items-center gap-2 mt-3 text-xs text-[#b7c6c2] font-medium">
             <span className="px-2.5 py-1 bg-[#FFF1E6] rounded-full text-cantaloupe">
               v1.0
             </span>
@@ -146,7 +146,7 @@ function SettingsPage() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
           <DialogHeader className="px-6 pt-6 pb-3">
-            <DialogTitle className="text-xl font-black text-[#171e19]">
+            <DialogTitle className="text-xl font-semibold text-[#171e19]">
               {editingUser ? 'Edit Person' : 'Add Person'}
             </DialogTitle>
           </DialogHeader>
@@ -202,7 +202,7 @@ function SettingsPage() {
             <button
               onClick={handleSave}
               disabled={!newName.trim()}
-              className="w-full py-3 rounded-xl font-black text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
+              className="w-full py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
             >
               {editingUser ? 'Save Changes' : 'Add Person'}
             </button>

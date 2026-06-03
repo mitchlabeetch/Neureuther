@@ -64,15 +64,15 @@ function ChecklistPage() {
       <div className="px-5 pt-14 pb-4 animate-fade-in-up">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-black text-[#171e19] tracking-tight">
+            <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">
               Daily Checklist
             </h1>
-            <p className="text-sm text-[#b7c6c2] font-bold mt-1">
+            <p className="text-sm text-[#b7c6c2] font-medium mt-1">
               {completed} / {total} tasks done
             </p>
           </div>
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-            <span className="text-2xl font-black text-green-500">{pct}%</span>
+            <span className="text-2xl font-semibold text-green-500">{pct}%</span>
           </div>
         </div>
         <Progress
@@ -112,13 +112,13 @@ function ChecklistPage() {
                     <Check size={16} strokeWidth={3} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                   {item.completed ? 'Mark as incomplete' : 'Mark as complete'}
                 </TooltipContent>
               </Tooltip>
               <div className="flex-1 min-w-0">
                 <span
-                  className={`text-sm font-extrabold block truncate transition-colors ${
+                  className={`text-sm font-medium block truncate transition-colors ${
                     item.completed
                       ? 'text-[#b7c6c2] line-through'
                       : 'text-[#171e19]'
@@ -127,7 +127,7 @@ function ChecklistPage() {
                   {item.label}
                 </span>
                 {completedBy && (
-                  <span className="text-xs font-bold text-green-500 flex items-center gap-1 mt-0.5">
+                  <span className="text-xs font-medium text-green-500 flex items-center gap-1 mt-0.5">
                     {completedBy.emoji} {completedBy.name}
                   </span>
                 )}
@@ -141,7 +141,7 @@ function ChecklistPage() {
                     <Trash2 size={14} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                   Remove this task
                 </TooltipContent>
               </Tooltip>
@@ -156,12 +156,12 @@ function ChecklistPage() {
               <div className="w-9 h-9 rounded-full bg-[#eeebe3] flex items-center justify-center">
                 <Plus size={18} />
               </div>
-              <span className="text-sm font-extrabold">Add new task</span>
+              <span className="text-sm font-medium">Add new task</span>
             </button>
           </DialogTrigger>
           <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
             <DialogHeader className="px-6 pt-6 pb-3">
-              <DialogTitle className="text-xl font-black text-[#171e19]">
+              <DialogTitle className="text-xl font-semibold text-[#171e19]">
                 New Daily Task
               </DialogTitle>
             </DialogHeader>
@@ -179,7 +179,7 @@ function ChecklistPage() {
               <button
                 onClick={handleCreate}
                 disabled={!newLabel.trim()}
-                className="w-full py-3 rounded-xl font-black text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
+                className="w-full py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
               >
                 Add Task
               </button>
@@ -199,7 +199,7 @@ function ChecklistPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-black text-[#171e19]">Who did it?</h3>
+              <h3 className="text-lg font-semibold text-[#171e19]">Who did it?</h3>
               <button
                 onClick={() => setActivePicker(null)}
                 className="p-2 rounded-full hover:bg-[#eeebe3] transition-all active:scale-90"
@@ -220,10 +220,10 @@ function ChecklistPage() {
                   >
                     {u.emoji}
                   </div>
-                  <span className="text-base font-black text-[#171e19]">
+                  <span className="text-base font-medium text-[#171e19]">
                     {u.name}
                   </span>
-                  <span className="ml-auto text-sm font-bold text-cantaloupe bg-[#FFF1E6] px-2.5 py-1 rounded-full group-hover:bg-cantaloupe group-hover:text-white transition-all">
+                  <span className="ml-auto text-sm font-medium text-cantaloupe bg-[#FFF1E6] px-2.5 py-1 rounded-full group-hover:bg-cantaloupe group-hover:text-white transition-all">
                     +5 pts
                   </span>
                 </button>
@@ -236,7 +236,7 @@ function ChecklistPage() {
       {/* Reset info */}
       <div className="px-5 mb-16">
         <div className="bg-[#FFF1E6] rounded-[1.5rem] p-4 text-center border border-[#b7c6c2]/20">
-          <p className="text-xs font-bold text-cantaloupe">
+          <p className="text-xs font-medium text-cantaloupe">
             🔄 Checklist resets every day at midnight
           </p>
         </div>

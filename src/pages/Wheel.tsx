@@ -298,10 +298,10 @@ function WheelPage() {
       <div className="px-5 pt-10 pb-2 animate-fade-in-up">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-black text-[#171e19] tracking-tight">
+            <h1 className="text-2xl font-bold text-[#171e19] tracking-tight">
               Spin Wheel
             </h1>
-            <p className="text-sm text-[#b7c6c2] font-bold mt-0.5">
+            <p className="text-sm text-[#b7c6c2] font-medium mt-0.5">
               Who&apos;s up for what?
             </p>
           </div>
@@ -324,12 +324,12 @@ function WheelPage() {
                 </Tooltip>
                 <DialogContent className="rounded-[2rem] max-w-[360px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
                   <DialogHeader className="px-6 pt-6 pb-3">
-                    <DialogTitle className="text-xl font-black text-[#171e19]">
+                    <DialogTitle className="text-xl font-semibold text-[#171e19]">
                       Temporary User
                     </DialogTitle>
                   </DialogHeader>
                   <div className="px-6 pb-6 space-y-4">
-                    <p className="text-xs text-[#b7c6c2] font-bold">
+                    <p className="text-xs text-[#b7c6c2] font-medium">
                       Adds a one-time user to the wheel for this spin only.
                     </p>
                     <div>
@@ -345,7 +345,7 @@ function WheelPage() {
                         <button
                           onClick={addTempUser}
                           disabled={!tempUserName.trim()}
-                          className="shrink-0 px-4 py-2 rounded-xl font-bold text-sm text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-95"
+                          className="shrink-0 px-4 py-2 rounded-xl font-medium text-sm text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-95"
                         >
                           Add
                         </button>
@@ -356,7 +356,7 @@ function WheelPage() {
                         {tempUsers.map((tu, i) => (
                           <span
                             key={i}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white bg-[#b7c6c2]"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-white bg-[#b7c6c2]"
                           >
                             {tu.emoji} {tu.name}
                           </span>
@@ -376,7 +376,7 @@ function WheelPage() {
                     <Pencil size={16} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                   Edit this wheel
                 </TooltipContent>
               </Tooltip>
@@ -390,7 +390,7 @@ function WheelPage() {
                     <Trash2 size={16} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                   Delete this wheel
                 </TooltipContent>
               </Tooltip>
@@ -409,7 +409,7 @@ function WheelPage() {
                 setActiveConfigId(config.id);
                 resetPick();
               }}
-              className={`shrink-0 px-4 py-2.5 rounded-full font-bold text-sm transition-all duration-200 active:scale-95 ${
+              className={`shrink-0 px-4 py-2.5 rounded-full font-medium text-sm transition-all duration-200 active:scale-95 ${
                 activeConfig?.id === config.id
                   ? "bg-[#171e19] text-white shadow-lg shadow-[#171e19]/20"
                   : "bg-white text-[#b7c6c2] border border-[#b7c6c2]/25 hover:border-cantaloupe hover:text-cantaloupe"
@@ -422,18 +422,18 @@ function WheelPage() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <DialogTrigger asChild>
-                  <button className="shrink-0 w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 active:scale-90 bg-cantaloupe">
+                  <button className="shrink-0 w-10 h-10 rounded-full text-white flex items-center justify-center shadow-[0_2px_8px_rgba(253,161,114,0.4)] hover:shadow-[0_4px_12px_rgba(253,161,114,0.5)] transition-all duration-200 active:scale-90 bg-cantaloupe">
                     <Plus size={20} />
                   </button>
                 </DialogTrigger>
               </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                 Create a new wheel
               </TooltipContent>
             </Tooltip>
             <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
               <DialogHeader className="px-6 pt-6 pb-3">
-                <DialogTitle className="text-xl font-black text-[#171e19]">
+                <DialogTitle className="text-xl font-semibold text-[#171e19]">
                   New Wheel
                 </DialogTitle>
               </DialogHeader>
@@ -466,7 +466,7 @@ function WheelPage() {
                       <button
                         key={u.id}
                         onClick={() => toggleUserSelection(u.id)}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all duration-200 active:scale-90 ${
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 active:scale-90 ${
                           selectedUsers.includes(u.id)
                             ? "text-white shadow-md"
                             : "bg-[#eeebe3] text-[#b7c6c2] border border-[#b7c6c2]/25"
@@ -485,7 +485,7 @@ function WheelPage() {
                 <button
                   onClick={handleCreate}
                   disabled={!newTitle.trim() || selectedUsers.length < 2}
-                  className="w-full py-3 rounded-xl font-black text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
+                  className="w-full py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
                 >
                   Create Wheel
                 </button>
@@ -509,7 +509,7 @@ function WheelPage() {
                       name: u!.name,
                     })
                   }
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all duration-200 active:scale-90 ${
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 active:scale-90 ${
                     activeConfig.users.includes(u!.id)
                       ? "text-white"
                       : "bg-[#eeebe3] text-[#b7c6c2] line-through"
@@ -523,7 +523,7 @@ function WheelPage() {
                   {u!.emoji} {u!.name}
                 </button>
               </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                 Remove {u!.name} from this wheel
               </TooltipContent>
             </Tooltip>
@@ -531,7 +531,7 @@ function WheelPage() {
           {tempUsers.map((tu, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white bg-[#b7c6c2]"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-white bg-[#b7c6c2]"
             >
               {tu.emoji} {tu.name}
             </span>
@@ -543,7 +543,7 @@ function WheelPage() {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
           <DialogHeader className="px-6 pt-6 pb-3">
-            <DialogTitle className="text-xl font-black text-[#171e19]">
+            <DialogTitle className="text-xl font-semibold text-[#171e19]">
               Edit Wheel
             </DialogTitle>
           </DialogHeader>
@@ -572,7 +572,7 @@ function WheelPage() {
                   <button
                     key={u.id}
                     onClick={() => toggleEditUser(u.id)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all duration-200 active:scale-90 ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 active:scale-90 ${
                       editUsers.includes(u.id)
                         ? "text-white shadow-md"
                         : "bg-[#eeebe3] text-[#b7c6c2] border border-[#b7c6c2]/25"
@@ -589,7 +589,7 @@ function WheelPage() {
             <button
               onClick={handleEdit}
               disabled={!editTitle.trim() || editUsers.length < 2}
-              className="w-full py-3 rounded-xl font-black text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
+              className="w-full py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
             >
               Save Changes
             </button>
@@ -605,10 +605,10 @@ function WheelPage() {
       ) : (
         <div className="px-5 py-20 text-center">
           <div className="text-5xl mb-4 animate-float">🎡</div>
-          <h2 className="text-xl font-black text-[#171e19] mb-2">
+          <h2 className="text-xl font-semibold text-[#171e19] mb-2">
             Add at least 2 people
           </h2>
-          <p className="text-[#b7c6c2] text-sm font-bold">
+          <p className="text-[#b7c6c2] text-sm font-medium">
             Go to Settings to add users, then create a wheel!
           </p>
         </div>
@@ -624,11 +624,11 @@ function WheelPage() {
                 : "border-[#b7c6c2]/20"
             }`}
           >
-            <span className="text-[10px] font-black text-[#b7c6c2] uppercase tracking-[0.1em]">
+            <span className="text-[10px] font-semibold text-[#b7c6c2] uppercase tracking-[0.1em]">
               Last Pick
             </span>
             <span className="text-xl">{lastPickDisplay.emoji}</span>
-            <span className="text-sm font-black text-[#171e19]">
+            <span className="text-sm font-semibold text-[#171e19]">
               {lastPickDisplay.name}
             </span>
             <Tooltip>
@@ -640,39 +640,29 @@ function WheelPage() {
                   <RotateCcw size={14} />
                 </button>
               </TooltipTrigger>
-              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-medium px-3 py-2 shadow-lg">
                 Reset selection & temp users
               </TooltipContent>
             </Tooltip>
             {!doneAnimation && !isTempPick ? (
               <button
                 onClick={handleDone}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#69D2A6] text-white text-xs font-black hover:bg-[#5BCA9B] transition-all active:scale-90 shadow-sm"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#69D2A6] text-white text-xs font-semibold hover:bg-[#5BCA9B] transition-all active:scale-90 shadow-sm"
               >
                 <Check size={14} strokeWidth={3} /> Done
               </button>
             ) : !doneAnimation && isTempPick ? (
-              <span className="ml-auto text-xs font-bold text-[#b7c6c2] italic">
+              <span className="ml-auto text-xs font-medium text-[#b7c6c2] italic">
                 Guest pick
               </span>
             ) : (
-              <div className="ml-auto flex items-center gap-1.5 text-[#69D2A6] font-black text-sm animate-bounce-in">
+              <div className="ml-auto flex items-center gap-1.5 text-[#69D2A6] font-semibold text-sm animate-bounce-in">
                 <PartyPopper size={16} />+{pendingPick.points} pts!
               </div>
             )}
           </div>
         </div>
       )}
-
-      {/* Reset */}
-      <div className="px-5 mb-4">
-        <button
-          onClick={resetPick}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-[1.5rem] text-sm font-bold text-[#b7c6c2] bg-white border border-[#b7c6c2]/20 hover:text-[#171e19] hover:border-[#171e19]/20 transition-all active:scale-[0.98]"
-        >
-          <RotateCcw size={14} /> Reset All
-        </button>
-      </div>
 
       {/* Confirm remove user */}
       {confirmRemoveUser && (
@@ -684,13 +674,13 @@ function WheelPage() {
             className="bg-white rounded-t-[2.5rem] w-[calc(100%-2rem)] max-w-[480px] p-6 animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-black text-[#171e19] mb-3">
+            <h3 className="text-lg font-semibold text-[#171e19] mb-3">
               Should {confirmRemoveUser.name} be taken out of this wheel?
             </h3>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmRemoveUser(null)}
-                className="flex-1 py-3 rounded-xl font-black text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/30 transition-all active:scale-[0.98]"
+                className="flex-1 py-3 rounded-xl font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/30 transition-all active:scale-[0.98]"
               >
                 Cancel
               </button>
@@ -699,7 +689,7 @@ function WheelPage() {
                   toggleConfigUser(activeConfig!.id, confirmRemoveUser.userId);
                   setConfirmRemoveUser(null);
                 }}
-                className="flex-1 py-3 rounded-xl font-black text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
+                className="flex-1 py-3 rounded-xl font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
               >
                 Yes, remove
               </button>
