@@ -1262,13 +1262,12 @@ function FlagSelector({
                     <span className="flex-1 text-left">Add a flag</span>
                   </button>
                 </div>
-              </div>
-            ,
-          document.body,
-        )}
-    </div>
-  );
-}
+              </div>,
+              document.body
+            )}
+      </div>
+    );
+  }
   
   export default LongTermChecklistPage;
   
