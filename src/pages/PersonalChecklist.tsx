@@ -186,6 +186,7 @@ export default function PersonalChecklistPage() {
         bgColor: form.bgColor,
         flagId,
         deadline,
+        kind: "personal",
       });
     }
     closeDialog();
