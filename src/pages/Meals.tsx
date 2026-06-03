@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { MealSlotDialog } from "@/components/meals/MealSlotDialog";
 import { RecipeEditorDialog } from "@/components/meals/RecipeEditorDialog";
 import { RichContentView } from "@/components/meals/RichTextEditor";
-import { showSuccessToast, showErrorToast } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 
 type Tab = "week" | "recipes" | "ingredients";
 
@@ -428,7 +428,7 @@ function MealsPage() {
               setSlotDialog({ open: true, day: empty.d, slot: empty.s });
               setViewingRecipeId(null);
             } else {
-              showErrorToast("This week is full — pick a slot manually");
+              showError("This week is full — pick a slot manually");
               setTab("week");
               setViewingRecipeId(null);
             }
@@ -461,7 +461,7 @@ function MealsPage() {
           slot={slotDialog.slot}
           existing={findPlan(slotDialog.day, slotDialog.slot)}
           onSaved={() => {
-            showSuccessToast("Plan updated");
+            showSuccess("Plan updated");
           }}
           dayLabel={DAY_LONG[slotDialog.day]}
           slotLabel={slotDialog.slot === "lunch" ? "Lunch" : "Dinner"}
@@ -736,10 +736,9 @@ function RecipeViewSheet({
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center bg-[#eeebe3] text-[#171e19]/60 hover:text-[#171e19] active:scale-90 transition"
+            className="w-9 h-9 rounded-full flex items-center justify-center bg-[#eeebe3] text-[#171e19]/60 hover:text-[#171e19] active:scale-90 transition text-lg"
             aria-label="Close"
           >
-            <Pencil size={14} className="hidden" />
             ✕
           </button>
         </div>
