@@ -5,6 +5,7 @@ import { Check, Plus, Trash2, GripVertical, X, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function ChecklistPage() {
   const {
@@ -85,16 +86,23 @@ function ChecklistPage() {
                   : 'bg-white border-orange-100 shadow-sm'
               }`}
             >
-              <button
-                onClick={() => handleToggle(item.id)}
-                className={`shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all active:scale-90 ${
-                  item.completed
-                    ? 'bg-green-400 border-green-400 text-white'
-                    : 'border-gray-300 text-transparent hover:border-cantaloupe'
-                }`}
-              >
-                <Check size={16} strokeWidth={3} />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => handleToggle(item.id)}
+                    className={`shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all active:scale-90 ${
+                      item.completed
+                        ? 'bg-green-400 border-green-400 text-white'
+                        : 'border-gray-300 text-transparent hover:border-cantaloupe'
+                    }`}
+                  >
+                    <Check size={16} strokeWidth={3} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                  {item.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                </TooltipContent>
+              </Tooltip>
               <div className="flex-1 min-w-0">
                 <span className={`text-sm font-extrabold block truncate ${
                   item.completed ? 'text-gray-400 line-through' : 'text-[#2D2B2A]'
@@ -107,12 +115,19 @@ function ChecklistPage() {
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => removeChecklistItem(item.id)}
-                className="p-2 rounded-full text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all"
-              >
-                <Trash2 size={14} />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => removeChecklistItem(item.id)}
+                    className="p-2 rounded-full text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                  Remove this task
+                </TooltipContent>
+              </Tooltip>
             </div>
           );
         })}

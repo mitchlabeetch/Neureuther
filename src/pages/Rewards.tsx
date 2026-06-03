@@ -5,6 +5,7 @@ import { Plus, Trash2, Gift, Star, ShoppingCart } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function RewardsPage() {
   const { state, getUserPoints, addRewardItem, removeRewardItem, awardPoints } = useApp();
@@ -161,18 +162,32 @@ function RewardsPage() {
                 <Star size={12} /> {item.pointsCost} pts
               </div>
               <div className="flex gap-1">
-                <button
-                  onClick={() => setShowRedeem(item.id)}
-                  className="flex-1 py-1.5 rounded-lg text-xs font-bold text-white bg-cantaloupe hover:bg-[#fda172dd] transition-all active:scale-95"
-                >
-                  Redeem
-                </button>
-                <button
-                  onClick={() => removeRewardItem(item.id)}
-                  className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setShowRedeem(item.id)}
+                      className="flex-1 py-1.5 rounded-lg text-xs font-bold text-white bg-cantaloupe hover:bg-[#fda172dd] transition-all active:scale-95"
+                    >
+                      Redeem
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                    Spend points to claim this reward
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => removeRewardItem(item.id)}
+                      className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                    Remove this reward
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           ))}

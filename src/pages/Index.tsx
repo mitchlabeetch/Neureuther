@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sparkles, ListChecks, Trophy, ArrowRight, CheckCircle2, Circle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function HomePage() {
   const { state, getUserById, getUserPoints } = useApp();
@@ -39,14 +40,19 @@ function HomePage() {
         </div>
         <div className="flex -space-x-2">
           {state.users.slice(0, 4).map(u => (
-            <div
-              key={u.id}
-              className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-lg shadow-sm"
-              style={{ backgroundColor: u.color + '30' }}
-              title={u.name}
-            >
-              {u.emoji}
-            </div>
+            <Tooltip key={u.id}>
+              <TooltipTrigger asChild>
+                <div
+                  className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-lg shadow-sm cursor-default"
+                  style={{ backgroundColor: u.color + '30' }}
+                >
+                  {u.emoji}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                {u.name} — {getUserPoints(u.id)} pts
+              </TooltipContent>
+            </Tooltip>
           ))}
           {state.users.length > 4 && (
             <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs font-extrabold text-gray-500 shadow-sm">

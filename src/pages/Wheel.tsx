@@ -5,6 +5,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function WheelPage() {
   const { state, addWheelConfig, removeWheelConfig, getUserById, awardPoints, updateWheelConfig } = useApp();
@@ -75,11 +76,18 @@ function WheelPage() {
             </button>
           ))}
           <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
-            <DialogTrigger asChild>
-              <button className="shrink-0 w-10 h-10 rounded-full bg-cantaloupe text-white flex items-center justify-center shadow-md hover:shadow-lg transition-all active:scale-90">
-                <Plus size={20} />
-              </button>
-            </DialogTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  <button className="shrink-0 w-10 h-10 rounded-full bg-cantaloupe text-white flex items-center justify-center shadow-md hover:shadow-lg transition-all active:scale-90">
+                    <Plus size={20} />
+                  </button>
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                Create a new wheel
+              </TooltipContent>
+            </Tooltip>
             <DialogContent className="rounded-3xl max-w-[380px] mx-auto p-0 gap-0">
               <DialogHeader className="px-6 pt-6 pb-3">
                 <DialogTitle className="text-xl font-extrabold text-[#2D2B2A]">New Wheel</DialogTitle>
@@ -131,23 +139,37 @@ function WheelPage() {
         <div className="px-5 mb-4 flex items-center gap-2">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">People:</span>
           {activeUsers.map(u => (
-            <button
-              key={u!.id}
-              onClick={() => toggleConfigUser(activeConfig.id, u!.id)}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all active:scale-90 ${
-                activeConfig.users.includes(u!.id) ? 'text-white' : 'bg-gray-200 text-gray-500 line-through'
-              }`}
-              style={activeConfig.users.includes(u!.id) ? { backgroundColor: u!.color } : {}}
-            >
-              {u!.emoji} {u!.name}
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                key={u!.id}
+                onClick={() => toggleConfigUser(activeConfig.id, u!.id)}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all active:scale-90 ${
+                  activeConfig.users.includes(u!.id) ? 'text-white' : 'bg-gray-200 text-gray-500 line-through'
+                }`}
+                style={activeConfig.users.includes(u!.id) ? { backgroundColor: u!.color } : {}}
+              >
+                {u!.emoji} {u!.name}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+              {activeConfig.users.includes(u!.id) ? 'Click to remove from wheel' : 'Click to add to wheel'}
+            </TooltipContent>
+          </Tooltip>
           ))}
-          <button
-            onClick={() => removeWheelConfig(activeConfig.id)}
-            className="ml-auto p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-50 transition-all active:scale-90"
-          >
-            <Trash2 size={16} />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => removeWheelConfig(activeConfig.id)}
+                className="ml-auto p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-50 transition-all active:scale-90"
+              >
+                <Trash2 size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+              Delete this wheel
+            </TooltipContent>
+          </Tooltip>
         </div>
       )}
 

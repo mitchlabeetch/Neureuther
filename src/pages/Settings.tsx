@@ -4,6 +4,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { Plus, Pencil, Trash2, Users, X, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const USER_COLORS = ['#FDA172', '#FF6B6B', '#A78BFA', '#69D2A6', '#FBBF24', '#FB7185', '#38BDF8', '#F472B6', '#818CF8', '#34D399'];
 const EMOJIS = ['🦊', '🐸', '🦄', '🐱', '🐶', '🐼', '🐨', '🦁', '🐰', '🐙', '🦉', '🦋', '🐝', '🐳', '🦭', '🐧', '🐯', '🐮', '🐷', '🐵'];
@@ -78,18 +79,32 @@ function SettingsPage() {
                 <div className="text-sm font-extrabold text-[#2D2B2A]">{user.name}</div>
                 <div className="w-4 h-4 rounded-full mt-1" style={{ backgroundColor: user.color }} />
               </div>
-              <button
-                onClick={() => openEdit(user)}
-                className="p-2.5 rounded-full text-gray-400 hover:text-cantaloupe hover:bg-orange-50 transition-all active:scale-90"
-              >
-                <Pencil size={16} />
-              </button>
-              <button
-                onClick={() => removeUser(user.id)}
-                className="p-2.5 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-50 transition-all active:scale-90"
-              >
-                <Trash2 size={16} />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => openEdit(user)}
+                    className="p-2.5 rounded-full text-gray-400 hover:text-cantaloupe hover:bg-orange-50 transition-all active:scale-90"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                  Edit {user.name}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => removeUser(user.id)}
+                    className="p-2.5 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-50 transition-all active:scale-90"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                  Remove {user.name}
+                </TooltipContent>
+              </Tooltip>
             </div>
           ))}
         </div>
