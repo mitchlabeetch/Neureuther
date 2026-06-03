@@ -356,7 +356,7 @@ function WheelPage() {
                       <button
                         onClick={addTempUser}
                         disabled={!tempUserName.trim()}
-                        className="shrink-0 px-4 py-2 rounded-xl font-bold text-sm text-white bg-cantaloupe hover:bg-[#e88c5e] disabled:bg-gray-300 transition-all active:scale-95"
+                        className="shrink-0 px-4 py-2 rounded-xl font-bold text-sm text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 transition-all active:scale-95"
                       >
                         Add
                       </button>
