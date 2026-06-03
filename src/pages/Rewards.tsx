@@ -234,13 +234,9 @@ function RewardsPage() {
 
         <div className="grid grid-cols-2 gap-3">
           {filteredItems.map((item) => {
-            const catStyle = getCategoryStyle(item.category);
-            const anyCanAfford = state.users.some((u) => getUserPoints(u.id) >= item.pointsCost);
-            const closestProgress = state.users.length > 0
-              ? Math.max(0, ...state.users.map((u) => Math.min(100, Math.round((getUserPoints(u.id) / item.pointsCost) * 100))))
-              : 0;
-
-            return (
+                      const catStyle = getCategoryStyle(item.category);
+          
+                      return (
               <div
                 key={item.id}
                 className="bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 flex flex-col"
@@ -275,21 +271,6 @@ function RewardsPage() {
                 <div className="flex items-center gap-1 text-[#FDA172] text-xs font-bold mb-2">
                   <Star size={12} fill="currentColor" /> {item.pointsCost} pts
                 </div>
-
-                {/* Affordability mini-bar */}
-                {state.users.length > 0 && (
-                  <div className="mb-3">
-                    <div className="h-1.5 bg-[#eeebe3] rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${anyCanAfford ? 'bg-[#69D2A6]' : 'bg-[#FDA172]'}`}
-                        style={{ width: `${Math.min(100, closestProgress)}%` }}
-                      />
-                    </div>
-                    <p className="text-[10px] text-[#b7c6c2] font-medium mt-1">
-                      {anyCanAfford ? 'Someone can afford this' : `${closestProgress}% to goal`}
-                    </p>
-                  </div>
-                )}
 
                 <div className="flex gap-1.5 mt-auto">
                   <button
