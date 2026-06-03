@@ -9,6 +9,9 @@ import ChecklistPage from "./pages/Checklist";
 import WheelPage from "./pages/Wheel";
 import RewardsPage from "./pages/Rewards";
 import SettingsPage from "./pages/Settings";
+import MoneyPage from "./pages/Money";
+import KitchenPage from "./pages/Kitchen";
+import DocumentsPage from "./pages/Documents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +29,9 @@ const App = () => (
             <Route path="/wheel" element={<WheelPage />} />
             <Route path="/rewards" element={<RewardsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/money" element={<MoneyPage />} />
+            <Route path="/kitchen" element={<KitchenPage />} />
+            <Route path="/documents" element={<DocumentsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -7,7 +7,7 @@
 import { useApp } from "@/lib/store";
 import { BottomNav } from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
-import { Disc, ListChecks, Trophy, ArrowRight, CheckCircle2, Circle } from "lucide-react";
+import { Disc, ListChecks, ArrowRight, CheckCircle2, Circle, ClipboardList, Wallet, ChefHat, FolderLock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 
@@ -145,44 +145,58 @@ function HomePage() {
             <div className="px-5 mb-5">
                 <h3 className="section-header mb-3">HOUSEHOLD</h3>
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="stat-card">
+                    <a
+                        href="/checklist"
+                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline"
+                    >
                         <div
-                            className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">🏆
-                                                                                                </div>
-                        <div className="text-xl font-semibold text-[#171e19] mt-1 min-w-0">
-                            <span className="truncate block">{topUser?.emoji} {topUser?.name}</span>
+                            className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div
+                            className="w-12 h-12 rounded-2xl bg-[#FFF1E6] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <ClipboardList size={24} className="text-cantaloupe" />
                         </div>
-                        <div className="text-xs text-[#b7c6c2] font-medium mt-1 truncate">
-                            {topUser?.points || 0} pts — Top earner
-                                                                                                </div>
-                    </div>
-                    <div className="stat-card">
+                        <h4 className="font-semibold text-[#171e19] text-base mb-1 tracking-tight">All the checklists</h4>
+                        <p className="text-xs text-[#b7c6c2] font-medium">Daily, long-term, personal</p>
+                    </a>
+                    <a
+                        href="/money"
+                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline"
+                    >
                         <div
-                            className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">🔥
-                                                                                                </div>
-                        <div className="text-xl font-semibold text-[#ca0013] mt-1">
-                            {completedToday} tasks
-                                                                                                </div>
-                        <div className="text-xs text-[#b7c6c2] font-medium mt-1">Completed today</div>
-                    </div>
-                    <div className="stat-card">
+                            className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div
-                            className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">🎡
-                                                                                                </div>
-                        <div className="text-xl font-semibold text-[#A78BFA] mt-1">
-                            {state.wheelConfigs.length}
+                            className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <Wallet size={24} className="text-[#ca0013]" />
                         </div>
-                        <div className="text-xs text-[#b7c6c2] font-medium mt-1">Spin wheels</div>
-                    </div>
-                    <div className="stat-card">
+                        <h4 className="font-semibold text-[#171e19] text-base mb-1 tracking-tight">Money</h4>
+                        <p className="text-xs text-[#b7c6c2] font-medium">Manage payment balance</p>
+                    </a>
+                    <a
+                        href="/kitchen"
+                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline"
+                    >
                         <div
-                            className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">🎁
-                                                                                                </div>
-                        <div className="text-xl font-semibold text-[#69D2A6] mt-1">
-                            {state.rewardItems.length}
+                            className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div
+                            className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <ChefHat size={24} className="text-green-500" />
                         </div>
-                        <div className="text-xs text-[#b7c6c2] font-medium mt-1">Rewards available</div>
-                    </div>
+                        <h4 className="font-semibold text-[#171e19] text-base mb-1 tracking-tight">Kitchen</h4>
+                        <p className="text-xs text-[#b7c6c2] font-medium">Recipes and groceries list</p>
+                    </a>
+                    <a
+                        href="/documents"
+                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline"
+                    >
+                        <div
+                            className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div
+                            className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <FolderLock size={24} className="text-[#A78BFA]" />
+                        </div>
+                        <h4 className="font-semibold text-[#171e19] text-base mb-1 tracking-tight">Documents</h4>
+                        <p className="text-xs text-[#b7c6c2] font-medium">Our vault</p>
+                    </a>
                 </div>
             </div>
             {}
