@@ -35,8 +35,8 @@ function RewardsPage() {
     setShowDialog(false);
   };
 
-  const handleRedeem = (itemId: string, userId: string) => {
-    const success = claimReward(userId, itemId);
+  const handleRedeem = async (itemId: string, userId: string) => {
+    const success = await claimReward(userId, itemId);
     if (!success) {
       toast.error('Not enough points!');
       return;

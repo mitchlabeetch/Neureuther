@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useCallback,
+} from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface User {
   id: string;
@@ -11,8 +17,11 @@ export interface ChecklistItem {
   id: string;
   label: string;
   completed: boolean;
-  completedBy?: string;
-  completedAt?: string;
+  // The server returns `null` for "not yet completed"; we accept either
+  // `null` or `undefined` to stay compatible with old localStorage data
+  // and avoid forcing a JSON `null` → JS `undefined` rewrite.
+  completedBy?: string | null;
+  completedAt?: string | null;
 }
 
 export interface WheelConfig {
@@ -30,6 +39,7 @@ export interface RewardItem {
 }
 
 export interface PointsLog {
+  id: string;
   userId: string;
   points: number;
   reason: string;
@@ -44,242 +54,425 @@ interface AppState {
   pointsLog: PointsLog[];
 }
 
-const DEFAULT_USERS: User[] = [
-  { id: '1', name: 'Widdy', color: '#FDA172', emoji: '🐱' },
-  { id: '2', name: 'Frenchie', color: '#FF6B6B', emoji: '🐶' },
-];
+const EMPTY_STATE: AppState = {
+  users: [],
+  checklistItems: [],
+  wheelConfigs: [],
+  rewardItems: [],
+  pointsLog: [],
+};
 
-const DEFAULT_CHECKLIST: ChecklistItem[] = [
-  { id: '1', label: 'Dishes put away', completed: false },
-  { id: '2', label: 'Trash sorted & taken out', completed: false },
-  { id: '3', label: 'Countertops wiped down', completed: false },
-  { id: '4', label: 'Living room tidied up', completed: false },
-  { id: '5', label: 'Floors swept / vacuumed', completed: false },
-  { id: '6', label: 'Bathroom quick clean', completed: false },
-];
+const STATE_QUERY_KEY = ["app", "state"] as const;
 
-const DEFAULT_WHEEL_CONFIGS: WheelConfig[] = [
-  { id: '1', title: 'Who will vacuum today?', users: ['1', '2'], pointsPerTask: 15 },
-  { id: '2', title: 'Who takes out the trash?', users: ['1', '2'], pointsPerTask: 10 },
-  { id: '3', title: 'Who cooks dinner tonight?', users: ['1', '2'], pointsPerTask: 20 },
-];
-
-const DEFAULT_REWARDS: RewardItem[] = [
-  { id: '1', label: 'Choose the movie', pointsCost: 50, icon: '🎬' },
-  { id: '2', label: 'Skip one chore', pointsCost: 100, icon: '🛌' },
-  { id: '3', label: 'Pick takeout place', pointsCost: 75, icon: '🍕' },
-  { id: '4', label: 'Extra screen time', pointsCost: 60, icon: '📱' },
-];
-
-function loadState(): AppState {
-  try {
-    const stored = localStorage.getItem('neureuther-state');
-    if (stored) return JSON.parse(stored);
-  } catch {}
-  return {
-    users: DEFAULT_USERS,
-    checklistItems: DEFAULT_CHECKLIST,
-    wheelConfigs: DEFAULT_WHEEL_CONFIGS,
-    rewardItems: DEFAULT_REWARDS,
-    pointsLog: [],
-  };
+async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+  });
+  if (!res.ok) {
+    let message = res.statusText;
+    try {
+      const body = await res.json();
+      if (body?.statusMessage) message = body.statusMessage;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(message || `Request failed: ${res.status}`);
+  }
+  // 204 / empty body
+  if (res.status === 204) return undefined as T;
+  return (await res.json()) as T;
 }
-
-function saveState(state: AppState) {
-  localStorage.setItem('neureuther-state', JSON.stringify(state));
-}
-
 
 interface AppContextValue {
   state: AppState;
-  addUser: (user: Omit<User, 'id'>) => void;
-  updateUser: (id: string, data: Partial<User>) => void;
-  removeUser: (id: string) => void;
-  toggleChecklistItem: (id: string, userId?: string) => void;
-  updateChecklistItem: (id: string, data: Partial<ChecklistItem>) => void;
-  addChecklistItem: (item: Omit<ChecklistItem, 'id'>) => void;
-  removeChecklistItem: (id: string) => void;
-  addWheelConfig: (config: Omit<WheelConfig, 'id'>) => void;
-  updateWheelConfig: (id: string, data: Partial<WheelConfig>) => void;
-  removeWheelConfig: (id: string) => void;
-  addRewardItem: (item: Omit<RewardItem, 'id'>) => void;
-  updateRewardItem: (id: string, data: Partial<RewardItem>) => void;
-  removeRewardItem: (id: string) => void;
-  awardPoints: (userId: string, points: number, reason: string) => void;
-  claimReward: (userId: string, rewardId: string) => boolean;
+  isLoading: boolean;
+  isError: boolean;
+  refetch: () => void;
+  addUser: (user: Omit<User, "id">) => Promise<void>;
+  updateUser: (id: string, data: Partial<User>) => Promise<void>;
+  removeUser: (id: string) => Promise<void>;
+  toggleChecklistItem: (id: string, userId?: string) => Promise<void>;
+  updateChecklistItem: (id: string, data: Partial<ChecklistItem>) => Promise<void>;
+  addChecklistItem: (item: Omit<ChecklistItem, "id">) => Promise<void>;
+  removeChecklistItem: (id: string) => Promise<void>;
+  addWheelConfig: (config: Omit<WheelConfig, "id">) => Promise<void>;
+  updateWheelConfig: (id: string, data: Partial<WheelConfig>) => Promise<void>;
+  removeWheelConfig: (id: string) => Promise<void>;
+  addRewardItem: (item: Omit<RewardItem, "id">) => Promise<void>;
+  updateRewardItem: (id: string, data: Partial<RewardItem>) => Promise<void>;
+  removeRewardItem: (id: string) => Promise<void>;
+  awardPoints: (userId: string, points: number, reason: string) => Promise<void>;
+  claimReward: (userId: string, rewardId: string) => Promise<boolean>;
   getUserPoints: (userId: string) => number;
   getUserById: (id: string) => User | undefined;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-function isNewDay(): boolean {
-  const today = new Date().toDateString();
-  const lastReset = localStorage.getItem('neureuther-checklist-date');
-  return lastReset !== today;
-}
-
-function markDayReset() {
-  localStorage.setItem('neureuther-checklist-date', new Date().toDateString());
-}
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AppState>(() => {
-    const s = loadState();
-    if (isNewDay()) {
-      markDayReset();
-      return { ...s, checklistItems: s.checklistItems.map(item => ({ ...item, completed: false, completedBy: undefined, completedAt: undefined })) };
+  const queryClient = useQueryClient();
+
+  // One-time best-effort migration of the previous localStorage blob.
+  useEffect(() => {
+    const LEGACY_KEY = "neureuther-state";
+    const raw = localStorage.getItem(LEGACY_KEY);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      // Only migrate if it actually looks like an AppState.
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        Array.isArray(parsed.users) &&
+        Array.isArray(parsed.checklistItems)
+      ) {
+        api("/api/migrate", { method: "POST", body: JSON.stringify(parsed) })
+          .then(() => {
+            localStorage.removeItem(LEGACY_KEY);
+            queryClient.invalidateQueries({ queryKey: STATE_QUERY_KEY });
+          })
+          .catch(() => {
+            // Migration failed — keep the local copy around and let the user
+            // try again on next load. We don't surface this to the UI.
+          });
+      } else {
+        // Not our payload; drop it so it doesn't haunt future loads.
+        localStorage.removeItem(LEGACY_KEY);
+      }
+    } catch {
+      // Corrupt JSON — drop it.
+      localStorage.removeItem(LEGACY_KEY);
     }
-    return s;
+    // Run once on mount; intentionally not depending on queryClient.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const stateQuery = useQuery({
+    queryKey: STATE_QUERY_KEY,
+    queryFn: () => api<AppState>("/api/state"),
+    // Refetch on focus / mount is handled by react-query defaults; add a
+    // modest interval so the daily reset triggers even on idle tabs.
+    refetchInterval: 60_000,
+    staleTime: 15_000,
   });
 
+  // Refetch on visibility change so the daily reset takes effect promptly
+  // when the app returns from background on mobile (matching the previous
+  // localStorage behavior).
   useEffect(() => {
-    saveState(state);
-  }, [state]);
-
-  // Daily reset on app resume (mobile background → foreground)
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && isNewDay()) {
-        markDayReset();
-        setState(prev => ({
-          ...prev,
-          checklistItems: prev.checklistItems.map(item => ({
-            ...item,
-            completed: false,
-            completedBy: undefined,
-            completedAt: undefined,
-          })),
-        }));
+    const handler = () => {
+      if (document.visibilityState === "visible") {
+        queryClient.invalidateQueries({ queryKey: STATE_QUERY_KEY });
       }
     };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, []);
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, [queryClient]);
 
-  const update = useCallback((fn: (s: AppState) => AppState) => {
-    setState(prev => {
-      const next = fn(prev);
-      saveState(next);
-      return next;
-    });
-  }, []);
+  const invalidate = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: STATE_QUERY_KEY }),
+    [queryClient],
+  );
 
-  const addUser = useCallback((user: Omit<User, 'id'>) => {
-    update(s => ({ ...s, users: [...s.users, { ...user, id: crypto.randomUUID() }] }));
-  }, [update]);
+  // ── Mutations ────────────────────────────────────────────────────────
+  // Each mutation is fire-and-forget from the page's perspective; React
+  // Query re-fetches the state when the mutation settles. The pages stay
+  // mostly unchanged because the action callbacks swallow errors via
+  // `mutateAsync` wrapped in try/finally semantics at the call site.
+  const addUserMut = useMutation({
+    mutationFn: (user: Omit<User, "id">) =>
+      api<User>("/api/users", { method: "POST", body: JSON.stringify(user) }),
+    onSuccess: invalidate,
+  });
 
-  const updateUser = useCallback((id: string, data: Partial<User>) => {
-    update(s => ({ ...s, users: s.users.map(u => u.id === id ? { ...u, ...data } : u) }));
-  }, [update]);
+  const updateUserMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) =>
+      api<{ ok: true }>(`/api/users/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
 
-  const removeUser = useCallback((id: string) => {
-    update(s => ({
-      ...s,
-      users: s.users.filter(u => u.id !== id),
-      wheelConfigs: s.wheelConfigs.map(w => ({ ...w, users: w.users.filter(uid => uid !== id) })),
-    }));
-  }, [update]);
+  const removeUserMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/users/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
 
-  const toggleChecklistItem = useCallback((id: string, userId?: string) => {
-    update(s => ({
-      ...s,
-      checklistItems: s.checklistItems.map(item =>
-        item.id === id
-          ? { ...item, completed: !item.completed, completedBy: !item.completed ? userId : undefined, completedAt: !item.completed ? new Date().toISOString() : undefined }
-          : item
+  const addChecklistItemMut = useMutation({
+    mutationFn: (item: Omit<ChecklistItem, "id">) =>
+      api<ChecklistItem>("/api/checklist-items", {
+        method: "POST",
+        body: JSON.stringify(item),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updateChecklistItemMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<ChecklistItem> }) =>
+      api<{ ok: true }>(`/api/checklist-items/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removeChecklistItemMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/checklist-items/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  const toggleChecklistItemMut = useMutation({
+    mutationFn: ({ id, userId }: { id: string; userId?: string }) =>
+      api<{
+        completed: boolean;
+        completedBy: string | null;
+        completedAt: string | null;
+      }>(`/api/checklist-items/${id}/toggle`, {
+        method: "POST",
+        body: JSON.stringify({ userId }),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const addWheelConfigMut = useMutation({
+    mutationFn: (config: Omit<WheelConfig, "id">) =>
+      api<WheelConfig>("/api/wheel-configs", {
+        method: "POST",
+        body: JSON.stringify(config),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updateWheelConfigMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<WheelConfig> }) =>
+      api<{ ok: true }>(`/api/wheel-configs/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removeWheelConfigMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/wheel-configs/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  const addRewardItemMut = useMutation({
+    mutationFn: (item: Omit<RewardItem, "id">) =>
+      api<RewardItem>("/api/reward-items", {
+        method: "POST",
+        body: JSON.stringify(item),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updateRewardItemMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<RewardItem> }) =>
+      api<{ ok: true }>(`/api/reward-items/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removeRewardItemMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/reward-items/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  const awardPointsMut = useMutation({
+    mutationFn: ({
+      userId,
+      points,
+      reason,
+    }: {
+      userId: string;
+      points: number;
+      reason: string;
+    }) =>
+      api<PointsLog>("/api/points-log", {
+        method: "POST",
+        body: JSON.stringify({ userId, points, reason }),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const claimRewardMut = useMutation({
+    mutationFn: ({ userId, rewardId }: { userId: string; rewardId: string }) =>
+      api<{ ok: true; newBalance: number; logEntry: PointsLog }>(
+        "/api/rewards/claim",
+        { method: "POST", body: JSON.stringify({ userId, rewardId }) },
       ),
-    }));
-  }, [update]);
+    onSuccess: invalidate,
+  });
 
-  const updateChecklistItem = useCallback((id: string, data: Partial<ChecklistItem>) => {
-    update(s => ({
-      ...s,
-      checklistItems: s.checklistItems.map(item => item.id === id ? { ...item, ...data } : item),
-    }));
-  }, [update]);
+  // ── Public action wrappers ───────────────────────────────────────────
+  // These return a Promise so callers that need the outcome (e.g.
+  // claimReward returning a boolean) can await it. The action body itself
+  // is fire-and-forget; React Query invalidates the state query on settle.
+  const addUser = useCallback(
+    async (user: Omit<User, "id">) => {
+      await addUserMut.mutateAsync(user);
+    },
+    [addUserMut],
+  );
 
-  const addChecklistItem = useCallback((item: Omit<ChecklistItem, 'id'>) => {
-    update(s => ({ ...s, checklistItems: [...s.checklistItems, { ...item, id: crypto.randomUUID() }] }));
-  }, [update]);
+  const updateUser = useCallback(
+    async (id: string, data: Partial<User>) => {
+      await updateUserMut.mutateAsync({ id, data });
+    },
+    [updateUserMut],
+  );
 
-  const removeChecklistItem = useCallback((id: string) => {
-    update(s => ({ ...s, checklistItems: s.checklistItems.filter(i => i.id !== id) }));
-  }, [update]);
+  const removeUser = useCallback(
+    async (id: string) => {
+      await removeUserMut.mutateAsync(id);
+    },
+    [removeUserMut],
+  );
 
-  const addWheelConfig = useCallback((config: Omit<WheelConfig, 'id'>) => {
-    update(s => ({ ...s, wheelConfigs: [...s.wheelConfigs, { ...config, id: crypto.randomUUID() }] }));
-  }, [update]);
+  const addChecklistItem = useCallback(
+    async (item: Omit<ChecklistItem, "id">) => {
+      await addChecklistItemMut.mutateAsync(item);
+    },
+    [addChecklistItemMut],
+  );
 
-  const updateWheelConfig = useCallback((id: string, data: Partial<WheelConfig>) => {
-    update(s => ({
-      ...s,
-      wheelConfigs: s.wheelConfigs.map(w => w.id === id ? { ...w, ...data } : w),
-    }));
-  }, [update]);
+  const updateChecklistItem = useCallback(
+    async (id: string, data: Partial<ChecklistItem>) => {
+      await updateChecklistItemMut.mutateAsync({ id, data });
+    },
+    [updateChecklistItemMut],
+  );
 
-  const removeWheelConfig = useCallback((id: string) => {
-    update(s => ({ ...s, wheelConfigs: s.wheelConfigs.filter(w => w.id !== id) }));
-  }, [update]);
+  const removeChecklistItem = useCallback(
+    async (id: string) => {
+      await removeChecklistItemMut.mutateAsync(id);
+    },
+    [removeChecklistItemMut],
+  );
 
-  const addRewardItem = useCallback((item: Omit<RewardItem, 'id'>) => {
-    update(s => ({ ...s, rewardItems: [...s.rewardItems, { ...item, id: crypto.randomUUID() }] }));
-  }, [update]);
+  const toggleChecklistItem = useCallback(
+    async (id: string, userId?: string) => {
+      await toggleChecklistItemMut.mutateAsync({ id, userId });
+    },
+    [toggleChecklistItemMut],
+  );
 
-  const updateRewardItem = useCallback((id: string, data: Partial<RewardItem>) => {
-    update(s => ({
-      ...s,
-      rewardItems: s.rewardItems.map(r => r.id === id ? { ...r, ...data } : r),
-    }));
-  }, [update]);
+  const addWheelConfig = useCallback(
+    async (config: Omit<WheelConfig, "id">) => {
+      await addWheelConfigMut.mutateAsync(config);
+    },
+    [addWheelConfigMut],
+  );
 
-  const removeRewardItem = useCallback((id: string) => {
-    update(s => ({ ...s, rewardItems: s.rewardItems.filter(r => r.id !== id) }));
-  }, [update]);
+  const updateWheelConfig = useCallback(
+    async (id: string, data: Partial<WheelConfig>) => {
+      await updateWheelConfigMut.mutateAsync({ id, data });
+    },
+    [updateWheelConfigMut],
+  );
 
-  const awardPoints = useCallback((userId: string, points: number, reason: string) => {
-    update(s => ({
-      ...s,
-      pointsLog: [...s.pointsLog, { userId, points, reason, timestamp: new Date().toISOString() }],
-    }));
-  }, [update]);
+  const removeWheelConfig = useCallback(
+    async (id: string) => {
+      await removeWheelConfigMut.mutateAsync(id);
+    },
+    [removeWheelConfigMut],
+  );
 
-  const getUserPoints = useCallback((userId: string): number => {
-    return state.pointsLog
-      .filter(log => log.userId === userId)
-      .reduce((sum, log) => sum + log.points, 0);
-  }, [state.pointsLog]);
+  const addRewardItem = useCallback(
+    async (item: Omit<RewardItem, "id">) => {
+      await addRewardItemMut.mutateAsync(item);
+    },
+    [addRewardItemMut],
+  );
 
-  const claimReward = useCallback((userId: string, rewardId: string): boolean => {
-    const reward = state.rewardItems.find(r => r.id === rewardId);
-    if (!reward) return false;
-    const balance = getUserPoints(userId);
-    if (balance < reward.pointsCost) return false;
-    update(s => ({
-      ...s,
-      pointsLog: [
-        ...s.pointsLog,
-        {
-          userId,
-          points: -reward.pointsCost,
-          reason: `Claimed: ${reward.label}`,
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    }));
-    return true;
-  }, [update, state.rewardItems, getUserPoints]);
+  const updateRewardItem = useCallback(
+    async (id: string, data: Partial<RewardItem>) => {
+      await updateRewardItemMut.mutateAsync({ id, data });
+    },
+    [updateRewardItemMut],
+  );
 
-  const getUserById = useCallback((id: string) => state.users.find(u => u.id === id), [state.users]);
+  const removeRewardItem = useCallback(
+    async (id: string) => {
+      await removeRewardItemMut.mutateAsync(id);
+    },
+    [removeRewardItemMut],
+  );
+
+  const awardPoints = useCallback(
+    async (userId: string, points: number, reason: string) => {
+      await awardPointsMut.mutateAsync({ userId, points, reason });
+    },
+    [awardPointsMut],
+  );
+
+  const claimReward = useCallback(
+    async (userId: string, rewardId: string): Promise<boolean> => {
+      try {
+        await claimRewardMut.mutateAsync({ userId, rewardId });
+        return true;
+      } catch {
+        // Server already returns 409 with statusMessage "insufficient
+        // points" if the user is short. We translate that to a false
+        // return so the page can show its existing toast.
+        return false;
+      }
+    },
+    [claimRewardMut],
+  );
+
+  const state: AppState = stateQuery.data ?? EMPTY_STATE;
+
+  const getUserPoints = useCallback(
+    (userId: string): number =>
+      state.pointsLog
+        .filter((log) => log.userId === userId)
+        .reduce((sum, log) => sum + log.points, 0),
+    [state.pointsLog],
+  );
+
+  const getUserById = useCallback(
+    (id: string) => state.users.find((u) => u.id === id),
+    [state.users],
+  );
 
   return (
-    <AppContext.Provider value={{
-      state, addUser, updateUser, removeUser,
-      toggleChecklistItem, updateChecklistItem, addChecklistItem, removeChecklistItem,
-      addWheelConfig, updateWheelConfig, removeWheelConfig,
-      addRewardItem, updateRewardItem, removeRewardItem,
-      awardPoints, claimReward, getUserPoints, getUserById,
-    }}>
+    <AppContext.Provider
+      value={{
+        state,
+        isLoading: stateQuery.isLoading,
+        isError: stateQuery.isError,
+        refetch: () => queryClient.invalidateQueries({ queryKey: STATE_QUERY_KEY }),
+        addUser,
+        updateUser,
+        removeUser,
+        toggleChecklistItem,
+        updateChecklistItem,
+        addChecklistItem,
+        removeChecklistItem,
+        addWheelConfig,
+        updateWheelConfig,
+        removeWheelConfig,
+        addRewardItem,
+        updateRewardItem,
+        removeRewardItem,
+        awardPoints,
+        claimReward,
+        getUserPoints,
+        getUserById,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
@@ -287,6 +480,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
 export function useApp() {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within AppProvider');
+  if (!ctx) throw new Error("useApp must be used within AppProvider");
   return ctx;
 }
