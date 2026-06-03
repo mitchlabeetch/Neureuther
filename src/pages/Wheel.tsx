@@ -206,7 +206,12 @@ function WheelPage() {
     };
 
   const handleDone = () => {
-    if (!pendingPick || !activeConfig) return;
+    // Use the derived `visiblePick` (not the local `pendingPick`) so the
+    // Done button also works when the user comes back to the page and the
+    // last pick is restored from the backend (`activeConfig.lastPickUserId`).
+    // In the fresh-spin case, `visiblePick` *is* `pendingPick` (same object),
+    // so the two paths behave identically.
+    if (!visiblePick || !activeConfig) return;
 
     // "No subject" / random-pick wheels never award points — the pick
     // is just an oral tiebreaker, not a completed task.
@@ -214,10 +219,10 @@ function WheelPage() {
 
     setDoneAnimation(true);
 
-    if (!pendingPick.userId.startsWith("temp-")) {
+    if (!visiblePick.userId.startsWith("temp-")) {
       awardPoints(
-        pendingPick.userId,
-        pendingPick.points,
+        visiblePick.userId,
+        visiblePick.points,
         `Completed: ${activeConfig.title}`
       );
     }
