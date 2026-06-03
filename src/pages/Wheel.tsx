@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '@/lib/store';
 import { SpinWheel } from '@/components/SpinWheel';
 import { BottomNav } from '@/components/BottomNav';
@@ -185,27 +185,24 @@ function WheelPage() {
         </div>
       )}
 
-      {/* Recent picks */}
-      {state.pointsLog.length > 0 && (
-        <div className="px-5 mt-8 mb-4">
-          <h3 className="text-sm font-extrabold text-gray-400 uppercase tracking-wider mb-3">Recent picks</h3>
-          <div className="space-y-2">
-            {state.pointsLog.filter(l => l.reason.startsWith('Selected by wheel')).slice(-5).reverse().map((log, i) => {
-              const user = getUserById(log.userId);
-              return (
-                <div key={i} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 border border-orange-100">
-                  <span className="text-xl">{user?.emoji}</span>
-                  <div className="flex-1">
-                    <div className="text-sm font-extrabold text-[#2D2B2A]">{user?.name}</div>
-                    <div className="text-xs text-gray-400 font-semibold">{log.reason}</div>
-                  </div>
-                  <span className="text-sm font-extrabold text-cantaloupe">+{log.points} pts</span>
-                </div>
-              );
-            })}
+      {/* Last pick */}
+      {activeConfig && (() => {
+        const lastPick = state.pointsLog
+          .filter(l => l.reason === `Selected by wheel: ${activeConfig.title}`)
+          .slice(-1)[0];
+        if (!lastPick) return null;
+        const user = getUserById(lastPick.userId);
+        return (
+          <div className="px-5 mt-4 mb-4">
+            <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-2.5 border border-orange-100 shadow-sm">
+              <span className="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Last pick</span>
+              <span className="text-lg">{user?.emoji}</span>
+              <span className="text-sm font-extrabold text-[#2D2B2A]">{user?.name}</span>
+              <span className="ml-auto text-xs font-bold text-cantaloupe">+{lastPick.points} pts</span>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <BottomNav />
     </div>
