@@ -29,8 +29,8 @@ export function BottomNav() {
                       isWheel
                         ? '-mt-8 rounded-full w-14 h-14 bg-cantaloupe shadow-lg shadow-orange-400/40 border-[3px] border-white flex items-center justify-center'
                         : isActive
-                        ? 'w-14 h-12 bg-orange-50'
-                        : 'w-14 h-12 hover:bg-orange-50'
+                        ? 'w-14 h-12 bg-amber-100'
+                        : 'w-14 h-12 hover:bg-amber-50'
                     }`}
                   >
                     <Icon
