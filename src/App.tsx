@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/lib/store";
+import { PinGate } from "@/components/PinGate";
+import { AuthProvider } from "@/components/AuthProvider";
 import HomePage from "./pages/Index";
 import ChecklistPage from "./pages/Checklist";
 import LongTermChecklistPage from "./pages/LongTermChecklist";
@@ -21,6 +23,7 @@ import MoneyPage from "./pages/Money";
 import KitchenPage from "./pages/Kitchen";
 import DocumentsPage from "./pages/Documents";
 import DailyHabitsPage from "./pages/DailyHabits";
+import AuthPage from "./pages/auth/AuthPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,26 +35,31 @@ const App = () => (
         <Sonner richColors position="top-center" />
         <Toaster />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/checklist" element={<ChecklistPage />} />
-            <Route path="/checklist/long-term" element={<LongTermChecklistPage />} />
-            <Route path="/checklist/long-term/archive" element={<LongTermArchivePage />} />
-            <Route path="/checklist/personal" element={<PersonalChecklistPage />} />
-            <Route path="/checklist/personal/:checklistId" element={<PersonalChecklistDetailPage />} />
-            <Route path="/checklists" element={<AllChecklistsPage />} />
-            <Route path="/checklist/archive" element={<ChecklistArchivePage />} />
-            <Route path="/checklist/random" element={<RandomChecklistPage />} />
-            <Route path="/checklist/random/:checklistId" element={<RandomChecklistDetailPage />} />
-            <Route path="/wheel" element={<WheelPage />} />
-            <Route path="/rewards" element={<RewardsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/money" element={<MoneyPage />} />
-            <Route path="/kitchen" element={<KitchenPage />} />
-            <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/daily-habits/:userId" element={<DailyHabitsPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AuthProvider>
+            <PinGate>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/checklist" element={<ChecklistPage />} />
+                <Route path="/checklist/long-term" element={<LongTermChecklistPage />} />
+                <Route path="/checklist/long-term/archive" element={<LongTermArchivePage />} />
+                <Route path="/checklist/personal" element={<PersonalChecklistPage />} />
+                <Route path="/checklist/personal/:checklistId" element={<PersonalChecklistDetailPage />} />
+                <Route path="/checklists" element={<AllChecklistsPage />} />
+                <Route path="/checklist/archive" element={<ChecklistArchivePage />} />
+                <Route path="/checklist/random" element={<RandomChecklistPage />} />
+                <Route path="/checklist/random/:checklistId" element={<RandomChecklistDetailPage />} />
+                <Route path="/wheel" element={<WheelPage />} />
+                <Route path="/rewards" element={<RewardsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/money" element={<MoneyPage />} />
+                <Route path="/kitchen" element={<KitchenPage />} />
+                <Route path="/documents" element={<DocumentsPage />} />
+                <Route path="/daily-habits/:userId" element={<DailyHabitsPage />} />
+                <Route path="/auth/:path" element={<AuthPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </PinGate>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </AppProvider>

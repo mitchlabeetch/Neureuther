@@ -12,11 +12,18 @@ export default defineHandler(async (event) => {
   }>(event);
 
   if (!body?.name?.trim() || !body.color || !body.emoji) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "name, color and emoji are required",
-    });
-  }
+      throw createError({
+        statusCode: 400,
+        statusMessage: "name, color and emoji are required",
+      });
+    }
+  
+    if (!/^#[0-9a-fA-F]{6}$/.test(body.color)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "color must be a hex string like #AABBCC",
+      });
+    }
 
   const id = body.id?.trim() || crypto.randomUUID();
 

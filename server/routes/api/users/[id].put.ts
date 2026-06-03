@@ -16,19 +16,27 @@ export default defineHandler(async (event) => {
   }>(event);
 
   if (
-    !body ||
-    (body.name === undefined &&
-      body.color === undefined &&
-      body.emoji === undefined)
-  ) {
-    throw createError({ statusCode: 400, statusMessage: "nothing to update" });
-  }
-
-  await sql`UPDATE users SET
-              name  = COALESCE(${body.name?.trim() ?? null}, name),
-              color = COALESCE(${body.color ?? null}, color),
-              emoji = COALESCE(${body.emoji ?? null}, emoji)
-            WHERE id = ${id}`;
+      !body ||
+      (body.name === undefined &&
+        body.color === undefined &&
+        body.emoji === undefined)
+    ) {
+      throw createError({ statusCode: 400, statusMessage: "nothing to update" });
+    }
+  
+    const hasColor = body.color !== undefined;
+    if (hasColor && !/^#[0-9a-fA-F]{6}$/.test(body.color!)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "color must be a hex string like #AABBCC",
+      });
+    }
+  
+    await sql`UPDATE users SET
+                name  = COALESCE(${body.name?.trim() ?? null}, name),
+                color = COALESCE(${body.color ?? null}, color),
+                emoji = COALESCE(${body.emoji ?? null}, emoji)
+              WHERE id = ${id}`;
 
   return { ok: true };
 });
