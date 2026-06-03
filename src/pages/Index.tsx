@@ -99,7 +99,7 @@ function HomePage() {
                         <div>
                             <h3 className="text-lg font-semibold text-[#171e19] tracking-tight">Today's Checklist</h3>
                             <p className="text-sm text-[#b7c6c2] font-medium mt-1">
-                                {completedToday}/ {totalToday}done
+                                {completedToday}/{totalToday} done
                                                                                                                                                                               </p>
                         </div>
                         <div
