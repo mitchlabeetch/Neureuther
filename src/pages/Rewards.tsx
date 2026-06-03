@@ -215,7 +215,7 @@ function RewardsPage() {
           onClick={() => setRedeemItemId(null)}
         >
           <div
-            className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 animate-slide-up"
+            className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] px-6 pt-6 pb-32 animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-1 bg-[#eeebe3] rounded-full mx-auto mb-4" />

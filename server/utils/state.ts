@@ -10,6 +10,15 @@ export interface User {
   emoji: string;
 }
 
+export interface ChecklistSubtask {
+  id: string;
+  taskId: string;
+  label: string;
+  completed: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
 export interface ChecklistItem {
   id: string;
   label: string;
@@ -17,6 +26,19 @@ export interface ChecklistItem {
   completedBy: string | null;
   completedAt: string | null;
   points: number;
+  kind: "daily" | "long_term";
+  archived: boolean;
+  deadline: string | null;
+  flagId: string | null;
+  autoCompleteOnSubtasks: boolean;
+}
+
+export interface TaskFlag {
+  id: string;
+  name: string;
+  color: string;
+  sortOrder: number;
+  createdAt: string;
 }
 
 export interface WheelConfig {
@@ -44,6 +66,8 @@ export interface PointsLogEntry {
 export interface AppStatePayload {
   users: User[];
   checklistItems: ChecklistItem[];
+  checklistSubtasks: ChecklistSubtask[];
+  taskFlags: TaskFlag[];
   wheelConfigs: WheelConfig[];
   rewardItems: RewardItem[];
   pointsLog: PointsLogEntry[];
@@ -55,8 +79,8 @@ function todayUtc(): string {
 
 /**
  * Resets the daily checklist if `last_checklist_reset_date` does not match
- * today (UTC). Safe to call on every state read — only does work when the
- * stored date is different from today.
+ * today (UTC). Only touches rows with `kind = 'daily'`; long-term items
+ * keep their `archived` flag and are not affected by the daily reset.
  */
 export async function resetChecklistIfNeeded(): Promise<void> {
   const today = todayUtc();
@@ -65,62 +89,65 @@ export async function resetChecklistIfNeeded(): Promise<void> {
   const last = rows[0]?.value as string | undefined;
   if (last === today) return;
 
-  // Reset all checklist items, then upsert the setting in a single round-trip
-  // via a CTE chain. If the client races two state GETs at midnight, both will
-  // execute the same idempotent reset; the only "waste" is a no-op UPDATE.
   await sql`
-    WITH today AS (SELECT ${today}::text AS d),
-         cleared AS (
-           UPDATE checklist_items
-           SET completed = FALSE,
-               completed_by = NULL,
-               completed_at = NULL
-           WHERE (SELECT d FROM today) <> COALESCE(${last ?? null}, '0000-00-00')
-           RETURNING id
-         ),
-         upserted AS (
-           INSERT INTO settings (key, value)
-           SELECT 'last_checklist_reset_date', d FROM today
-           ON CONFLICT (key) DO UPDATE
-             SET value = EXCLUDED.value,
-                 updated_at = now()
-           WHERE (SELECT d FROM today) <> COALESCE(${last ?? null}, '0000-00-00')
-           RETURNING key
-         )
-    SELECT 1
+    UPDATE checklist_items
+    SET completed = FALSE,
+        completed_by = NULL,
+        completed_at = NULL
+    WHERE kind = 'daily'
+  `;
+
+  await sql`
+    INSERT INTO settings (key, value)
+    VALUES ('last_checklist_reset_date', ${today})
+    ON CONFLICT (key) DO UPDATE
+      SET value = EXCLUDED.value,
+          updated_at = now()
   `;
 }
 
 /**
  * Loads the full app state. Use `runDailyReset = true` for the public
  * `GET /api/state` endpoint; pass `false` for sub-routes that only need a
- * single slice (e.g. the `GET /api/points-log` endpoint) to avoid an extra
- * write round-trip.
+ * single slice to avoid an extra write round-trip.
  */
 export async function loadAppState(
   runDailyReset = true,
 ): Promise<AppStatePayload> {
   if (runDailyReset) await resetChecklistIfNeeded();
 
-  const [users, checklist, wheels, wheelUsers, rewards, pointsLog] =
-    await Promise.all([
-      sql`SELECT id, name, color, emoji FROM users ORDER BY sort_order, created_at`,
-      sql`SELECT id, label, completed, completed_by, completed_at, points
-          FROM checklist_items ORDER BY sort_order, created_at`,
-      sql`SELECT id, title, points_per_task
-          FROM wheel_configs ORDER BY sort_order, created_at`,
-      sql`SELECT wheel_config_id, user_id FROM wheel_config_users`,
-      sql`SELECT id, label, points_cost, icon
-          FROM reward_items ORDER BY sort_order, created_at`,
-      sql`SELECT id, user_id, points, reason, occurred_at
-          FROM points_log ORDER BY occurred_at DESC`,
-    ]);
+  const [
+    users,
+    checklist,
+    subtasks,
+    flags,
+    wheels,
+    wheelUsers,
+    rewards,
+    pointsLog,
+  ] = await Promise.all([
+    sql`SELECT id, name, color, emoji FROM users ORDER BY sort_order, created_at`,
+    sql`SELECT id, label, completed, completed_by, completed_at, points,
+               kind, archived, deadline, flag_id, auto_complete_on_subtasks
+        FROM checklist_items ORDER BY sort_order, created_at`,
+    sql`SELECT id, task_id, label, completed, sort_order, created_at
+        FROM checklist_subtasks ORDER BY sort_order, created_at`,
+    sql`SELECT id, name, color, sort_order, created_at
+        FROM task_flags ORDER BY sort_order, created_at`,
+    sql`SELECT id, title, points_per_task
+        FROM wheel_configs ORDER BY sort_order, created_at`,
+    sql`SELECT wheel_config_id, user_id FROM wheel_config_users`,
+    sql`SELECT id, label, points_cost, icon
+        FROM reward_items ORDER BY sort_order, created_at`,
+    sql`SELECT id, user_id, points, reason, occurred_at
+        FROM points_log ORDER BY occurred_at DESC`,
+  ]);
 
   const usersByConfig = new Map<string, string[]>();
   for (const row of wheelUsers as Array<{
-        wheel_config_id: string;
-        user_id: string;
-      }>) {
+    wheel_config_id: string;
+    user_id: string;
+  }>) {
     const list = usersByConfig.get(row.wheel_config_id) ?? [];
     list.push(row.user_id);
     usersByConfig.set(row.wheel_config_id, list);
@@ -146,6 +173,11 @@ export async function loadAppState(
         completed_by: string | null;
         completed_at: string | null;
         points: number;
+        kind: string;
+        archived: boolean;
+        deadline: string | null;
+        flag_id: string | null;
+        auto_complete_on_subtasks: boolean;
       }>
     ).map((c) => ({
       id: c.id,
@@ -154,6 +186,43 @@ export async function loadAppState(
       completedBy: c.completed_by,
       completedAt: c.completed_at ? new Date(c.completed_at).toISOString() : null,
       points: Number(c.points) || 5,
+      kind: c.kind === "long_term" ? "long_term" : "daily",
+      archived: Boolean(c.archived),
+      deadline: c.deadline ? new Date(c.deadline).toISOString() : null,
+      flagId: c.flag_id,
+      autoCompleteOnSubtasks: Boolean(c.auto_complete_on_subtasks),
+    })),
+    checklistSubtasks: (
+      subtasks as Array<{
+        id: string;
+        task_id: string;
+        label: string;
+        completed: boolean;
+        sort_order: number;
+        created_at: string;
+      }>
+    ).map((s) => ({
+      id: s.id,
+      taskId: s.task_id,
+      label: s.label,
+      completed: Boolean(s.completed),
+      sortOrder: Number(s.sort_order) || 0,
+      createdAt: new Date(s.created_at).toISOString(),
+    })),
+    taskFlags: (
+      flags as Array<{
+        id: string;
+        name: string;
+        color: string;
+        sort_order: number;
+        created_at: string;
+      }>
+    ).map((f) => ({
+      id: f.id,
+      name: f.name,
+      color: f.color,
+      sortOrder: Number(f.sort_order) || 0,
+      createdAt: new Date(f.created_at).toISOString(),
     })),
     wheelConfigs: (
       wheels as Array<{

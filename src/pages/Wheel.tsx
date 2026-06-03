@@ -639,7 +639,7 @@ function WheelPage() {
           onClick={() => setConfirmRemoveUser(null)}
         >
           <div
-            className="bg-white rounded-t-[2.5rem] w-[calc(100%-2rem)] max-w-[480px] p-6 animate-slide-up"
+            className="bg-white rounded-t-[2.5rem] w-[calc(100%-2rem)] max-w-[480px] px-6 pt-6 pb-32 animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-semibold text-[#171e19] mb-3">

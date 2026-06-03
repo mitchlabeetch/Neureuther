@@ -84,8 +84,11 @@ function ChecklistPage() {
     if (!newLabel.trim() || !Number.isFinite(pts) || pts < 0) return;
     addChecklistItem({
       label: newLabel.trim(),
-      completed: false,
       points: Math.floor(pts),
+      kind: "daily",
+      deadline: null,
+      flagId: null,
+      autoCompleteOnSubtasks: false,
     });
     setNewLabel('');
     setNewPoints('5');
@@ -393,7 +396,7 @@ function ChecklistPage() {
           onClick={() => setActivePicker(null)}
         >
           <div
-            className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 animate-slide-up"
+            className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] px-6 pt-6 pb-32 animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
