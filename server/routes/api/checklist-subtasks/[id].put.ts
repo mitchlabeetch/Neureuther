@@ -1,7 +1,7 @@
 // PUT /api/checklist-subtasks/:id — rename and/or toggle a sub-task.
 import { defineHandler } from "nitro";
 import { readBody, getRouterParam, createError } from "nitro/h3";
-import { sql } from "../../utils/db";
+import { sql } from "../../../utils/db";
 
 export default defineHandler(async (event) => {
   const id = getRouterParam(event, "id");

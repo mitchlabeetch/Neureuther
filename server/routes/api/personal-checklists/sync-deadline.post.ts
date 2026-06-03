@@ -3,7 +3,7 @@
 // set the checklist deadline to the latest task deadline.
 import { defineHandler } from "nitro";
 import { readBody, createError } from "nitro/h3";
-import { sql } from "../../utils/db";
+import { sql } from "../../../utils/db";
 
 export default defineHandler(async (event) => {
   const body = await readBody<{ checklistId?: string }>(event);

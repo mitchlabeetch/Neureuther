@@ -3,7 +3,7 @@
 // Returns the full row so the client can refresh its in-memory state.
 import { defineHandler } from "nitro";
 import { readBody, getRouterParam, createError } from "nitro/h3";
-import { sql } from "../../utils/db";
+import { sql } from "../../../utils/db";
 
 interface UpdateBody {
   label?: string;

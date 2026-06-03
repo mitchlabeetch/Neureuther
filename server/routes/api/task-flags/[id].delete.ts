@@ -2,7 +2,7 @@
 // checklist_items that referenced it.
 import { defineHandler } from "nitro";
 import { getRouterParam, createError } from "nitro/h3";
-import { sql } from "../../utils/db";
+import { sql } from "../../../utils/db";
 
 export default defineHandler(async (event) => {
   const id = getRouterParam(event, "id");

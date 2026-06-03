@@ -4,8 +4,8 @@
 // when two clients race.
 import { defineHandler } from "nitro";
 import { readBody, createError } from "nitro/h3";
-import { sql } from "../../utils/db";
-import { getUserPointsBalance } from "../../utils/state";
+import { sql } from "../../../utils/db";
+import { getUserPointsBalance } from "../../../utils/state";
 
 export default defineHandler(async (event) => {
   const body = await readBody<{
