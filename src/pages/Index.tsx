@@ -7,7 +7,19 @@
 import { useApp } from "@/lib/store";
 import { BottomNav } from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
-import { Disc, ListChecks, ArrowRight, CheckCircle2, Circle, ClipboardList, Wallet, ChefHat, FolderLock } from "lucide-react";
+
+import {
+    Disc,
+    ListChecks,
+    ArrowRight,
+    CheckCircle2,
+    Circle,
+    ClipboardList,
+    Wallet,
+    ChefHat,
+    FolderLock,
+} from "lucide-react";
+
 import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 
@@ -59,7 +71,7 @@ function HomePage() {
                     </p>
                     <h1
                         className="text-[1.875rem] font-semibold text-[#171e19] mt-0.5 tracking-tight leading-tight">Neureuther
-                                                                                  </h1>
+                                                                                                          </h1>
                 </div>
                 <div className="flex -space-x-2">
                     {state.users.slice(0, 4).map(u => (<div
@@ -87,8 +99,8 @@ function HomePage() {
                         <div>
                             <h3 className="text-lg font-semibold text-[#171e19] tracking-tight">Today's Checklist</h3>
                             <p className="text-sm text-[#b7c6c2] font-medium mt-1">
-                                {completedToday} / {totalToday} done
-                                                                                                              </p>
+                                {completedToday}/ {totalToday}done
+                                                                                                                                              </p>
                         </div>
                         <div
                             className="w-16 h-16 rounded-full bg-[#FFF1E6] flex items-center justify-center cursor-default">
@@ -106,8 +118,8 @@ function HomePage() {
                             {item.label}
                         </div>))}
                         {state.checklistItems.length > 5 && (<span
-                            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-[#eeebe3] text-[#b7c6c2]">+{state.checklistItems.length - 5} more
-                                                                                                  </span>)}
+                            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-[#eeebe3] text-[#b7c6c2]">+{state.checklistItems.length - 5}more
+                                                                                                                              </span>)}
                     </div>
                 </div>
             </div>
@@ -147,8 +159,7 @@ function HomePage() {
                 <div className="grid grid-cols-2 gap-3">
                     <a
                         href="/checklist"
-                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline"
-                    >
+                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline">
                         <div
                             className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div
@@ -160,8 +171,7 @@ function HomePage() {
                     </a>
                     <a
                         href="/money"
-                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline"
-                    >
+                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline">
                         <div
                             className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div
@@ -173,8 +183,7 @@ function HomePage() {
                     </a>
                     <a
                         href="/kitchen"
-                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline"
-                    >
+                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline">
                         <div
                             className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div
@@ -186,8 +195,7 @@ function HomePage() {
                     </a>
                     <a
                         href="/documents"
-                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline"
-                    >
+                        className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline">
                         <div
                             className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div
@@ -203,14 +211,14 @@ function HomePage() {
             <div className="px-5 mb-8">
                 <button
                     onClick={() => navigate("/rewards")}
-                    className="w-full bg-[#ca0013] rounded-[2.5rem] p-5 text-left shadow-[0_12px_40px_-8px_rgba(202,0,19,0.25)] hover:shadow-[0_16px_50px_-8px_rgba(202,0,19,0.35)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden group">
+                    className="w-full rounded-[2.5rem] p-5 text-left shadow-[0_12px_40px_-8px_rgba(202,0,19,0.25)] hover:shadow-[0_16px_50px_-8px_rgba(202,0,19,0.35)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden group bg-[#ff6600]">
                     <div
                         className="absolute inset-0 bg-gradient-to-r from-[#ca0013] to-[#e31b30] opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="flex items-center justify-between relative z-10">
                         <div>
                             <h4 className="font-semibold text-white text-lg mb-1 tracking-tight">Earn Rewards!</h4>
                             <p className="text-white/70 text-sm font-medium">Complete tasks & spin the wheel to earn points
-                                                                                                              </p>
+                                                                                                                                              </p>
                         </div>
                         <div
                             className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center group-hover:scale-110 transition-transform">
