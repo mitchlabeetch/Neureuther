@@ -214,7 +214,7 @@ function HomePage() {
                 <h3 className="section-header mb-3">HOUSEHOLD</h3>
                 <div className="grid grid-cols-2 gap-3">
                     <a
-                        href="/checklist"
+                                            href="/checklists"
                         className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden no-underline">
                         <div
                             className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
