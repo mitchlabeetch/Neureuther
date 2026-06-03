@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <!-- White circle background element -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.12"
+        android:pathData="M256,256m-210,0a210,210 0,1 1,420 0a210,210 0,1 1,-420 0" />
+    <!-- Main house shape -->
+    <path
+        android:fillColor="#FDF7F2"
+        android:pathData="M 150,260 L 236,174 c 11,-11 29,-11 40,0 l 86,86 c 12,12 8,32 -9,32 L 330,292 v 76 c 0,18 -14,32 -32,32 H 214 c -18,0 -32,-14 -32,-32 v -76 H 159 c -17,0 -21,-20 -9,-32 z" />
+    <!-- Door -->
+    <path
+        android:fillColor="#2D2B2A"
+        android:fillAlpha="0.08"
+        android:pathData="M232,310h48v90c0,13.255 -10.745,24 -24,24s-24,-10.745 -24,-24z" />
+    <!-- Star decoration -->
+    <path
+        android:fillColor="#FDF7F2"
+        android:pathData="M 330,140 c 0,20 15,35 35,35 c -20,0 -35,15 -35,35 c 0,-20 -15,-35 -35,-35 c 20,0 35,-15 35,-35 z" />
+    <!-- Small star decoration -->
+    <path
+        android:fillColor="#FDF7F2"
+        android:fillAlpha="0.8"
+        android:pathData="M 175,190 c 0,10 8,18 18,18 c -10,0 -18,8 -18,18 c 0,-10 -8,-18 -18,-18 c 10,0 18,-8 18,-18 z" />
+</vector>

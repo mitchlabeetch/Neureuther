@@ -1180,7 +1180,7 @@ function FlagSelector({
             {/* Dropdown list */}
             <div
               ref={listRef}
-              className="bg-white rounded-[1.25rem] border border-[#b7c6c2]/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] p-1.5 max-h-60 overflow-y-auto animate-fade-in-up"
+              className="fixed z-[300] bg-white rounded-[1.25rem] border border-[#b7c6c2]/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] p-1.5 max-h-60 overflow-y-auto animate-fade-in-up"
             >
               <button
                 type="button"
