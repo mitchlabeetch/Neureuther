@@ -101,13 +101,22 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
   const [newWidgetType, setNewWidgetType] = useState<'stat' | 'goal'>('stat');
 
   // ─── PIN Logic ───
-  const handleSelectUser = (userId: string) => {
+  const handleSelectUser = async (userId: string) => {
     setSelectedUserId(userId);
     setPin('');
     setPinError('');
     setPinConfirm('');
     setIsFirstTime(false);
     setStep('pin');
+    try {
+      const { hasPin } = await api<{ hasPin: boolean }>('/api/check-pin', {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+      });
+      setIsFirstTime(!hasPin);
+    } catch {
+      setIsFirstTime(false);
+    }
   };
 
   const handlePinSubmit = async () => {
@@ -149,15 +158,6 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
       setPinError('Something went wrong');
     }
     setVerifying(false);
-  };
-
-  const checkFirstTime = async (userId: string) => {
-    // We'll check by trying to verify. The API handles first-time logic.
-    // For UX, we just show a prompt saying "first time? Set your PIN"
-    // Actually, let's just let the user enter PIN and API decides.
-    // To show "first time" UI we need to know in advance.
-    // Let's try a subtle approach: ask user to enter PIN, if API returns action=set, we show confirm.
-    setIsFirstTime(true);
   };
 
   const loadPersonalData = async () => {
@@ -334,51 +334,102 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
           setPinConfirm(prev => prev + n);
           setPinError('');
         }
-      } else {
-        if (pin.length < 4) {
-          setPin(prev => prev + n);
-          setPinError('');
-        }
+      } else if (pin.length < 4) {
+        setPin(prev => prev + n);
+        setPinError('');
       }
-      // Auto-submit when 4 digits entered (and confirm if first time)
-      // We'll handle with explicit submit button instead for clarity
     };
 
+    const inConfirmStep = isFirstTime && pin.length === 4;
+
     return (
-      <div className="px-5 pt-8 pb-8 flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
-        <button onClick={() => { setStep('selectUser'); setPin(''); setPinError(''); setPinConfirm(''); setIsFirstTime(false); }} className="self-start flex items-center gap-1 text-[#b7c6c2] text-sm font-medium mb-2 hover:text-[#171e19]">
+      <div className="px-5 pt-8 pb-8 flex flex-col min-h-[calc(100vh-80px)]">
+        <button
+          onClick={() => {
+            setStep('selectUser');
+            setPin('');
+            setPinError('');
+            setPinConfirm('');
+            setIsFirstTime(false);
+          }}
+          className="self-start flex items-center gap-1 text-[#b7c6c2] text-sm font-medium mb-2 hover:text-[#171e19]"
+        >
           <ArrowLeft size={18} /> Back
         </button>
 
-        <div className="flex-1 flex flex-col items-center justify-center w-full" style={{ marginTop: '-28px' }}>
-          <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl mb-2" style={{ backgroundColor: user?.color + '30' }}>
+        <div className="flex-1 flex flex-col items-center justify-center w-full">
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center text-2xl mb-2"
+            style={{ backgroundColor: (user?.color ?? '#b7c6c2') + '30' }}
+          >
             {user?.emoji}
           </div>
-          <h3 className="text-lg font-semibold text-[#171e19] mb-3">{user?.name}</h3>
+          <h3 className="text-lg font-semibold text-[#171e19] mb-1">{user?.name}</h3>
 
           {isFirstTime ? (
             <p className="text-sm text-[#b7c6c2] font-medium mb-4 text-center">
-              {pin.length === 0 ? 'First time! Set a 4-digit PIN' : 'Confirm your PIN'}
+              {inConfirmStep ? 'Confirm your PIN' : 'Set a 4-digit PIN'}
             </p>
           ) : (
             <p className="text-sm text-[#b7c6c2] font-medium mb-4">Enter your PIN</p>
           )}
 
-          {/* PIN dots */}
-          <div className="flex gap-2.5 mb-4">
-            {[0, 1, 2, 3].map(i => (
-              <div
-                key={i}
-                className={`w-3.5 h-3.5 rounded-full border-2 transition-all ${
-                  i < (isFirstTime && pin.length === 4 ? pinConfirm.length : pin.length)
-                    ? 'bg-[#171e19] border-[#171e19]'
-                    : 'border-[#b7c6c2] bg-transparent'
-                }`}
-              />
-            ))}
-          </div>
+          {/* PIN dots — show 1 row (verify) or 2 rows (first-time setup) */}
+          {isFirstTime ? (
+            <div className="flex flex-col items-center gap-3 mb-4">
+              {/* Original PIN row: locked green once filled */}
+              <div className="flex gap-2.5">
+                {[0, 1, 2, 3].map(i => {
+                  const filled = i < pin.length;
+                  return (
+                    <div
+                      key={`pin-${i}`}
+                      className={`w-3.5 h-3.5 rounded-full border-2 transition-all ${
+                        filled
+                          ? 'bg-[#69D2A6] border-[#69D2A6]'
+                          : 'border-[#b7c6c2] bg-transparent'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+              {/* Confirm row: shows progress during confirm step */}
+              <div className="flex gap-2.5">
+                {[0, 1, 2, 3].map(i => {
+                  const filled = inConfirmStep && i < pinConfirm.length;
+                  return (
+                    <div
+                      key={`confirm-${i}`}
+                      className={`w-3.5 h-3.5 rounded-full border-2 transition-all ${
+                        filled
+                          ? 'bg-[#171e19] border-[#171e19]'
+                          : 'border-[#b7c6c2] bg-transparent'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2.5 mb-4">
+              {[0, 1, 2, 3].map(i => (
+                <div
+                  key={i}
+                  className={`w-3.5 h-3.5 rounded-full border-2 transition-all ${
+                    i < pin.length
+                      ? 'bg-[#171e19] border-[#171e19]'
+                      : 'border-[#b7c6c2] bg-transparent'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
 
-          {pinError && <p className="text-sm text-[#ca0013] font-medium mb-3 text-center">{pinError}</p>}
+          {pinError && (
+            <p className="text-sm text-[#ca0013] font-medium mb-3 text-center" data-testid="pin-error">
+              {pinError}
+            </p>
+          )}
 
           {/* Number pad */}
           <div className="grid grid-cols-3 gap-2 w-full max-w-[240px]">
@@ -391,11 +442,15 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
                 {n}
               </button>
             ))}
-            <button onClick={() => {
-              if (isFirstTime && pin.length === 4) setPinConfirm(prev => prev.slice(0, -1));
-              else if (pin.length > 0) setPin(prev => prev.slice(0, -1));
-              setPinError('');
-            }} className="w-16 h-16 rounded-2xl bg-transparent text-[#b7c6c2] text-sm font-semibold active:scale-95 transition-all">
+            <button
+              onClick={() => {
+                if (isFirstTime && pinConfirm.length > 0) setPinConfirm(prev => prev.slice(0, -1));
+                else if (pin.length > 0) setPin(prev => prev.slice(0, -1));
+                setPinError('');
+              }}
+              className="w-16 h-16 rounded-2xl bg-transparent text-[#b7c6c2] text-sm font-semibold active:scale-95 transition-all"
+              aria-label="Backspace"
+            >
               ⌫
             </button>
             <button
@@ -406,18 +461,14 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
             </button>
             <button
               onClick={handlePinSubmit}
-              disabled={verifying || (isFirstTime ? (pin.length !== 4 || pinConfirm.length !== 4) : pin.length !== 4)}
+              disabled={verifying || (isFirstTime ? pin.length !== 4 || pinConfirm.length !== 4 : pin.length !== 4)}
               className="w-16 h-16 rounded-2xl bg-[#ca0013] text-white font-bold text-sm disabled:opacity-40 active:scale-95 transition-all shadow-[0_4px_16px_-4px_rgba(202,0,19,0.3)]"
+              aria-label="Submit PIN"
             >
               {verifying ? '...' : '✓'}
             </button>
           </div>
 
-          {!isFirstTime && (
-            <button onClick={() => { setIsFirstTime(true); setPin(''); setPinConfirm(''); setPinError(''); }} className="text-xs text-[#b7c6c2] underline mt-4">
-              First time? Set PIN
-            </button>
-          )}
         </div>
       </div>
     );

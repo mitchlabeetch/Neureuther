@@ -71,6 +71,7 @@ export interface PointsLog {
 export interface PersonalChecklist {
   id: string;
   userId: string;
+  kind: string;
   name: string;
   bgColor: string;
   flagId: string | null;
@@ -175,7 +176,7 @@ interface AppContextValue {
   getUserById: (id: string) => User | undefined;
   getFlagById: (id: string | null | undefined) => TaskFlag | undefined;
   addPersonalChecklist: (data: Omit<PersonalChecklist, "id" | "sortOrder" | "createdAt" | "updatedAt" | "totalTasks" | "doneTasks" | "archived">) => Promise<void>;
-  updatePersonalChecklist: (id: string, data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline" | "archived">>) => Promise<void>;
+  updatePersonalChecklist: (id: string, data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline" | "archived" | "kind">>) => Promise<void>;
   removePersonalChecklist: (id: string) => Promise<void>;
   addPersonalChecklistTask: (data: Omit<PersonalChecklistTask, "id" | "completed" | "completedAt" | "sortOrder" | "createdAt">) => Promise<void>;
   updatePersonalChecklistTask: (id: string, data: Partial<Pick<PersonalChecklistTask, "label" | "completed" | "deadline">>) => Promise<void>;
@@ -448,7 +449,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   const updatePersonalChecklistMut = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline" | "archived">> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline" | "archived" | "kind">> }) =>
       api<{ ok: true }>(`/api/personal-checklists/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
@@ -671,7 +672,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updatePersonalChecklist = useCallback(
-    async (id: string, data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline">>) => {
+    async (id: string, data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline" | "archived" | "kind">>) => {
       await updatePersonalChecklistMut.mutateAsync({ id, data });
     },
     [updatePersonalChecklistMut],

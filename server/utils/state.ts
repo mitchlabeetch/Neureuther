@@ -66,6 +66,7 @@ export interface PointsLogEntry {
 export interface PersonalChecklistEntry {
   id: string;
   userId: string;
+  kind: string;
   name: string;
   bgColor: string;
   flagId: string | null;
@@ -171,7 +172,7 @@ export async function loadAppState(
         FROM reward_items ORDER BY sort_order, created_at`,
     sql`SELECT id, user_id, points, reason, occurred_at
         FROM points_log ORDER BY occurred_at DESC`,
-    sql`SELECT pc.id, pc.user_id, pc.name, pc.bg_color, pc.flag_id, pc.deadline,
+    sql`SELECT pc.id, pc.user_id, pc.kind, pc.name, pc.bg_color, pc.flag_id, pc.deadline,
                pc.archived, pc.sort_order, pc.created_at, pc.updated_at,
                COALESCE(t.total, 0)::int AS total_tasks,
                COALESCE(t.done, 0)::int AS done_tasks
@@ -311,6 +312,7 @@ export async function loadAppState(
       personalChecklists as Array<{
         id: string;
         user_id: string;
+        kind: string;
         name: string;
         bg_color: string;
         flag_id: string | null;
@@ -325,6 +327,7 @@ export async function loadAppState(
     ).map((c) => ({
       id: c.id,
       userId: c.user_id,
+      kind: c.kind,
       name: c.name,
       bgColor: c.bg_color,
       flagId: c.flag_id,

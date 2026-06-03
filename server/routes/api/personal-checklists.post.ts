@@ -10,6 +10,7 @@ export default defineHandler(async (event) => {
     bgColor?: string;
     flagId?: string | null;
     deadline?: string | null;
+    kind?: string;
   }>(event);
 
   if (!body?.userId || !body?.name?.trim()) {
@@ -20,24 +21,26 @@ export default defineHandler(async (event) => {
   const name = body.name.trim();
   const bgColor = body.bgColor || "#ffffff";
   const flagId = body.flagId ?? null;
+  const kind = body.kind === "random" ? "random" : "personal";
   const deadline = body.deadline && typeof body.deadline === "string"
     ? new Date(body.deadline).toISOString()
     : null;
 
   const tail = await sql`
     SELECT COALESCE(MAX(sort_order), -1) + 1 AS next
-    FROM personal_checklists WHERE user_id = ${body.userId}
+    FROM personal_checklists WHERE user_id = ${body.userId} AND kind = ${kind}
   `;
   const nextSort = Number((tail[0] as { next: number | string }).next) || 0;
 
   await sql`
-    INSERT INTO personal_checklists (id, user_id, name, bg_color, flag_id, deadline, sort_order)
-    VALUES (${id}, ${body.userId}, ${name}, ${bgColor}, ${flagId}, ${deadline}, ${nextSort})
+    INSERT INTO personal_checklists (id, user_id, kind, name, bg_color, flag_id, deadline, sort_order)
+    VALUES (${id}, ${body.userId}, ${kind}, ${name}, ${bgColor}, ${flagId}, ${deadline}, ${nextSort})
   `;
 
   return {
     id,
     userId: body.userId,
+    kind,
     name,
     bgColor,
     flagId,
