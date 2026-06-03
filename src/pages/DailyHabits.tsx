@@ -387,7 +387,7 @@ export default function DailyHabitsPage() {
           <Input
             value={newTaskLabel}
             onChange={(e) => setNewTaskLabel(e.target.value)}
-            placeholder="Quick add a habit…"
+            placeholder="Add a daily habit…"
             className="flex-1 h-11 rounded-xl bg-white border-[#b7c6c2]/20 text-sm focus:border-cantaloupe focus:ring-cantaloupe"
             onKeyDown={(e) => {
               if (e.key === "Enter") {

@@ -1,12 +1,32 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
-import { Plus, Trash2, Pencil, Star, Wallet } from 'lucide-react';
+import { Plus, Trash2, Pencil, Star, Wallet, Search, X, Sparkles, Film, Shield, Cookie, Users, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { toast } from 'sonner';
 import type { RewardItem } from '@/lib/store';
+
+const CATEGORIES = [
+  { key: 'all', label: 'All', icon: Sparkles },
+  { key: 'experience', label: 'Experience', icon: Film },
+  { key: 'privilege', label: 'Privilege', icon: Shield },
+  { key: 'treat', label: 'Treat', icon: Cookie },
+  { key: 'social', label: 'Social', icon: Users },
+] as const;
+
+const CATEGORY_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
+  experience: { bg: 'bg-[#e8f4f1]', text: 'text-[#2d7a6b]', dot: 'bg-[#2d7a6b]' },
+  privilege:  { bg: 'bg-[#fff3e0]', text: 'text-[#e67e00]', dot: 'bg-[#e67e00]' },
+  treat:      { bg: 'bg-[#fce4ec]', text: 'text-[#c2185b]', dot: 'bg-[#c2185b]' },
+  social:     { bg: 'bg-[#e3f2fd]', text: 'text-[#1565c0]', dot: 'bg-[#1565c0]' },
+  general:    { bg: 'bg-[#f3e5f5]', text: 'text-[#6a1b9a]', dot: 'bg-[#6a1b9a]' },
+};
+
+function getCategoryStyle(category: string) {
+  return CATEGORY_COLORS[category] || CATEGORY_COLORS.general;
+}
 
 function RewardsPage() {
   const { state, getUserPoints, addRewardItem, updateRewardItem, removeRewardItem, claimReward } = useApp();
@@ -14,6 +34,11 @@ function RewardsPage() {
   const [newLabel, setNewLabel] = useState('');
   const [newCost, setNewCost] = useState('');
   const [newIcon, setNewIcon] = useState('🎁');
+  const [newCategory, setNewCategory] = useState('experience');
+  const [newDescription, setNewDescription] = useState('');
+
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
   // Redeem flow state
   const [redeemItemId, setRedeemItemId] = useState<string | null>(null);
@@ -22,18 +47,42 @@ function RewardsPage() {
   // Edit reward state
   const [editingReward, setEditingReward] = useState<RewardItem | null>(null);
 
+  const filteredItems = useMemo(() => {
+    let items = state.rewardItems;
+    if (activeCategory !== 'all') {
+      items = items.filter((i) => i.category === activeCategory);
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      items = items.filter(
+        (i) =>
+          i.label.toLowerCase().includes(q) ||
+          (i.description?.toLowerCase().includes(q) ?? false)
+      );
+    }
+    return items;
+  }, [state.rewardItems, activeCategory, search]);
+
+  const recentClaims = useMemo(() => {
+    return state.pointsLog
+      .filter((p) => p.points < 0 && p.reason.startsWith('Claimed:'))
+      .slice(0, 10);
+  }, [state.pointsLog]);
+
   const handleCreate = () => {
     if (!newLabel.trim() || !newCost || Number(newCost) <= 0) return;
     addRewardItem({
       label: newLabel.trim(),
       pointsCost: Number(newCost),
       icon: newIcon || '🎁',
-      category: '',
-      description: null,
+      category: newCategory,
+      description: newDescription.trim() || null,
     });
     setNewLabel('');
     setNewCost('');
     setNewIcon('🎁');
+    setNewCategory('experience');
+    setNewDescription('');
     setShowDialog(false);
   };
 
@@ -58,12 +107,18 @@ function RewardsPage() {
       label: editingReward.label.trim(),
       pointsCost: editingReward.pointsCost,
       icon: editingReward.icon,
+      category: editingReward.category,
+      description: editingReward.description,
     });
     setEditingReward(null);
   };
 
+  const maxPoints = useMemo(() => {
+    return Math.max(...state.users.map((u) => getUserPoints(u.id)), 1);
+  }, [state.users, state.pointsLog]);
+
   return (
-    <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
+    <div className="app-container min-h-screen bg-[#fdf7f2] page-content pb-24">
       {/* Header */}
       <div className="px-5 pt-14 pb-4 animate-fade-in-up">
         <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">Rewards</h1>
@@ -72,7 +127,7 @@ function RewardsPage() {
         </p>
       </div>
 
-      {/* Points Account — simple, no ranking */}
+      {/* Points Account */}
       <div className="px-5 mb-5">
         <h3 className="section-header mb-3">Points Account</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -104,10 +159,57 @@ function RewardsPage() {
         )}
       </div>
 
-      {/* Reward shop */}
+      {/* Search */}
+      <div className="px-5 mb-3">
+        <div className="relative">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#b7c6c2]" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search rewards..."
+            className="pl-10 pr-9 rounded-xl bg-white border-[#b7c6c2]/20 focus:border-[#FDA172] focus:ring-[#FDA172] h-11"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b7c6c2] hover:text-[#171e19]"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Category tabs */}
       <div className="px-5 mb-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            const isActive = activeCategory === cat.key;
+            return (
+              <button
+                key={cat.key}
+                onClick={() => setActiveCategory(cat.key)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
+                  isActive
+                    ? 'bg-[#171e19] text-white shadow-[0_4px_12px_-4px_rgba(23,30,25,0.3)]'
+                    : 'bg-white text-[#b7c6c2] border border-[#b7c6c2]/20 hover:border-[#b7c6c2]/40'
+                }`}
+              >
+                <Icon size={13} />
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Reward shop */}
+      <div className="px-5 mb-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="section-header">Reward Shop</h3>
+          <h3 className="section-header">
+            {activeCategory === 'all' ? 'Reward Shop' : `${CATEGORIES.find((c) => c.key === activeCategory)?.label} Rewards`}
+          </h3>
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
               <button className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium text-[#FDA172] bg-[#FFF1E6] hover:bg-[#FDA172] hover:text-white transition-all active:scale-90">
@@ -127,6 +229,15 @@ function RewardsPage() {
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
                     placeholder="e.g. Pick the movie"
+                    className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-[#FDA172] focus:ring-[#FDA172]"
+                  />
+                </div>
+                <div>
+                  <label className="section-header block mb-2">Description</label>
+                  <Input
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    placeholder="What does this reward include?"
                     className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-[#FDA172] focus:ring-[#FDA172]"
                   />
                 </div>
@@ -150,6 +261,28 @@ function RewardsPage() {
                     />
                   </div>
                 </div>
+                <div>
+                  <label className="section-header block mb-2">Category</label>
+                  <div className="flex flex-wrap gap-2 mt-1.5">
+                    {CATEGORIES.filter((c) => c.key !== 'all').map((cat) => {
+                      const isSelected = newCategory === cat.key;
+                      const style = getCategoryStyle(cat.key);
+                      return (
+                        <button
+                          key={cat.key}
+                          onClick={() => setNewCategory(cat.key)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 ${
+                            isSelected
+                              ? `${style.bg} ${style.text} ring-1 ring-current`
+                              : 'bg-[#eeebe3] text-[#b7c6c2] hover:bg-[#b7c6c2]/20'
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 <button
                   onClick={handleCreate}
                   disabled={!newLabel.trim() || !newCost || Number(newCost) <= 0}
@@ -161,54 +294,131 @@ function RewardsPage() {
             </DialogContent>
           </Dialog>
         </div>
+
         <div className="grid grid-cols-2 gap-3">
-          {state.rewardItems.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl">
-                  {item.icon}
+          {filteredItems.map((item) => {
+            const catStyle = getCategoryStyle(item.category);
+            const anyCanAfford = state.users.some((u) => getUserPoints(u.id) >= item.pointsCost);
+            const closestProgress = state.users.length > 0
+              ? Math.max(0, ...state.users.map((u) => Math.min(100, Math.round((getUserPoints(u.id) / item.pointsCost) * 100))))
+              : 0;
+
+            return (
+              <div
+                key={item.id}
+                className="bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 flex flex-col"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl">
+                    {item.icon}
+                  </div>
+                  <button
+                    onClick={() => setEditingReward({ ...item })}
+                    aria-label="Edit reward"
+                    className="p-2 rounded-xl bg-[#eeebe3] text-[#95a5a0] hover:text-[#171e19] hover:bg-[#b7c6c2]/20 transition-all active:scale-90"
+                  >
+                    <Pencil size={14} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setEditingReward({ ...item })}
-                  aria-label="Edit reward"
-                  className="p-2 rounded-xl bg-[#eeebe3] text-[#95a5a0] hover:text-[#171e19] hover:bg-[#b7c6c2]/20 transition-all active:scale-90"
-                >
-                  <Pencil size={14} />
-                </button>
+
+                <span className={`inline-flex items-center gap-1 self-start px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide mb-2 ${catStyle.bg} ${catStyle.text}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${catStyle.dot}`} />
+                  {item.category}
+                </span>
+
+                <h4 className="text-sm font-medium text-[#171e19] mb-1 leading-tight">
+                  {item.label}
+                </h4>
+                {item.description && (
+                  <p className="text-[11px] text-[#b7c6c2] font-medium leading-relaxed mb-3 line-clamp-2">
+                    {item.description}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-1 text-[#FDA172] text-xs font-bold mb-2">
+                  <Star size={12} fill="currentColor" /> {item.pointsCost} pts
+                </div>
+
+                {/* Affordability mini-bar */}
+                {state.users.length > 0 && (
+                  <div className="mb-3">
+                    <div className="h-1.5 bg-[#eeebe3] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${anyCanAfford ? 'bg-[#69D2A6]' : 'bg-[#FDA172]'}`}
+                        style={{ width: `${Math.min(100, closestProgress)}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-[#b7c6c2] font-medium mt-1">
+                      {anyCanAfford ? 'Someone can afford this' : `${closestProgress}% to goal`}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex gap-1.5 mt-auto">
+                  <button
+                    onClick={() => setRedeemItemId(item.id)}
+                    className="flex-1 py-1.5 rounded-xl text-xs font-medium text-white bg-[#ca0013] hover:bg-[#e31b30] transition-all active:scale-95"
+                  >
+                    Redeem
+                  </button>
+                  <button
+                    onClick={() => removeRewardItem(item.id)}
+                    aria-label="Remove this reward"
+                    className="p-1.5 rounded-xl bg-[#eeebe3] text-[#95a5a0] hover:text-[#ca0013] hover:bg-red-50 transition-all"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
-              <h4 className="text-sm font-medium text-[#171e19] mb-1 truncate">
-                {item.label}
-              </h4>
-              <div className="flex items-center gap-1 text-[#FDA172] text-xs font-medium mb-3">
-                <Star size={12} /> {item.pointsCost} pts
-              </div>
-              <div className="flex gap-1.5">
-                <button
-                  onClick={() => setRedeemItemId(item.id)}
-                  className="flex-1 py-1.5 rounded-xl text-xs font-medium text-white bg-[#ca0013] hover:bg-[#e31b30] transition-all active:scale-95"
-                >
-                  Redeem
-                </button>
-                <button
-                  onClick={() => removeRewardItem(item.id)}
-                  aria-label="Remove this reward"
-                  className="p-1.5 rounded-xl bg-[#eeebe3] text-[#95a5a0] hover:text-[#ca0013] hover:bg-red-50 transition-all"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-        {state.rewardItems.length === 0 && (
+
+        {filteredItems.length === 0 && (
           <div className="text-center py-8 text-[#b7c6c2] text-sm">
-            No rewards yet — tap <strong>Add</strong> to create one
+            {search ? 'No rewards match your search' : 'No rewards yet — tap Add to create one'}
           </div>
         )}
       </div>
+
+      {/* Recent Claims */}
+      {recentClaims.length > 0 && (
+        <div className="px-5 mb-6">
+          <h3 className="section-header mb-3">Recent Claims</h3>
+          <div className="bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]">
+            <div className="space-y-3">
+              {recentClaims.map((claim) => {
+                const user = state.users.find((u) => u.id === claim.userId);
+                return (
+                  <div key={claim.id} className="flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0"
+                      style={{ backgroundColor: (user?.color || '#b7c6c2') + '30' }}
+                    >
+                      {user?.emoji || '👤'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[#171e19] truncate">
+                        {user?.name || 'Someone'} claimed <span className="text-[#ca0013]">{claim.reason.replace('Claimed: ', '')}</span>
+                      </p>
+                      <p className="text-[10px] text-[#b7c6c2] font-medium flex items-center gap-1">
+                        <Clock size={10} />
+                        {new Date(claim.timestamp).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-[#ca0013]">{claim.points} pts</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Redeem — Step 1: pick user */}
       {redeemItemId && !confirmingUser && (
@@ -354,6 +564,15 @@ function RewardsPage() {
                   className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-[#FDA172] focus:ring-[#FDA172]"
                 />
               </div>
+              <div>
+                <label className="section-header block mb-2">Description</label>
+                <Input
+                  value={editingReward.description || ''}
+                  onChange={(e) => setEditingReward({ ...editingReward, description: e.target.value })}
+                  placeholder="What does this reward include?"
+                  className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-[#FDA172] focus:ring-[#FDA172]"
+                />
+              </div>
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="section-header block mb-2">Cost (pts)</label>
@@ -371,6 +590,28 @@ function RewardsPage() {
                     onChange={(emoji) => setEditingReward({ ...editingReward, icon: emoji })}
                     className="mt-1.5 w-full h-10 rounded-xl bg-[#eeebe3] border border-[#b7c6c2]/20 flex items-center justify-center hover:bg-[#b7c6c2]/10 transition-colors"
                   />
+                </div>
+              </div>
+              <div>
+                <label className="section-header block mb-2">Category</label>
+                <div className="flex flex-wrap gap-2 mt-1.5">
+                  {CATEGORIES.filter((c) => c.key !== 'all').map((cat) => {
+                    const isSelected = editingReward.category === cat.key;
+                    const style = getCategoryStyle(cat.key);
+                    return (
+                      <button
+                        key={cat.key}
+                        onClick={() => setEditingReward({ ...editingReward, category: cat.key })}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 ${
+                          isSelected
+                            ? `${style.bg} ${style.text} ring-1 ring-current`
+                            : 'bg-[#eeebe3] text-[#b7c6c2] hover:bg-[#b7c6c2]/20'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <button

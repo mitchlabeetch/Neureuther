@@ -246,14 +246,27 @@ export function SubscriptionsView({ onBack }: { onBack: () => void }) {
                     <h4 className="text-[#171e19] font-semibold text-base truncate">{s.name}</h4>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-sm text-[#b7c6c2]">
-                        {new Date(s.paymentDate).toLocaleDateString(undefined, {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                        Renews on the {(() => {
+                          const day = new Date(s.paymentDate).getDate();
+                          const suffix = day === 1 || day === 21 || day === 31 ? 'st' : day === 2 || day === 22 ? 'nd' : day === 3 || day === 23 ? 'rd' : 'th';
+                          return `${day}${suffix}`;
+                        })()}
                       </span>
                       <span className="text-sm font-bold text-[#171e19]">${s.amount.toFixed(2)}</span>
                     </div>
+                    {(() => {
+                      const renewalDay = new Date(s.paymentDate).getDate();
+                      const today = new Date();
+                      let next = new Date(today.getFullYear(), today.getMonth(), renewalDay);
+                      if (next < today) next = new Date(today.getFullYear(), today.getMonth() + 1, renewalDay);
+                      const diff = Math.ceil((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                      const isUrgent = diff <= 3;
+                      return (
+                        <p className={`text-xs mt-0.5 font-medium ${isUrgent ? 'text-[#ca0013]' : 'text-[#b7c6c2]'}`}>
+                          Due in {diff} day{diff !== 1 ? 's' : ''}
+                        </p>
+                      );
+                    })()}
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className="text-xs bg-[#eeebe3] px-2 py-0.5 rounded-full text-[#b7c6c2] font-medium">
                         {SERVICE_LABELS[s.serviceType]}

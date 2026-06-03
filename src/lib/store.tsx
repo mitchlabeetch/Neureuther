@@ -192,6 +192,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    // Idempotent seed of default rewards catalog
+    api("/api/rewards/seed", { method: "POST" }).catch(() => {
+      /* ignore — seed is best-effort */
+    });
+
     const LEGACY_KEY = "neureuther-state";
     const raw = localStorage.getItem(LEGACY_KEY);
     if (!raw) return;
