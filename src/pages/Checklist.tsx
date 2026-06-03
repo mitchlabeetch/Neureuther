@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
-import { Check, Plus, Trash2, Pencil, Star, X, CalendarDays, User, LayoutGrid, ChevronRight, PartyPopper, Archive } from 'lucide-react';
+import { Check, Plus, Trash2, Pencil, Star, X, CalendarDays, User, LayoutGrid, ChevronRight, PartyPopper, Archive as ArchiveIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';

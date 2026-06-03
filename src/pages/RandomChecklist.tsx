@@ -10,7 +10,7 @@ import {
   Star,
   X,
   Shuffle,
-  Archive,
+  Archive as ArchiveIcon,
   ChevronRight,
   PartyPopper,
 } from "lucide-react";
@@ -250,7 +250,7 @@ function RandomChecklistPage() {
             onClick={() => setArchiveAllConfirm(true)}
             className="w-full flex items-center justify-center gap-2.5 rounded-[1.5rem] p-3.5 bg-white border border-[#b7c6c2]/20 text-[#171e19] font-semibold hover:bg-[#eeebe3] transition-all active:scale-[0.98]"
           >
-            <Archive size={16} className="text-[#b7c6c2]" />
+            <ArchiveIcon size={16} className="text-[#b7c6c2]" />
             <span>Archive completed ({completed})</span>
           </button>
         </div>
@@ -379,7 +379,7 @@ function RandomChecklistPage() {
           >
             <div className="flex flex-col items-center text-center mb-5">
               <div className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
-                <Archive className="text-[#171e19]" size={28} />
+                <ArchiveIcon className="text-[#171e19]" size={28} />
               </div>
               <h3 className="text-lg font-semibold text-[#171e19]">
                 Move to Archive?
@@ -418,7 +418,7 @@ function RandomChecklistPage() {
           >
             <div className="flex flex-col items-center text-center mb-5">
               <div className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
-                <Archive className="text-[#171e19]" size={28} />
+                <ArchiveIcon className="text-[#171e19]" size={28} />
               </div>
               <h3 className="text-lg font-semibold text-[#171e19]">
                 Archive completed quests?

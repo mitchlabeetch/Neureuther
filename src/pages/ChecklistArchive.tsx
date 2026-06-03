@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useApp } from "@/lib/store";
 import { BottomNav } from "@/components/BottomNav";
 import {
-  Archive,
+  Archive as ArchiveIcon,
   ChevronRight,
   Trash2,
   RotateCcw,
@@ -96,7 +96,7 @@ export default function ChecklistArchivePage() {
         </button>
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-[1.25rem] bg-[#eeebe3] flex items-center justify-center">
-            <Archive className="text-[#171e19]" size={24} />
+            <ArchiveIcon className="text-[#171e19]" size={24} />
           </div>
           <div>
             <h1 className="text-2xl font-semibold text-[#171e19] tracking-tight">

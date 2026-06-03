@@ -631,7 +631,7 @@ function LongTermChecklistPage() {
                 <button
                     onClick={() => navigate("/checklist/archive")}
                     className="w-full flex items-center justify-center gap-2.5 rounded-[1.5rem] p-3.5 bg-white border border-[#b7c6c2]/20 text-[#171e19] font-semibold hover:bg-[#eeebe3] transition-all active:scale-[0.98]">
-                    <Archive size={16} className="text-[#b7c6c2]" />
+                    <ArchiveIcon size={16} className="text-[#b7c6c2]" />
                     <span>See the Archive</span>
                 </button>
             </div>
@@ -754,7 +754,7 @@ function LongTermChecklistPage() {
                     <div className="flex flex-col items-center text-center mb-5">
                         <div
                             className="w-16 h-16 rounded-full bg-[#eeebe3] flex items-center justify-center mb-3">
-                            <Archive className="text-[#171e19]" size={28} />
+                            <ArchiveIcon className="text-[#171e19]" size={28} />
                         </div>
                         <h3 className="text-lg font-semibold text-[#171e19]">Move to Archive?</h3>
                         <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">"{editingItem.label}" will be moved to the Archive, where you can delete it permanently or reinstate it to the Long-term checklist.</p>
