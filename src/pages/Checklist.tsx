@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
@@ -39,19 +39,22 @@ function ChecklistPage() {
 
   const navigate = useNavigate();
 
-  const completed = state.checklistItems.filter((i) => i.kind === "daily" && !i.archived && i.completed).length;
-  const total = state.checklistItems.filter((i) => i.kind === "daily" && !i.archived).length;
-  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  const triggerSuccess = (points: number) => {
-    if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-    setSuccessAnimation({ points, key: Date.now() });
-    successTimeoutRef.current = setTimeout(() => setSuccessAnimation(null), 1800);
-  };
-
-  const dailyItems = state.checklistItems.filter((i) => i.kind === "daily" && !i.archived);
-
-  const completeItem = (itemId: string, userId: string) => {
+  const dailyItems = useMemo(
+      () => state.checklistItems.filter((i) => i.kind === "daily" && !i.archived),
+      [state.checklistItems]
+    );
+  
+    const completed = dailyItems.filter((i) => i.completed).length;
+    const total = dailyItems.length;
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  
+    const triggerSuccess = (points: number) => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+      setSuccessAnimation({ points, key: Date.now() });
+      successTimeoutRef.current = setTimeout(() => setSuccessAnimation(null), 1800);
+    };
+  
+    const completeItem = (itemId: string, userId: string) => {
     const item = dailyItems.find((i) => i.id === itemId);
     if (!item) return;
     toggleChecklistItem(itemId, userId);
@@ -152,21 +155,21 @@ function ChecklistPage() {
 
       {/* List */}
       <div className="px-5 space-y-2.5 mb-3">
-        {state.checklistItems.filter((i) => i.kind === "daily" && !i.archived).map((item, index) => {
-          const completedBy = item.completedBy
-            ? getUserById(item.completedBy)
-            : null;
+        {dailyItems.map((item, index) => {
+                  const completedBy = item.completedBy
+                    ? getUserById(item.completedBy)
+                    : null;
           return (
             <div
               key={item.id}
               className={`relative flex items-center gap-3 rounded-[1.5rem] p-4 border transition-all duration-300 active:scale-[0.99] ${
-                item.completed
-                  ? 'bg-green-50/50 border-green-200/50'
-                  : 'bg-white border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]'
-              } hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)]`}
-              style={{
-                animationDelay: `${index * 50}ms`,
-              }}
+                              item.completed
+                                ? 'bg-green-50/50 border-green-200/50'
+                                : 'bg-white border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]'
+                            } hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] animate-fade-in-up`}
+                            style={{
+                              animationDelay: item.completed ? '0ms' : `${index * 50}ms`,
+                            }}
             >
               <button
                 onClick={() => handleToggle(item.id)}
@@ -208,7 +211,7 @@ function ChecklistPage() {
             </div>
           );
         })}
-        {state.checklistItems.filter((i) => i.kind === "daily" && !i.archived).length === 0 && (
+        {dailyItems.length === 0 && (
           <div className="text-center py-8 text-[#b7c6c2] text-sm">
             No tasks yet — tap <strong>Add new task</strong> below to create one
           </div>
