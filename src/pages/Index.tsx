@@ -95,21 +95,25 @@ function HomePage() {
                     {}
                     <div
                         className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-[#b7c6c2]/10" />
-                    <div className="flex items-center justify-between mb-5 relative z-10">
-                        <div>
-                            <h3 className="text-lg font-semibold text-[#171e19] tracking-tight">Today's Checklist</h3>
-                            <p className="text-sm text-[#b7c6c2] font-medium mt-1">
-                                {completedToday}/{totalToday} done
-                                                                                                                                                                              </p>
+                    <div
+                        onClick={() => navigate("/checklist")}
+                        className="cursor-pointer relative z-10 active:scale-[0.99] transition-transform">
+                        <div className="flex items-center justify-between mb-5">
+                            <div>
+                                <h3 className="text-lg font-semibold text-[#171e19] tracking-tight">Today's Checklist</h3>
+                                <p className="text-sm text-[#b7c6c2] font-medium mt-1">
+                                    {completedToday}/{totalToday} done
+                                                                                                              </p>
+                            </div>
+                            <div
+                                className="w-16 h-16 rounded-full bg-[#FFF1E6] flex items-center justify-center">
+                                <span className="text-xl font-semibold text-cantaloupe">{Math.round(progressVal)}%</span>
+                            </div>
                         </div>
-                        <div
-                            className="w-16 h-16 rounded-full bg-[#FFF1E6] flex items-center justify-center cursor-default">
-                            <span className="text-xl font-semibold text-cantaloupe">{Math.round(progressVal)}%</span>
-                        </div>
+                        <Progress
+                            value={progressVal}
+                            className="h-3 rounded-full bg-[#FFF1E6] [&>div]:bg-cantaloupe [&>div]:rounded-full" />
                     </div>
-                    <Progress
-                        value={progressVal}
-                        className="h-3 rounded-full bg-[#FFF1E6] [&>div]:bg-cantaloupe [&>div]:rounded-full" />
                     <button
                         onClick={() => navigate("/checklist/long-term")}
                         className="mt-4 w-full flex items-center justify-between px-4 py-2.5 rounded-[1.25rem] bg-[#eeebe3] border border-[#b7c6c2]/20 text-xs font-medium text-[#171e19] transition-all active:scale-[0.99] hover:bg-[#b7c6c2]/15 relative z-10">
