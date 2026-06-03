@@ -90,6 +90,16 @@ export default defineHandler(async (event) => {
       // 4. Rewrite SameSite=None → SameSite=Lax for HTTP
       c = c.replaceAll("; SameSite=None", "; SameSite=Lax").replaceAll(";SameSite=None", ";SameSite=Lax");
     }
+    // 5. Force Path=/ so the cookies are sent for every route, not just
+    //    the /api/auth/* prefix Neon Auth's response came from. Without this
+    //    the browser only attaches the session cookie to auth routes, and
+    //    /api/vault/* (and any other auth-gated route) sees no cookie and
+    //    401s even right after a successful sign-in.
+    if (/[ ;]Path=/i.test(c)) {
+      c = c.replace(/[ ;]Path=[^;]*/gi, "; Path=/");
+    } else {
+      c = `${c}; Path=/`;
+    }
     responseHeaders.append("set-cookie", c);
   }
 
