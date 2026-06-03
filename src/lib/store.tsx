@@ -19,6 +19,7 @@ export interface WheelConfig {
   id: string;
   title: string;
   users: string[];
+  pointsPerTask: number;
 }
 
 export interface RewardItem {
@@ -58,9 +59,9 @@ const DEFAULT_CHECKLIST: ChecklistItem[] = [
 ];
 
 const DEFAULT_WHEEL_CONFIGS: WheelConfig[] = [
-  { id: '1', title: 'Who will vacuum today?', users: ['1', '2'] },
-  { id: '2', title: 'Who takes out the trash?', users: ['1', '2'] },
-  { id: '3', title: 'Who cooks dinner tonight?', users: ['1', '2'] },
+  { id: '1', title: 'Who will vacuum today?', users: ['1', '2'], pointsPerTask: 15 },
+  { id: '2', title: 'Who takes out the trash?', users: ['1', '2'], pointsPerTask: 10 },
+  { id: '3', title: 'Who cooks dinner tonight?', users: ['1', '2'], pointsPerTask: 20 },
 ];
 
 const DEFAULT_REWARDS: RewardItem[] = [
