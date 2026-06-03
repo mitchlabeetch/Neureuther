@@ -1,6 +1,6 @@
 import { defineHandler } from "nitro";
 import { readBody, createError } from "nitro/h3";
-import { sql } from "../../../utils/db";
+import { sql } from "../../../../utils/db";
 import crypto from "node:crypto";
 
 function hashPin(pin: string): string {
