@@ -39,7 +39,8 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <PinGate>
-              <Routes>
+              <div className="page-transition-root">
+                <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/checklist" element={<ChecklistPage />} />
                 <Route path="/checklist/long-term" element={<LongTermChecklistPage />} />
@@ -62,6 +63,7 @@ const App = () => (
                 <Route path="/auth/:path" element={<AuthPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </div>
             </PinGate>
           </AuthProvider>
         </BrowserRouter>

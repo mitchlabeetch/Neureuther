@@ -4,7 +4,7 @@
 /* Blob shadow */
 /* Main floating button */
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, ListChecks, Disc, Trophy, Settings } from "lucide-react";
+import { Home, ListChecks, CircleHelp, Trophy, Settings } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const navItems = [{
@@ -17,7 +17,7 @@ const navItems = [{
     label: "Checklist"
 }, {
     to: "/wheel",
-    icon: Disc,
+    icon: CircleHelp,
     label: "Spin"
 }, {
     to: "/rewards",
