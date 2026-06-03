@@ -93,8 +93,6 @@ export function BottomNav() {
                                                     size={20}
                                                     className="transition-all duration-300"
                                                     strokeWidth={isActive ? 2.5 : 2} />
-                                                {isActive && (<span
-                                                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cantaloupe" />)}
                                             </div>
                                             <span
                                                 className={`text-[9px] font-medium tracking-wide transition-colors ${isActive ? "text-cantaloupe" : "text-[#95a5a0]"}`}>
