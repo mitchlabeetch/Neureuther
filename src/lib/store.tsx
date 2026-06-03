@@ -44,9 +44,8 @@ interface AppState {
 }
 
 const DEFAULT_USERS: User[] = [
-  { id: '1', name: 'Alex', color: '#FDA172', emoji: '🦊' },
-  { id: '2', name: 'Sam', color: '#FF6B6B', emoji: '🐸' },
-  { id: '3', name: 'Jordan', color: '#A78BFA', emoji: '🦄' },
+  { id: '1', name: 'Widdy', color: '#FDA172', emoji: '🐱' },
+  { id: '2', name: 'Frenchie', color: '#FF6B6B', emoji: '🐶' },
 ];
 
 const DEFAULT_CHECKLIST: ChecklistItem[] = [
@@ -59,9 +58,9 @@ const DEFAULT_CHECKLIST: ChecklistItem[] = [
 ];
 
 const DEFAULT_WHEEL_CONFIGS: WheelConfig[] = [
-  { id: '1', title: 'Who will vacuum today?', users: ['1', '2', '3'] },
-  { id: '2', title: 'Who takes out the trash?', users: ['1', '2', '3'] },
-  { id: '3', title: 'Who cooks dinner tonight?', users: ['1', '2', '3'] },
+  { id: '1', title: 'Who will vacuum today?', users: ['1', '2'] },
+  { id: '2', title: 'Who takes out the trash?', users: ['1', '2'] },
+  { id: '3', title: 'Who cooks dinner tonight?', users: ['1', '2'] },
 ];
 
 const DEFAULT_REWARDS: RewardItem[] = [
