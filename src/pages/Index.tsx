@@ -133,61 +133,6 @@ function HomePage() {
                 </div>
             </div>
 
-            {/* ── Evening Routine Mini-Card ── */}
-            <div className="px-5 mb-5">
-                <button
-                    onClick={() => navigate("/checklist")}
-                    className="w-full rounded-[1.5rem] p-5 bg-[#171e19] text-left shadow-[0_12px_40px_-8px_rgba(23,30,25,0.35)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden group"
-                >
-                    <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/[0.04]" />
-                    <div className="flex items-center gap-3 mb-3 relative z-10">
-                        <div className="w-10 h-10 rounded-xl bg-[#ca0013] flex items-center justify-center">
-                            <Moon size={20} className="text-white" />
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-white text-base tracking-tight">10-Min Evening Clean Up</h4>
-                            <p className="text-white/60 text-xs font-medium">Walk, tea, prep, tidy, plan</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 relative z-10">
-                        <span className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#b7c6c2]">
-                            Evening Routine
-                        </span>
-                        <ArrowRight size={12} className="text-[#b7c6c2] group-hover:translate-x-1 transition-transform" />
-                    </div>
-                </button>
-            </div>
-
-            {/* ── Reflection + Ice Cream Rules ── */}
-            <div className="px-5 mb-5">
-                <div className="grid grid-cols-2 gap-3">
-                    <button
-                        onClick={() => navigate("/checklist/random")}
-                        className="group bg-white rounded-[1.5rem] p-4 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden"
-                    >
-                        <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
-                            <Lightbulb size={20} className="text-[#3B82F6]" />
-                        </div>
-                        <h4 className="font-semibold text-[#171e19] text-sm mb-1 tracking-tight">Reflect</h4>
-                        <p className="text-[11px] text-[#b7c6c2] font-medium leading-snug">
-                            How was it? What was good? What needs to improve?
-                        </p>
-                    </button>
-                    <button
-                        onClick={() => navigate("/checklist/random")}
-                        className="group bg-white rounded-[1.5rem] p-4 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden"
-                    >
-                        <div className="w-10 h-10 rounded-2xl bg-pink-50 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
-                            <IceCream size={20} className="text-[#F472B6]" />
-                        </div>
-                        <h4 className="font-semibold text-[#171e19] text-sm mb-1 tracking-tight">Ice Cream Rules</h4>
-                        <p className="text-[11px] text-[#b7c6c2] font-medium leading-snug">
-                            Once a week only if checklist is done ✓
-                        </p>
-                    </button>
-                </div>
-            </div>
-
             {/* ── Individual Daily Habits ── */}
             <div className="px-5 mb-5">
                 <h3 className="section-header mb-3">DAILY HABITS</h3>
