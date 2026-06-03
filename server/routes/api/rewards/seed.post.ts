@@ -2,6 +2,7 @@
 // Only inserts when the reward_items table is empty, so it is safe to call
 // repeatedly (e.g. on app startup or manually from an admin UI).
 import { defineHandler } from "nitro";
+import { createError } from "nitro/h3";
 import { sql } from "../../../utils/db";
 
 const DEFAULT_REWARDS = [
@@ -32,6 +33,20 @@ const DEFAULT_REWARDS = [
 ];
 
 export default defineHandler(async () => {
+  const guardRows = await sql`
+    SELECT to_regclass('public.reward_items') IS NOT NULL AS has_table
+  `;
+  const hasTable = Boolean(
+    (guardRows[0] as { has_table: boolean | string } | undefined)?.has_table,
+  );
+  if (!hasTable) {
+    throw createError({
+      statusCode: 503,
+      statusMessage:
+        "reward_items table is missing — run the database migrations and retry",
+    });
+  }
+
   const countRow = await sql`SELECT COUNT(*)::int AS c FROM reward_items`;
   const existing = Number((countRow[0] as { c: number | string }).c) || 0;
 

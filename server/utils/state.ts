@@ -180,9 +180,20 @@ function todayUtc(): string {
  * Resets the daily checklist if `last_checklist_reset_date` does not match
  * today (UTC). Only touches rows with `kind = 'daily'`; long-term items
  * keep their `archived` flag and are not affected by the daily reset.
+ *
+ * No-ops if the `settings` table is missing so the rest of the app state
+ * endpoint can still respond on a fresh database before migrations run.
  */
 export async function resetChecklistIfNeeded(): Promise<void> {
   const today = todayUtc();
+  const guardRows = await sql`
+    SELECT to_regclass('public.settings') IS NOT NULL AS has_table
+  `;
+  const hasTable = Boolean(
+    (guardRows[0] as { has_table: boolean | string } | undefined)?.has_table,
+  );
+  if (!hasTable) return;
+
   const rows =
     await sql`SELECT value FROM settings WHERE key = 'last_checklist_reset_date'`;
   const last = rows[0]?.value as string | undefined;
