@@ -34,8 +34,8 @@ export function SpinWheel({ segments, onResult, spinning, result, onSpin, onSpin
     setRotation(totalRotation);
 
     const segmentAngle = 360 / segments.length;
-    const normalizedAngle = extraAngle % 360;
-    const winnerIndex = segments.length - 1 - Math.floor(normalizedAngle / segmentAngle);
+    const targetAngle = (360 - (extraAngle % 360)) % 360;
+    const winnerIndex = Math.floor(targetAngle / segmentAngle);
 
     setTimeout(() => {
       onSpinEnd();
