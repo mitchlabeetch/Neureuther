@@ -127,7 +127,7 @@ export function SpinWheel(
                     height: p.size,
                     animationDelay: `${p.delay}s`
                 }} />))}
-            <div className="relative">
+            <div className="relative mt-3">
                 {}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
                     <svg width={32} height={32} viewBox="0 0 32 32">
@@ -135,7 +135,7 @@ export function SpinWheel(
                     </svg>
                 </div>
                 {}
-                <svg width={svgSize} height={svgSize} className="drop-shadow-xl py-[0px]">
+                <svg width={svgSize} height={svgSize} className="drop-shadow-xl mt-3">
                     <g
                         style={{
                             transformOrigin: `${center}px ${center}px`,
@@ -181,6 +181,7 @@ export function SpinWheel(
                     {}
                     <g
                         onClick={spin}
+                        className="cursor-pointer active:scale-90 transition-transform duration-150 origin-center"
                         style={{
                             cursor: spinning ? "default" : "pointer"
                         }}>

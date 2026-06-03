@@ -367,7 +367,7 @@ function WheelPage() {
                             setActiveConfigId(config.id);
                             resetPick();
                         }}
-                        className={`shrink-0 px-4 py-2.5 rounded-full font-bold text-sm transition-all active:scale-95 ${activeConfig?.id === config.id ? "bg-[#2D2B2A] text-white shadow-lg" : "bg-white text-gray-500 border border-gray-200 hover:border-cantaloupe"}`}>
+                        className={`shrink-0 px-4 py-2.5 rounded-full font-bold text-sm transition-all active:scale-95 ${activeConfig?.id === config.id ? "bg-[#2D2B2A] text-white" : "bg-white text-gray-500 border border-gray-200 hover:border-cantaloupe"}`}>
                         {config.title}
                     </button>))}
                     <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
