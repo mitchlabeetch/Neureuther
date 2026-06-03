@@ -65,9 +65,13 @@ function HomePage() {
         points: getUserPoints(u.id)
     })).sort((a, b) => b.points - a.points)[0];
 
-    // Frenchie / Widdy habits from the document
-    const frenchieDone = state.checklistItems.some(i => i.kind === "random" && !i.archived && i.completed && i.label.includes("Frenchie: Minimum 15 series"));
-    const widdyDone = state.checklistItems.some(i => i.kind === "random" && !i.archived && i.completed && i.label.includes("Widdy: Minimum 3 workouts"));
+    // Frenchie / Widdy daily habits completion status
+    const frenchieChecklist = state.personalChecklists.find(c => c.userId === "2" && c.kind === "daily_habit" && !c.archived);
+    const widdyChecklist = state.personalChecklists.find(c => c.userId === "1" && c.kind === "daily_habit" && !c.archived);
+    const frenchieHabitTasks = frenchieChecklist ? state.personalChecklistTasks.filter(t => t.checklistId === frenchieChecklist.id) : [];
+    const widdyHabitTasks = widdyChecklist ? state.personalChecklistTasks.filter(t => t.checklistId === widdyChecklist.id) : [];
+    const frenchieDone = frenchieHabitTasks.length > 0 && frenchieHabitTasks.every(t => t.completed);
+    const widdyDone = widdyHabitTasks.length > 0 && widdyHabitTasks.every(t => t.completed);
 
     return (
         <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
@@ -139,7 +143,7 @@ function HomePage() {
                 <div className="space-y-3">
                     {/* Frenchie */}
                     <button
-                        onClick={() => navigate("/checklist/random")}
+                        onClick={() => navigate("/daily-habits/2")}
                         className="w-full flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all active:scale-[0.99] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] text-left"
                     >
                         <div className="w-10 h-10 rounded-full bg-[#A78BFA]/15 flex items-center justify-center text-lg shrink-0">
@@ -148,7 +152,7 @@ function HomePage() {
                         <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-[#171e19]">Frenchie</div>
                             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                <span className="text-[11px] font-medium text-[#b7c6c2]">15 series · 2 messages · Groomed</span>
+                                <span className="text-[11px] font-medium text-[#b7c6c2]">My daily habits</span>
                             </div>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${frenchieDone ? "bg-[#69D2A6] border-[#69D2A6] text-white" : "border-[#b7c6c2]/30 text-transparent"}`}>
@@ -157,7 +161,7 @@ function HomePage() {
                     </button>
                     {/* Widdy */}
                     <button
-                        onClick={() => navigate("/checklist/random")}
+                        onClick={() => navigate("/daily-habits/1")}
                         className="w-full flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all active:scale-[0.99] hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] text-left"
                     >
                         <div className="w-10 h-10 rounded-full bg-[#38BDF8]/15 flex items-center justify-center text-lg shrink-0">
@@ -166,7 +170,7 @@ function HomePage() {
                         <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-[#171e19]">Widdy</div>
                             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                <span className="text-[11px] font-medium text-[#b7c6c2]">Outside · 3 workouts · 2 messages · Groomed</span>
+                                <span className="text-[11px] font-medium text-[#b7c6c2]">My daily habits</span>
                             </div>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${widdyDone ? "bg-[#69D2A6] border-[#69D2A6] text-white" : "border-[#b7c6c2]/30 text-transparent"}`}>

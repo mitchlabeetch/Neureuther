@@ -21,7 +21,7 @@ export default defineHandler(async (event) => {
   const name = body.name.trim();
   const bgColor = body.bgColor || "#ffffff";
   const flagId = body.flagId ?? null;
-  const kind = body.kind === "random" ? "random" : "personal";
+  const kind = body.kind === "random" ? "random" : body.kind === "daily_habit" ? "daily_habit" : "personal";
   const deadline = body.deadline && typeof body.deadline === "string"
     ? new Date(body.deadline).toISOString()
     : null;

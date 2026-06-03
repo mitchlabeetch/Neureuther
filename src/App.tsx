@@ -20,6 +20,7 @@ import SettingsPage from "./pages/Settings";
 import MoneyPage from "./pages/Money";
 import KitchenPage from "./pages/Kitchen";
 import DocumentsPage from "./pages/Documents";
+import DailyHabitsPage from "./pages/DailyHabits";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/money" element={<MoneyPage />} />
             <Route path="/kitchen" element={<KitchenPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/daily-habits/:userId" element={<DailyHabitsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
