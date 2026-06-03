@@ -295,7 +295,7 @@ function WheelPage() {
                                 </TooltipTrigger>
                                 <TooltipContent
                                     className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">Add temporary user for this run
-                                                                                                                                                                  </TooltipContent>
+                                                                                                                                                                                                      </TooltipContent>
                             </Tooltip>
                             <DialogContent className="rounded-3xl max-w-[360px] mx-auto p-0 gap-0">
                                 <DialogHeader className="px-6 pt-6 pb-3">
@@ -316,7 +316,7 @@ function WheelPage() {
                                                 onClick={addTempUser}
                                                 disabled={!tempUserName.trim()}
                                                 className="shrink-0 px-4 py-2 rounded-xl font-bold text-sm text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 transition-all active:scale-95">Add
-                                                                                                                                                                                                                        </button>
+                                                                                                                                                                                                                                                                        </button>
                                         </div>
                                     </div>
                                     {tempUsers.length > 0 && (<div className="flex flex-wrap gap-1.5">
@@ -340,7 +340,7 @@ function WheelPage() {
                             </TooltipTrigger>
                             <TooltipContent
                                 className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">Edit this wheel
-                                                                                                                                                </TooltipContent>
+                                                                                                                                                                                </TooltipContent>
                         </Tooltip>
                         {}
                         <Tooltip>
@@ -353,7 +353,7 @@ function WheelPage() {
                             </TooltipTrigger>
                             <TooltipContent
                                 className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">Delete this wheel
-                                                                                                                                                </TooltipContent>
+                                                                                                                                                                                </TooltipContent>
                         </Tooltip>
                     </div>)}
                 </div>
@@ -382,7 +382,7 @@ function WheelPage() {
                             </TooltipTrigger>
                             <TooltipContent
                                 className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">Create a new wheel
-                                                                                                                                              </TooltipContent>
+                                                                                                                                                                              </TooltipContent>
                         </Tooltip>
                         <DialogContent className="rounded-3xl max-w-[380px] mx-auto p-0 gap-0">
                             <DialogHeader className="px-6 pt-6 pb-3">
@@ -424,7 +424,7 @@ function WheelPage() {
                                     onClick={handleCreate}
                                     disabled={!newTitle.trim() || selectedUsers.length < 2}
                                     className="w-full py-3 rounded-xl font-extrabold text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 disabled:text-gray-500 transition-all active:scale-[0.98]">Create Wheel
-                                                                                                                                                                </button>
+                                                                                                                                                                                                    </button>
                             </div>
                         </DialogContent>
                     </Dialog>
@@ -432,7 +432,8 @@ function WheelPage() {
             </div>
             {}
             {activeConfig && (<div className="px-5 mb-2 flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">People:</span>
+                <span
+                    className="text-xs font-bold text-gray-400 uppercase tracking-wider font-[300] font-[Consolas,_monospace]">PEOPLE:</span>
                 {realActiveUsers.map(u => (<Tooltip key={u!.id}>
                     <TooltipTrigger asChild>
                         <button
@@ -449,7 +450,7 @@ function WheelPage() {
                     </TooltipTrigger>
                     <TooltipContent
                         className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">Remove {u!.name}from this wheel
-                                                                                                            </TooltipContent>
+                                                                                                                                    </TooltipContent>
                 </Tooltip>))}
                 {tempUsers.map((tu, i) => (<span
                     key={i}
@@ -497,7 +498,7 @@ function WheelPage() {
                             onClick={handleEdit}
                             disabled={!editTitle.trim() || editUsers.length < 2}
                             className="w-full py-3 rounded-xl font-extrabold text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 disabled:text-gray-500 transition-all active:scale-[0.98]">Save Changes
-                                                                                                                            </button>
+                                                                                                                                                        </button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -528,16 +529,16 @@ function WheelPage() {
                         </TooltipTrigger>
                         <TooltipContent
                             className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">Reset selection & temp users
-                                                                                                                              </TooltipContent>
+                                                                                                                                                          </TooltipContent>
                     </Tooltip>
                     {!doneAnimation && !isTempPick ? (<button
                         onClick={handleDone}
                         className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-green-400 text-white text-xs font-extrabold hover:bg-green-500 transition-all active:scale-90 shadow-sm">
                         <Check size={14} strokeWidth={3} />Done
-                                                                                                              </button>) : !doneAnimation && isTempPick ? (<span className="ml-auto text-xs font-semibold text-gray-400 italic">Guest pick</span>) : (<div
+                                                                                                                                      </button>) : !doneAnimation && isTempPick ? (<span className="ml-auto text-xs font-semibold text-gray-400 italic">Guest pick</span>) : (<div
                         className="ml-auto flex items-center gap-1.5 text-green-500 font-extrabold text-sm animate-bounce-in">
                         <PartyPopper size={16} />+{pendingPick.points}pts!
-                                                                                                              </div>)}
+                                                                                                                                      </div>)}
                 </div>
             </div>)}
             {}
@@ -548,19 +549,19 @@ function WheelPage() {
                     className="bg-white rounded-t-[2.5rem] w-[calc(100%-2rem)] max-w-[480px] p-6 animate-slide-up"
                     onClick={e => e.stopPropagation()}>
                     <h3 className="text-lg font-extrabold text-[#2D2B2A] mb-3">Should {confirmRemoveUser.name}be taken out of this wheel?
-                                                                                                            </h3>
+                                                                                                                                    </h3>
                     <div className="flex gap-3">
                         <button
                             onClick={() => setConfirmRemoveUser(null)}
                             className="flex-1 py-3 rounded-xl font-extrabold text-[#2D2B2A] bg-gray-100 hover:bg-gray-200 transition-all active:scale-[0.98]">Cancel
-                                                                                                                              </button>
+                                                                                                                                                          </button>
                         <button
                             onClick={() => {
                                 toggleConfigUser(activeConfig!.id, confirmRemoveUser.userId);
                                 setConfirmRemoveUser(null);
                             }}
                             className="flex-1 py-3 rounded-xl font-extrabold text-white bg-coral hover:bg-[#ff5252] transition-all active:scale-[0.98]">Yes, remove
-                                                                                                                              </button>
+                                                                                                                                                          </button>
                     </div>
                 </div>
             </div>)}
