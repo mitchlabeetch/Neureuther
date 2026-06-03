@@ -1,8 +1,3 @@
-/* Header */
-/* Today's progress card */
-/* Quick actions */
-/* Stats cards */
-/* CTA */
 import { useApp } from "@/lib/store";
 import { BottomNav } from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
@@ -12,177 +7,216 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 function HomePage() {
-    const {
-        state,
-        getUserById,
-        getUserPoints
-    } = useApp();
+  const { state, getUserById, getUserPoints } = useApp();
+  const navigate = useNavigate();
+  const [greeting, setGreeting] = useState("");
+  const [progressVal, setProgressVal] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
-    const navigate = useNavigate();
-    const [greeting, setGreeting] = useState("");
-    const [progressVal, setProgressVal] = useState(0);
+  useEffect(() => {
+    setMounted(true);
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Good morning");
+    else if (hour < 18) setGreeting("Good afternoon");
+    else setGreeting("Good evening");
 
-    useEffect(() => {
-        const hour = new Date().getHours();
+    const completed = state.checklistItems.filter((i) => i.completed).length;
+    const total = state.checklistItems.length;
+    setProgressVal(total > 0 ? (completed / total) * 100 : 0);
+  }, [state.checklistItems]);
 
-        if (hour < 12)
-            setGreeting("Good morning");
-        else if (hour < 18)
-            setGreeting("Good afternoon");
-        else
-            setGreeting("Good evening");
+  const completedToday = state.checklistItems.filter((i) => i.completed).length;
+  const totalToday = state.checklistItems.length;
 
-        const completed = state.checklistItems.filter(i => i.completed).length;
-        const total = state.checklistItems.length;
-        setProgressVal(total > 0 ? (completed / total) * 100 : 0);
-    }, [state.checklistItems]);
+  const topUser = state.users
+    .map((u) => ({ ...u, points: getUserPoints(u.id) }))
+    .sort((a, b) => b.points - a.points)[0];
 
-    const completedToday = state.checklistItems.filter(i => i.completed).length;
-    const totalToday = state.checklistItems.length;
-
-    const topUser = state.users.map(u => ({
-        ...u,
-        points: getUserPoints(u.id)
-    })).sort((a, b) => b.points - a.points)[0];
-
-    return (
-        <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
-            {}
-            <div className="px-5 pt-14 pb-4 flex items-center justify-between">
-                <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{greeting}</p>
-                    <h1 className="text-3xl font-extrabold text-[#2D2B2A]">Neureuther</h1>
-                </div>
-                <div className="flex -space-x-2">
-                    {state.users.slice(0, 4).map(u => (<Tooltip key={u.id}>
-                        <TooltipTrigger asChild>
-                            <div
-                                className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-lg shadow-sm cursor-default"
-                                style={{
-                                    backgroundColor: u.color + "30"
-                                }}>
-                                {u.emoji}
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent
-                            className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
-                            {u.name}— {getUserPoints(u.id)}pts
-                                          </TooltipContent>
-                    </Tooltip>))}
-                    {state.users.length > 4 && (<div
-                        className="w-10 h-10 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs font-extrabold text-gray-500 shadow-sm">+{state.users.length - 4}
-                    </div>)}
-                </div>
-            </div>
-            {}
-            <div className="px-5 mb-4">
-                <div
-                    className="bg-white rounded-[2.5rem] p-6 shadow-lg shadow-orange-100/50 border border-orange-50">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 className="text-lg font-extrabold text-[#2D2B2A]">Today's Checklist</h3>
-                            <p className="text-sm text-gray-400 font-semibold">{completedToday}/{totalToday}done</p>
-                        </div>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div
-                                    className="w-16 h-16 rounded-full bg-cantaloupe-lighter flex items-center justify-center cursor-default">
-                                    <span className="text-2xl font-extrabold text-cantaloupe">{Math.round(progressVal)}%</span>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent
-                                className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
-                                {completedToday}of {totalToday}tasks completed today
-                                              </TooltipContent>
-                        </Tooltip>
-                    </div>
-                    <Progress
-                        value={progressVal}
-                        className="h-3 rounded-full bg-orange-100 [&>div]:bg-cantaloupe [&>div]:rounded-full" />
-                    <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar">
-                        {state.checklistItems.slice(0, 5).map(item => (<div
-                            key={item.id}
-                            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${item.completed ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-400"}`}>
-                            {item.completed ? <CheckCircle2 size={12} /> : <Circle size={12} />}
-                            {item.label}
-                        </div>))}
-                        {state.checklistItems.length > 5 && (<span
-                            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-400">+{state.checklistItems.length - 5}more
-                                          </span>)}
-                    </div>
-                </div>
-            </div>
-            {}
-            <div className="px-5 mb-4">
-                <h3
-                    className="text-sm font-extrabold text-gray-400 uppercase tracking-wider mb-3">Quick Actions</h3>
-                <div className="grid grid-cols-2 gap-3">
-                    <button
-                        onClick={() => navigate("/wheel")}
-                        className="group bg-white rounded-3xl p-5 shadow-md shadow-orange-100/30 border border-orange-50 text-left hover:shadow-lg transition-all active:scale-[0.98]">
-                        <div
-                            className="w-12 h-12 rounded-2xl bg-cantaloupe-lighter flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <Disc size={24} className="text-cantaloupe" />
-                        </div>
-                        <h4 className="font-extrabold text-[#2D2B2A] text-base mb-1">Spin Wheel</h4>
-                        <p className="text-xs text-gray-400 font-semibold">Pick who does what!</p>
-                    </button>
-                    <button
-                        onClick={() => navigate("/checklist")}
-                        className="group bg-white rounded-3xl p-5 shadow-md shadow-orange-100/30 border border-orange-50 text-left hover:shadow-lg transition-all active:scale-[0.98]">
-                        <div
-                            className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <ListChecks size={24} className="text-green-500" />
-                        </div>
-                        <h4 className="font-extrabold text-[#2D2B2A] text-base mb-1">Checklist</h4>
-                        <p className="text-xs text-gray-400 font-semibold">Track daily tasks</p>
-                    </button>
-                </div>
-            </div>
-            {}
-            <div className="px-5 mb-4">
-                <h3
-                    className="text-sm font-extrabold text-gray-400 uppercase tracking-wider mb-3">Household Stats</h3>
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white rounded-2xl p-4 border border-orange-50 shadow-sm">
-                        <span className="text-2xl">🏆</span>
-                        <div className="text-2xl font-extrabold text-[#2D2B2A] mt-2">{topUser?.emoji} {topUser?.name}</div>
-                        <div className="text-xs text-gray-400 font-semibold mt-1">{topUser?.points || 0}pts — Top earner</div>
-                    </div>
-                    <div className="bg-white rounded-2xl p-4 border border-orange-50 shadow-sm">
-                        <span className="text-2xl">🔥</span>
-                        <div className="text-2xl font-extrabold text-coral mt-2">{completedToday}tasks</div>
-                        <div className="text-xs text-gray-400 font-semibold mt-1">Completed today</div>
-                    </div>
-                    <div className="bg-white rounded-2xl p-4 border border-orange-50 shadow-sm">
-                        <span className="text-2xl">🎡</span>
-                        <div className="text-2xl font-extrabold text-lavender mt-2">{state.wheelConfigs.length}</div>
-                        <div className="text-xs text-gray-400 font-semibold mt-1">Spin wheels</div>
-                    </div>
-                    <div className="bg-white rounded-2xl p-4 border border-orange-50 shadow-sm">
-                        <span className="text-2xl">🎁</span>
-                        <div className="text-2xl font-extrabold text-mint mt-2">{state.rewardItems.length}</div>
-                        <div className="text-xs text-gray-400 font-semibold mt-1">Rewards available</div>
-                    </div>
-                </div>
-            </div>
-            {}
-            <div className="px-5 mb-8">
-                <button
-                    onClick={() => navigate("/rewards")}
-                    className="w-full from-cantaloupe to-coral rounded-3xl p-5 text-left shadow-lg shadow-orange-200/40 hover:shadow-xl transition-all active:scale-[0.98] bg-[#ff6600]">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h4 className="font-extrabold text-white text-lg mb-1">Earn Rewards!</h4>
-                            <p className="text-white/80 text-sm font-semibold">Complete tasks & spin the wheel to earn points</p>
-                        </div>
-                        <ArrowRight size={24} className="text-white" />
-                    </div>
-                </button>
-            </div>
-            <BottomNav />
+  return (
+    <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
+      {/* Header */}
+      <div className="px-5 pt-14 pb-4 flex items-center justify-between animate-fade-in-up">
+        <div>
+          <p className="text-xs font-extrabold text-[#b7c6c2] uppercase tracking-[0.1em]">
+            {greeting}
+          </p>
+          <h1 className="text-[1.875rem] font-black text-[#171e19] mt-0.5 tracking-tight leading-tight">
+            Neureuther
+          </h1>
         </div>
-    );
+        <div className="flex -space-x-2">
+          {state.users.slice(0, 4).map((u) => (
+            <Tooltip key={u.id}>
+              <TooltipTrigger asChild>
+                <div
+                  className="w-11 h-11 rounded-full border-[2.5px] border-white flex items-center justify-center text-lg shadow-sm cursor-default transition-transform hover:scale-110 hover:z-10 relative"
+                  style={{ backgroundColor: u.color + "30" }}
+                >
+                  {u.emoji}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                {u.name} — {getUserPoints(u.id)} pts
+              </TooltipContent>
+            </Tooltip>
+          ))}
+          {state.users.length > 4 && (
+            <div className="w-11 h-11 rounded-full border-[2.5px] border-white bg-[#eeebe3] flex items-center justify-center text-xs font-black text-[#b7c6c2] shadow-sm">
+              +{state.users.length - 4}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Today's progress card */}
+      <div className="px-5 mb-5">
+        <div className="bg-white rounded-[2.5rem] p-6 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08)] border border-[#b7c6c2]/20 relative overflow-hidden transition-all hover:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.1)]">
+          {/* Decorative blob */}
+          <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-[#b7c6c2]/10" />
+          
+          <div className="flex items-center justify-between mb-5 relative z-10">
+            <div>
+              <h3 className="text-lg font-black text-[#171e19] tracking-tight">Today's Checklist</h3>
+              <p className="text-sm text-[#b7c6c2] font-bold mt-1">
+                {completedToday} / {totalToday} done
+              </p>
+            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-16 h-16 rounded-full bg-[#FFF1E6] flex items-center justify-center cursor-default transition-transform hover:scale-105">
+                  <span className="text-xl font-black text-cantaloupe">{Math.round(progressVal)}%</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
+                {completedToday} of {totalToday} tasks completed today
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Progress
+            value={progressVal}
+            className="h-3 rounded-full bg-[#FFF1E6] [&>div]:bg-cantaloupe [&>div]:rounded-full"
+          />
+          <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar relative z-10">
+            {state.checklistItems.slice(0, 5).map((item) => (
+              <div
+                key={item.id}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+                  item.completed
+                    ? "bg-green-50 text-green-600"
+                    : "bg-[#eeebe3] text-[#b7c6c2]"
+                } transition-all hover:scale-105`}
+              >
+                {item.completed ? <CheckCircle2 size={12} /> : <Circle size={12} />}
+                {item.label}
+              </div>
+            ))}
+            {state.checklistItems.length > 5 && (
+              <span className="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-[#eeebe3] text-[#b7c6c2]">
+                +{state.checklistItems.length - 5} more
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="px-5 mb-5">
+        <h3 className="section-header mb-3">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate("/wheel")}
+            className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="w-12 h-12 rounded-2xl bg-[#FFF1E6] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <Disc size={24} className="text-cantaloupe" />
+            </div>
+            <h4 className="font-black text-[#171e19] text-base mb-1 tracking-tight">Spin Wheel</h4>
+            <p className="text-xs text-[#b7c6c2] font-bold">Pick who does what!</p>
+          </button>
+          <button
+            onClick={() => navigate("/checklist")}
+            className="group bg-white rounded-[1.5rem] p-5 text-left border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-[#b7c6c2]/10 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <ListChecks size={24} className="text-green-500" />
+            </div>
+            <h4 className="font-black text-[#171e19] text-base mb-1 tracking-tight">Checklist</h4>
+            <p className="text-xs text-[#b7c6c2] font-bold">Track daily tasks</p>
+          </button>
+        </div>
+      </div>
+
+      {/* Stats cards */}
+      <div className="px-5 mb-5">
+        <h3 className="section-header mb-3">Household Stats</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="stat-card">
+            <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
+              🏆
+            </div>
+            <div className="text-xl font-black text-[#171e19] mt-1 truncate">
+              {topUser?.emoji} {topUser?.name}
+            </div>
+            <div className="text-xs text-[#b7c6c2] font-bold mt-1">
+              {topUser?.points || 0} pts — Top earner
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
+              🔥
+            </div>
+            <div className="text-xl font-black text-[#ca0013] mt-1">
+              {completedToday} tasks
+            </div>
+            <div className="text-xs text-[#b7c6c2] font-bold mt-1">Completed today</div>
+          </div>
+          <div className="stat-card">
+            <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
+              🎡
+            </div>
+            <div className="text-xl font-black text-[#A78BFA] mt-1">
+              {state.wheelConfigs.length}
+            </div>
+            <div className="text-xs text-[#b7c6c2] font-bold mt-1">Spin wheels</div>
+          </div>
+          <div className="stat-card">
+            <div className="w-10 h-10 rounded-xl bg-[#FFF1E6] flex items-center justify-center text-xl mb-2">
+              🎁
+            </div>
+            <div className="text-xl font-black text-[#69D2A6] mt-1">
+              {state.rewardItems.length}
+            </div>
+            <div className="text-xs text-[#b7c6c2] font-bold mt-1">Rewards available</div>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="px-5 mb-8">
+        <button
+          onClick={() => navigate("/rewards")}
+          className="w-full bg-[#ca0013] rounded-[2.5rem] p-5 text-left shadow-[0_12px_40px_-8px_rgba(202,0,19,0.25)] hover:shadow-[0_16px_50px_-8px_rgba(202,0,19,0.35)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.97] relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-[#ca0013] to-[#e31b30] opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="flex items-center justify-between relative z-10">
+            <div>
+              <h4 className="font-black text-white text-lg mb-1 tracking-tight">Earn Rewards!</h4>
+              <p className="text-white/70 text-sm font-bold">
+                Complete tasks &amp; spin the wheel to earn points
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <ArrowRight size={22} className="text-white" />
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <BottomNav />
+    </div>
+  );
 }
 
 export default HomePage;

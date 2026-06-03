@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
   --background: 30 40% 98%;
@@ -47,7 +47,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Bouncy animation for the wheel */
+/* === ANIMATIONS === */
 @keyframes spin-wobble {
   0% { transform: rotate(0deg); }
   10% { transform: rotate(5deg); }
@@ -95,6 +95,27 @@ body {
   100% { background-position: 200% 0; }
 }
 
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes icon-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
 .animate-bounce-in {
   animation: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }
@@ -115,6 +136,18 @@ body {
   animation: pulse-soft 2s ease-in-out infinite;
 }
 
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s ease-out forwards;
+}
+
+.animate-icon-pop {
+  animation: icon-pop 0.3s ease-in-out;
+}
+
 .confetti-piece {
   position: fixed;
   width: 10px;
@@ -130,22 +163,90 @@ body {
   animation: shimmer 1.5s infinite;
 }
 
-/* Mobile-first max width */
+/* === LAYOUT === */
 .app-container {
   max-width: 480px;
   margin: 0 auto;
 }
 
-/* Bottom nav spacing */
 .page-content {
   padding-bottom: 100px;
 }
 
-/* Scrollbar hide */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* === GLASS CARD === */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(183, 198, 194, 0.25);
+}
+
+/* === SECTION HEADER === */
+.section-header {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b7c6c2;
+}
+
+/* === STAT CARD === */
+.stat-card {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(183, 198, 194, 0.2);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+  box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.stat-card:active {
+  transform: scale(0.97);
+}
+
+/* === INTERACTIVE HOVER === */
+.hover-lift {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.08);
+}
+
+.hover-lift:active {
+  transform: scale(0.97);
+}
+
+/* === RIPPLE EFFECT === */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(0,0,0,0.05) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ripple-container:active::after {
+  opacity: 1;
 }

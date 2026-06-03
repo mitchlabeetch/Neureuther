@@ -6,8 +6,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-const USER_COLORS = ['#FDA172', '#FF6B6B', '#A78BFA', '#69D2A6', '#FBBF24', '#FB7185', '#38BDF8', '#F472B6', '#818CF8', '#34D399'];
-const EMOJIS = ['🦊', '🐸', '🦄', '🐱', '🐶', '🐼', '🐨', '🦁', '🐰', '🐙', '🦉', '🦋', '🐝', '🐳', '🦭', '🐧', '🐯', '🐮', '🐷', '🐵'];
+const USER_COLORS = [
+  '#FDA172', '#FF6B6B', '#A78BFA', '#69D2A6', '#FBBF24',
+  '#FB7185', '#38BDF8', '#F472B6', '#818CF8', '#34D399'
+];
+const EMOJIS = [
+  '🦊', '🐸', '🦄', '🐱', '🐶', '🐼', '🐨', '🦁', '🐰', '🐙',
+  '🦉', '🦋', '🐝', '🐳', '🦭', '🐧', '🐯', '🐮', '🐷', '🐵'
+];
 
 function SettingsPage() {
   const { state, addUser, updateUser, removeUser } = useApp();
@@ -46,50 +52,59 @@ function SettingsPage() {
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
       {/* Header */}
-      <div className="px-5 pt-14 pb-4">
-        <h1 className="text-3xl font-extrabold text-[#2D2B2A]">Settings</h1>
-        <p className="text-sm text-gray-400 font-semibold mt-1">Manage your household</p>
+      <div className="px-5 pt-14 pb-4 animate-fade-in-up">
+        <h1 className="text-3xl font-black text-[#171e19] tracking-tight">
+          Settings
+        </h1>
+        <p className="text-sm text-[#b7c6c2] font-bold mt-1">
+          Manage your household
+        </p>
       </div>
 
       {/* Users section */}
       <div className="px-5 mb-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-extrabold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+          <h3 className="section-header flex items-center gap-2">
             <Users size={14} /> People ({state.users.length})
           </h3>
           <button
             onClick={openNew}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-cantaloupe bg-cantaloupe-lighter hover:bg-cantaloupe hover:text-white transition-all active:scale-90"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-cantaloupe bg-[#FFF1E6] hover:bg-cantaloupe hover:text-white transition-all active:scale-90"
           >
             <Plus size={14} /> Add Person
           </button>
         </div>
-        <div className="space-y-2">
-          {state.users.map(user => (
+        <div className="space-y-2.5">
+          {state.users.map((user) => (
             <div
               key={user.id}
-              className="flex items-center gap-3 bg-white rounded-2xl p-4 border border-orange-100 shadow-sm"
+              className="flex items-center gap-3 bg-white rounded-[1.5rem] p-4 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 active:scale-[0.99]"
             >
               <div
-                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-sm"
+                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-sm transition-transform hover:scale-110"
                 style={{ backgroundColor: user.color + '30' }}
               >
                 {user.emoji}
               </div>
               <div className="flex-1">
-                <div className="text-sm font-extrabold text-[#2D2B2A]">{user.name}</div>
-                <div className="w-4 h-4 rounded-full mt-1" style={{ backgroundColor: user.color }} />
+                <div className="text-sm font-black text-[#171e19]">
+                  {user.name}
+                </div>
+                <div
+                  className="w-4 h-4 rounded-full mt-1 ring-2 ring-white"
+                  style={{ backgroundColor: user.color }}
+                />
               </div>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => openEdit(user)}
-                    className="p-2.5 rounded-full text-gray-400 hover:text-cantaloupe hover:bg-orange-50 transition-all active:scale-90"
+                    className="p-2.5 rounded-full text-[#b7c6c2] hover:text-cantaloupe hover:bg-[#FFF1E6] transition-all active:scale-90"
                   >
                     <Pencil size={16} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
                   Edit {user.name}
                 </TooltipContent>
               </Tooltip>
@@ -97,12 +112,12 @@ function SettingsPage() {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => removeUser(user.id)}
-                    className="p-2.5 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-50 transition-all active:scale-90"
+                    className="p-2.5 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90"
                   >
                     <Trash2 size={16} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
                   Remove {user.name}
                 </TooltipContent>
               </Tooltip>
@@ -113,13 +128,15 @@ function SettingsPage() {
 
       {/* About section */}
       <div className="px-5 mb-4">
-        <div className="bg-white rounded-2xl p-5 border border-orange-100 shadow-sm">
-          <h3 className="text-sm font-extrabold text-[#2D2B2A] mb-2">About Neureuther</h3>
-          <p className="text-sm text-gray-400 font-semibold leading-relaxed">
+        <div className="bg-white rounded-[1.5rem] p-5 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]">
+          <h3 className="text-sm font-black text-[#171e19] mb-2">About Neureuther</h3>
+          <p className="text-sm text-[#b7c6c2] font-bold leading-relaxed">
             Your fun household companion! Manage chores, spin the wheel, earn points, and keep your home running smoothly.
           </p>
-          <div className="flex items-center gap-2 mt-3 text-xs text-gray-400 font-bold">
-            <span className="px-2 py-1 bg-orange-50 rounded-full text-cantaloupe">v1.0</span>
+          <div className="flex items-center gap-2 mt-3 text-xs text-[#b7c6c2] font-bold">
+            <span className="px-2.5 py-1 bg-[#FFF1E6] rounded-full text-cantaloupe">
+              v1.0
+            </span>
             <span>Built with ❤️</span>
           </div>
         </div>
@@ -127,33 +144,35 @@ function SettingsPage() {
 
       {/* Add/Edit dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="rounded-3xl max-w-[380px] mx-auto p-0 gap-0">
+        <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
           <DialogHeader className="px-6 pt-6 pb-3">
-            <DialogTitle className="text-xl font-extrabold text-[#2D2B2A]">
+            <DialogTitle className="text-xl font-black text-[#171e19]">
               {editingUser ? 'Edit Person' : 'Add Person'}
             </DialogTitle>
           </DialogHeader>
           <div className="px-6 pb-6 space-y-4">
             <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Name</label>
+              <label className="section-header block mb-2">Name</label>
               <Input
                 value={newName}
-                onChange={e => setNewName(e.target.value)}
+                onChange={(e) => setNewName(e.target.value)}
                 placeholder="e.g. Alex"
-                className="mt-1.5 rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
-                onKeyDown={e => e.key === 'Enter' && handleSave()}
+                className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-cantaloupe focus:ring-cantaloupe"
+                onKeyDown={(e) => e.key === 'Enter' && handleSave()}
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Emoji</label>
+              <label className="section-header block mb-2">Emoji</label>
               <div className="flex flex-wrap gap-2 mt-2">
-                {EMOJIS.map(emoji => (
+                {EMOJIS.map((emoji) => (
                   <button
                     key={emoji}
                     onClick={() => setNewEmoji(emoji)}
                     className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all active:scale-90 ${
-                      newEmoji === emoji ? 'bg-cantaloupe-lighter ring-2 ring-cantaloupe scale-110' : 'bg-gray-50 hover:bg-gray-100'
+                      newEmoji === emoji
+                        ? 'bg-[#FFF1E6] ring-2 ring-cantaloupe scale-110'
+                        : 'bg-[#eeebe3] hover:bg-[#b7c6c2]/20'
                     }`}
                   >
                     {emoji}
@@ -163,14 +182,16 @@ function SettingsPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Color</label>
+              <label className="section-header block mb-2">Color</label>
               <div className="flex flex-wrap gap-2 mt-2">
-                {USER_COLORS.map(color => (
+                {USER_COLORS.map((color) => (
                   <button
                     key={color}
                     onClick={() => setNewColor(color)}
                     className={`w-9 h-9 rounded-full transition-all active:scale-90 ${
-                      newColor === color ? 'ring-3 ring-offset-2 ring-[#2D2B2A] scale-110' : 'hover:scale-105'
+                      newColor === color
+                        ? 'ring-2 ring-offset-2 ring-[#171e19] scale-110'
+                        : 'hover:scale-105'
                     }`}
                     style={{ backgroundColor: color }}
                   />
@@ -181,7 +202,7 @@ function SettingsPage() {
             <button
               onClick={handleSave}
               disabled={!newName.trim()}
-              className="w-full py-3 rounded-xl font-extrabold text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 disabled:text-gray-500 transition-all active:scale-[0.98]"
+              className="w-full py-3 rounded-xl font-black text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
             >
               {editingUser ? 'Save Changes' : 'Add Person'}
             </button>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
-import { Check, Plus, Trash2, GripVertical, X, Pencil } from 'lucide-react';
+import { Check, Plus, Trash2, Circle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
@@ -9,19 +9,23 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 
 function ChecklistPage() {
   const {
-    state, toggleChecklistItem, addChecklistItem, removeChecklistItem,
-    updateChecklistItem, getUserById, awardPoints,
+    state,
+    toggleChecklistItem,
+    addChecklistItem,
+    removeChecklistItem,
+    awardPoints,
+    getUserById,
   } = useApp();
   const [showDialog, setShowDialog] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [activePicker, setActivePicker] = useState<string | null>(null);
 
-  const completed = state.checklistItems.filter(i => i.completed).length;
+  const completed = state.checklistItems.filter((i) => i.completed).length;
   const total = state.checklistItems.length;
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   const handleToggle = (id: string) => {
-    const item = state.checklistItems.find(i => i.id === id);
+    const item = state.checklistItems.find((i) => i.id === id);
     if (!item) return;
     if (!item.completed) {
       if (state.users.length > 1) {
@@ -40,7 +44,7 @@ function ChecklistPage() {
 
   const handleUserPick = (itemId: string, userId: string) => {
     toggleChecklistItem(itemId, userId);
-    const item = state.checklistItems.find(i => i.id === itemId);
+    const item = state.checklistItems.find((i) => i.id === itemId);
     if (item) {
       awardPoints(userId, 5, `Completed: ${item.label}`);
     }
@@ -57,60 +61,73 @@ function ChecklistPage() {
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
       {/* Header */}
-      <div className="px-5 pt-14 pb-4">
+      <div className="px-5 pt-14 pb-4 animate-fade-in-up">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-[#2D2B2A]">Daily Checklist</h1>
-            <p className="text-sm text-gray-400 font-semibold mt-1">{completed}/{total} tasks done</p>
+            <h1 className="text-3xl font-black text-[#171e19] tracking-tight">
+              Daily Checklist
+            </h1>
+            <p className="text-sm text-[#b7c6c2] font-bold mt-1">
+              {completed} / {total} tasks done
+            </p>
           </div>
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-            <span className="text-2xl font-extrabold text-green-500">{pct}%</span>
+            <span className="text-2xl font-black text-green-500">{pct}%</span>
           </div>
         </div>
         <Progress
           value={pct}
-          className="h-3 rounded-full bg-orange-100 mt-3 [&>div]:bg-green-400 [&>div]:rounded-full"
+          className="h-3 rounded-full bg-[#FFF1E6] mt-3 [&>div]:bg-green-400 [&>div]:rounded-full"
         />
       </div>
 
       {/* List */}
-      <div className="px-5 space-y-2 mb-4">
-        {state.checklistItems.map(item => {
-          const completedBy = item.completedBy ? getUserById(item.completedBy) : null;
+      <div className="px-5 space-y-2.5 mb-5">
+        {state.checklistItems.map((item, index) => {
+          const completedBy = item.completedBy
+            ? getUserById(item.completedBy)
+            : null;
           return (
             <div
               key={item.id}
-              className={`relative flex items-center gap-3 rounded-2xl p-4 border transition-all active:scale-[0.99] ${
+              className={`relative flex items-center gap-3 rounded-[1.5rem] p-4 border transition-all duration-300 active:scale-[0.99] ${
                 item.completed
-                  ? 'bg-green-50/50 border-green-200'
-                  : 'bg-white border-orange-100 shadow-sm'
-              }`}
+                  ? 'bg-green-50/50 border-green-200/50'
+                  : 'bg-white border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]'
+              } hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)]`}
+              style={{
+                animationDelay: `${index * 50}ms`,
+              }}
             >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => handleToggle(item.id)}
-                    className={`shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all active:scale-90 ${
+                    className={`shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all duration-300 active:scale-90 ${
                       item.completed
                         ? 'bg-green-400 border-green-400 text-white'
-                        : 'border-gray-300 text-transparent hover:border-cantaloupe'
+                        : 'border-[#b7c6c2]/30 text-transparent hover:border-cantaloupe hover:bg-[#FFF1E6]'
                     }`}
                   >
                     <Check size={16} strokeWidth={3} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
                   {item.completed ? 'Mark as incomplete' : 'Mark as complete'}
                 </TooltipContent>
               </Tooltip>
               <div className="flex-1 min-w-0">
-                <span className={`text-sm font-extrabold block truncate ${
-                  item.completed ? 'text-gray-400 line-through' : 'text-[#2D2B2A]'
-                }`}>
+                <span
+                  className={`text-sm font-extrabold block truncate transition-colors ${
+                    item.completed
+                      ? 'text-[#b7c6c2] line-through'
+                      : 'text-[#171e19]'
+                  }`}
+                >
                   {item.label}
                 </span>
                 {completedBy && (
-                  <span className="text-xs font-semibold text-green-500 flex items-center gap-1 mt-0.5">
+                  <span className="text-xs font-bold text-green-500 flex items-center gap-1 mt-0.5">
                     {completedBy.emoji} {completedBy.name}
                   </span>
                 )}
@@ -119,12 +136,12 @@ function ChecklistPage() {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => removeChecklistItem(item.id)}
-                    className="p-2 rounded-full text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all"
+                    className="p-2 rounded-full text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90"
                   >
                     <Trash2 size={14} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
+                <TooltipContent className="rounded-xl bg-[#171e19] text-white border-none text-xs font-bold px-3 py-2 shadow-lg">
                   Remove this task
                 </TooltipContent>
               </Tooltip>
@@ -135,30 +152,34 @@ function ChecklistPage() {
         {/* Add button */}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogTrigger asChild>
-            <button className="w-full flex items-center gap-3 rounded-2xl p-4 bg-white/50 border-2 border-dashed border-orange-200 text-gray-400 hover:text-cantaloupe hover:border-cantaloupe transition-all active:scale-[0.99]">
-              <Plus size={20} />
+            <button className="w-full flex items-center gap-3 rounded-[1.5rem] p-4 bg-white/60 border-2 border-dashed border-[#b7c6c2]/30 text-[#b7c6c2] hover:text-cantaloupe hover:border-cantaloupe transition-all duration-300 active:scale-[0.99]">
+              <div className="w-9 h-9 rounded-full bg-[#eeebe3] flex items-center justify-center">
+                <Plus size={18} />
+              </div>
               <span className="text-sm font-extrabold">Add new task</span>
             </button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl max-w-[380px] mx-auto p-0 gap-0">
+          <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
             <DialogHeader className="px-6 pt-6 pb-3">
-              <DialogTitle className="text-xl font-extrabold text-[#2D2B2A]">New Daily Task</DialogTitle>
+              <DialogTitle className="text-xl font-black text-[#171e19]">
+                New Daily Task
+              </DialogTitle>
             </DialogHeader>
             <div className="px-6 pb-6 space-y-4">
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Task Name</label>
+                <label className="section-header block mb-2">Task Name</label>
                 <Input
                   value={newLabel}
-                  onChange={e => setNewLabel(e.target.value)}
+                  onChange={(e) => setNewLabel(e.target.value)}
                   placeholder="e.g. Water the plants"
-                  className="mt-1.5 rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
-                  onKeyDown={e => e.key === 'Enter' && handleCreate()}
+                  className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-cantaloupe focus:ring-cantaloupe"
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                 />
               </div>
               <button
                 onClick={handleCreate}
                 disabled={!newLabel.trim()}
-                className="w-full py-3 rounded-xl font-extrabold text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 disabled:text-gray-500 transition-all active:scale-[0.98]"
+                className="w-full py-3 rounded-xl font-black text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
               >
                 Add Task
               </button>
@@ -169,29 +190,42 @@ function ChecklistPage() {
 
       {/* User picker modal */}
       {activePicker && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center" onClick={() => setActivePicker(null)}>
-          <div className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center"
+          onClick={() => setActivePicker(null)}
+        >
+          <div
+            className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-extrabold text-[#2D2B2A]">Who did it?</h3>
-              <button onClick={() => setActivePicker(null)} className="p-2 rounded-full hover:bg-gray-100">
-                <X size={20} className="text-gray-400" />
+              <h3 className="text-lg font-black text-[#171e19]">Who did it?</h3>
+              <button
+                onClick={() => setActivePicker(null)}
+                className="p-2 rounded-full hover:bg-[#eeebe3] transition-all active:scale-90"
+              >
+                <X size={20} className="text-[#b7c6c2]" />
               </button>
             </div>
             <div className="space-y-2">
-              {state.users.map(u => (
+              {state.users.map((u) => (
                 <button
                   key={u.id}
                   onClick={() => handleUserPick(activePicker, u.id)}
-                  className="w-full flex items-center gap-3 p-4 rounded-2xl border border-orange-100 bg-white hover:bg-orange-50 transition-all active:scale-[0.98]"
+                  className="w-full flex items-center gap-3 p-4 rounded-[1.5rem] border border-[#b7c6c2]/20 bg-white hover:bg-[#FFF1E6] hover:border-cantaloupe/30 transition-all duration-300 active:scale-[0.98] group"
                 >
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-lg shadow-sm"
                     style={{ backgroundColor: u.color + '30' }}
                   >
                     {u.emoji}
                   </div>
-                  <span className="text-base font-extrabold text-[#2D2B2A]">{u.name}</span>
-                  <span className="ml-auto text-sm font-bold text-cantaloupe">+5 pts</span>
+                  <span className="text-base font-black text-[#171e19]">
+                    {u.name}
+                  </span>
+                  <span className="ml-auto text-sm font-bold text-cantaloupe bg-[#FFF1E6] px-2.5 py-1 rounded-full group-hover:bg-cantaloupe group-hover:text-white transition-all">
+                    +5 pts
+                  </span>
                 </button>
               ))}
             </div>
@@ -201,8 +235,10 @@ function ChecklistPage() {
 
       {/* Reset info */}
       <div className="px-5 mb-16">
-        <div className="bg-cantaloupe-lighter rounded-2xl p-4 text-center">
-          <p className="text-xs font-semibold text-cantaloupe">🔄 Checklist resets every day at midnight</p>
+        <div className="bg-[#FFF1E6] rounded-[1.5rem] p-4 text-center border border-[#b7c6c2]/20">
+          <p className="text-xs font-bold text-cantaloupe">
+            🔄 Checklist resets every day at midnight
+          </p>
         </div>
       </div>
 
