@@ -4,6 +4,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { Plus, Trash2, Pencil, Star, Wallet } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { EmojiPicker } from '@/components/EmojiPicker';
 import { toast } from 'sonner';
 import type { RewardItem } from '@/lib/store';
 
@@ -142,11 +143,10 @@ function RewardsPage() {
                   </div>
                   <div className="w-20">
                     <label className="section-header block mb-2">Icon</label>
-                    <Input
+                    <EmojiPicker
                       value={newIcon}
-                      onChange={(e) => setNewIcon(e.target.value)}
-                      className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 text-center text-xl"
-                      maxLength={2}
+                      onChange={(emoji) => setNewIcon(emoji)}
+                      className="mt-1.5 w-full h-10 rounded-xl bg-[#eeebe3] border border-[#b7c6c2]/20 flex items-center justify-center hover:bg-[#b7c6c2]/10 transition-colors"
                     />
                   </div>
                 </div>
@@ -366,11 +366,10 @@ function RewardsPage() {
                 </div>
                 <div className="w-20">
                   <label className="section-header block mb-2">Icon</label>
-                  <Input
+                  <EmojiPicker
                     value={editingReward.icon}
-                    onChange={(e) => setEditingReward({ ...editingReward, icon: e.target.value })}
-                    className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 text-center text-xl"
-                    maxLength={2}
+                    onChange={(emoji) => setEditingReward({ ...editingReward, icon: emoji })}
+                    className="mt-1.5 w-full h-10 rounded-xl bg-[#eeebe3] border border-[#b7c6c2]/20 flex items-center justify-center hover:bg-[#b7c6c2]/10 transition-colors"
                   />
                 </div>
               </div>

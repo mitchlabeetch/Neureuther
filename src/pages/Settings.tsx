@@ -4,14 +4,11 @@ import { BottomNav } from '@/components/BottomNav';
 import { Plus, Pencil, Trash2, Users } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { EmojiPicker } from '@/components/EmojiPicker';
 
 const USER_COLORS = [
   '#FDA172', '#FF6B6B', '#A78BFA', '#69D2A6', '#FBBF24',
   '#FB7185', '#38BDF8', '#F472B6', '#818CF8', '#34D399'
-];
-const EMOJIS = [
-  '🦊', '🐸', '🦄', '🐱', '🐶', '🐼', '🐨', '🦁', '🐰', '🐙',
-  '🦉', '🦋', '🐝', '🐳', '🦭', '🐧', '🐯', '🐮', '🐷', '🐵'
 ];
 
 function SettingsPage() {
@@ -34,7 +31,7 @@ function SettingsPage() {
     setEditingUser(null);
     setNewName('');
     setNewColor(USER_COLORS[state.users.length % USER_COLORS.length]);
-    setNewEmoji(EMOJIS[state.users.length % EMOJIS.length]);
+    setNewEmoji('🦊');
     setShowDialog(true);
   };
 
@@ -125,21 +122,11 @@ function SettingsPage() {
             </div>
             <div>
               <label className="section-header block mb-2">Emoji</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {EMOJIS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => setNewEmoji(emoji)}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all active:scale-90 ${
-                      newEmoji === emoji
-                        ? 'bg-[#FFF1E6] ring-2 ring-cantaloupe scale-110'
-                        : 'bg-[#eeebe3] hover:bg-[#b7c6c2]/20'
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
+              <EmojiPicker
+                value={newEmoji}
+                onChange={(emoji) => setNewEmoji(emoji)}
+                className="mt-2 w-full h-12 rounded-xl bg-[#eeebe3] border border-[#b7c6c2]/20 flex items-center justify-center hover:bg-[#b7c6c2]/10 transition-colors"
+              />
             </div>
             <div>
               <label className="section-header block mb-2">Color</label>
