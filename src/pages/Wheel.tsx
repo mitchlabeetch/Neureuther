@@ -25,6 +25,7 @@ function WheelPage() {
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showTempUserDialog, setShowTempUserDialog] = useState(false);
+  const [confirmRemoveUser, setConfirmRemoveUser] = useState<{ userId: string; name: string } | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const [newPoints, setNewPoints] = useState('15');
   const [selectedUsers, setSelectedUsers] = useState<string[]>(state.users.map(u => u.id));
@@ -37,6 +38,7 @@ function WheelPage() {
   // Edit dialog state
   const [editTitle, setEditTitle] = useState('');
   const [editPoints, setEditPoints] = useState('');
+  const [editUsers, setEditUsers] = useState<string[]>([]);
 
   // Temp user state
   const [tempUsers, setTempUsers] = useState<TempUser[]>([]);
@@ -131,14 +133,20 @@ function WheelPage() {
     updateWheelConfig(activeConfig.id, {
       title: editTitle.trim(),
       pointsPerTask: Number(editPoints) || activeConfig.pointsPerTask,
+      users: editUsers,
     });
     setShowEditDialog(false);
+  };
+
+  const toggleEditUser = (uid: string) => {
+    setEditUsers(prev => prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]);
   };
 
   const openEditDialog = () => {
     if (!activeConfig) return;
     setEditTitle(activeConfig.title);
     setEditPoints(String(activeConfig.pointsPerTask));
+    setEditUsers([...activeConfig.users]);
     setShowEditDialog(true);
   };
 
@@ -289,7 +297,7 @@ function WheelPage() {
           <Tooltip key={u!.id}>
             <TooltipTrigger asChild>
               <button
-                onClick={() => toggleConfigUser(activeConfig.id, u!.id)}
+                onClick={() => setConfirmRemoveUser({ userId: u!.id, name: u!.name })}
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all active:scale-90 ${
                   activeConfig.users.includes(u!.id) ? 'text-white' : 'bg-gray-200 text-gray-500 line-through'
                 }`}
@@ -299,7 +307,7 @@ function WheelPage() {
               </button>
             </TooltipTrigger>
             <TooltipContent className="rounded-xl bg-[#2D2B2A] text-white border-none text-xs font-semibold px-3 py-2 shadow-lg">
-              {activeConfig.users.includes(u!.id) ? 'Click to remove from wheel' : 'Click to add to wheel'}
+              Remove {u!.name} from this wheel
             </TooltipContent>
           </Tooltip>
           ))}
@@ -418,9 +426,28 @@ function WheelPage() {
                 className="mt-1.5 rounded-xl bg-gray-50 border-gray-200 focus:border-cantaloupe focus:ring-cantaloupe"
               />
             </div>
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Users involved</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {state.users.map(u => (
+                  <button
+                    key={u.id}
+                    onClick={() => toggleEditUser(u.id)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all active:scale-90 ${
+                      editUsers.includes(u.id)
+                        ? 'text-white shadow-md'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200'
+                    }`}
+                    style={editUsers.includes(u.id) ? { backgroundColor: u.color } : {}}
+                  >
+                    {u.emoji} {u.name}
+                  </button>
+                ))}
+              </div>
+            </div>
             <button
               onClick={handleEdit}
-              disabled={!editTitle.trim()}
+              disabled={!editTitle.trim() || editUsers.length < 2}
               className="w-full py-3 rounded-xl font-extrabold text-white bg-[#2D2B2A] hover:bg-[#3D3B3A] disabled:bg-gray-300 disabled:text-gray-500 transition-all active:scale-[0.98]"
             >
               Save Changes
@@ -487,6 +514,34 @@ function WheelPage() {
                 +{pendingPick.points} pts!
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Confirm remove user */}
+      {confirmRemoveUser && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center" onClick={() => setConfirmRemoveUser(null)}>
+          <div className="bg-white rounded-t-[2.5rem] w-full max-w-[480px] p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-extrabold text-[#2D2B2A] mb-3">
+              Should {confirmRemoveUser.name} be taken out of this wheel?
+            </h3>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmRemoveUser(null)}
+                className="flex-1 py-3 rounded-xl font-extrabold text-[#2D2B2A] bg-gray-100 hover:bg-gray-200 transition-all active:scale-[0.98]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  toggleConfigUser(activeConfig!.id, confirmRemoveUser.userId);
+                  setConfirmRemoveUser(null);
+                }}
+                className="flex-1 py-3 rounded-xl font-extrabold text-white bg-coral hover:bg-[#ff5252] transition-all active:scale-[0.98]"
+              >
+                Yes, remove
+              </button>
+            </div>
           </div>
         </div>
       )}
