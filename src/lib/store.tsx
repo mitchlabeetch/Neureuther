@@ -68,6 +68,31 @@ export interface PointsLog {
   timestamp: string;
 }
 
+export interface PersonalChecklist {
+  id: string;
+  userId: string;
+  name: string;
+  bgColor: string;
+  flagId: string | null;
+  deadline: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  totalTasks: number;
+  doneTasks: number;
+}
+
+export interface PersonalChecklistTask {
+  id: string;
+  checklistId: string;
+  label: string;
+  completed: boolean;
+  completedAt: string | null;
+  deadline: string | null;
+  sortOrder: number;
+  createdAt: string;
+}
+
 interface AppState {
   users: User[];
   checklistItems: ChecklistItem[];
@@ -76,6 +101,8 @@ interface AppState {
   wheelConfigs: WheelConfig[];
   rewardItems: RewardItem[];
   pointsLog: PointsLog[];
+  personalChecklists: PersonalChecklist[];
+  personalChecklistTasks: PersonalChecklistTask[];
 }
 
 const EMPTY_STATE: AppState = {
@@ -86,6 +113,8 @@ const EMPTY_STATE: AppState = {
   wheelConfigs: [],
   rewardItems: [],
   pointsLog: [],
+  personalChecklists: [],
+  personalChecklistTasks: [],
 };
 
 const STATE_QUERY_KEY = ["app", "state"] as const;
@@ -144,6 +173,13 @@ interface AppContextValue {
   getUserPoints: (userId: string) => number;
   getUserById: (id: string) => User | undefined;
   getFlagById: (id: string | null | undefined) => TaskFlag | undefined;
+  addPersonalChecklist: (data: Omit<PersonalChecklist, "id" | "sortOrder" | "createdAt" | "updatedAt" | "totalTasks" | "doneTasks">) => Promise<void>;
+  updatePersonalChecklist: (id: string, data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline">>) => Promise<void>;
+  removePersonalChecklist: (id: string) => Promise<void>;
+  addPersonalChecklistTask: (data: Omit<PersonalChecklistTask, "id" | "completed" | "completedAt" | "sortOrder" | "createdAt">) => Promise<void>;
+  updatePersonalChecklistTask: (id: string, data: Partial<Pick<PersonalChecklistTask, "label" | "completed" | "deadline">>) => Promise<void>;
+  removePersonalChecklistTask: (id: string) => Promise<void>;
+  syncPersonalChecklistDeadline: (checklistId: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -400,6 +436,64 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     onSuccess: invalidate,
   });
 
+  // ── Personal Checklists mutations ────────────────────────────────────
+  const addPersonalChecklistMut = useMutation({
+    mutationFn: (data: Omit<PersonalChecklist, "id" | "sortOrder" | "createdAt" | "updatedAt" | "totalTasks" | "doneTasks">) =>
+      api<PersonalChecklist>("/api/personal-checklists", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updatePersonalChecklistMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline">> }) =>
+      api<{ ok: true }>(`/api/personal-checklists/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removePersonalChecklistMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/personal-checklists/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  const addPersonalChecklistTaskMut = useMutation({
+    mutationFn: (data: Omit<PersonalChecklistTask, "id" | "completed" | "completedAt" | "sortOrder" | "createdAt">) =>
+      api<PersonalChecklistTask>("/api/personal-checklist-tasks", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const updatePersonalChecklistTaskMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Pick<PersonalChecklistTask, "label" | "completed" | "deadline">> }) =>
+      api<{ ok: true }>(`/api/personal-checklist-tasks/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removePersonalChecklistTaskMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/personal-checklist-tasks/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  const syncPersonalChecklistDeadlineMut = useMutation({
+    mutationFn: (checklistId: string) =>
+      api<{ ok: true; deadline: string | null }>("/api/personal-checklists/sync-deadline", {
+        method: "POST",
+        body: JSON.stringify({ checklistId }),
+      }),
+    onSuccess: invalidate,
+  });
+
   // ── Public action wrappers ───────────────────────────────────────────
   const addUser = useCallback(
     async (user: Omit<User, "id">) => {
@@ -568,6 +662,55 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [claimRewardMut],
   );
 
+  const addPersonalChecklist = useCallback(
+    async (data: Omit<PersonalChecklist, "id" | "sortOrder" | "createdAt" | "updatedAt" | "totalTasks" | "doneTasks">) => {
+      await addPersonalChecklistMut.mutateAsync(data);
+    },
+    [addPersonalChecklistMut],
+  );
+
+  const updatePersonalChecklist = useCallback(
+    async (id: string, data: Partial<Pick<PersonalChecklist, "name" | "bgColor" | "flagId" | "deadline">>) => {
+      await updatePersonalChecklistMut.mutateAsync({ id, data });
+    },
+    [updatePersonalChecklistMut],
+  );
+
+  const removePersonalChecklist = useCallback(
+    async (id: string) => {
+      await removePersonalChecklistMut.mutateAsync(id);
+    },
+    [removePersonalChecklistMut],
+  );
+
+  const addPersonalChecklistTask = useCallback(
+    async (data: Omit<PersonalChecklistTask, "id" | "completed" | "completedAt" | "sortOrder" | "createdAt">) => {
+      await addPersonalChecklistTaskMut.mutateAsync(data);
+    },
+    [addPersonalChecklistTaskMut],
+  );
+
+  const updatePersonalChecklistTask = useCallback(
+    async (id: string, data: Partial<Pick<PersonalChecklistTask, "label" | "completed" | "deadline">>) => {
+      await updatePersonalChecklistTaskMut.mutateAsync({ id, data });
+    },
+    [updatePersonalChecklistTaskMut],
+  );
+
+  const removePersonalChecklistTask = useCallback(
+    async (id: string) => {
+      await removePersonalChecklistTaskMut.mutateAsync(id);
+    },
+    [removePersonalChecklistTaskMut],
+  );
+
+  const syncPersonalChecklistDeadline = useCallback(
+    async (checklistId: string) => {
+      await syncPersonalChecklistDeadlineMut.mutateAsync(checklistId);
+    },
+    [syncPersonalChecklistDeadlineMut],
+  );
+
   const state: AppState = stateQuery.data ?? EMPTY_STATE;
 
   const getUserPoints = useCallback(
@@ -621,6 +764,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         getUserPoints,
         getUserById,
         getFlagById,
+        addPersonalChecklist,
+        updatePersonalChecklist,
+        removePersonalChecklist,
+        addPersonalChecklistTask,
+        updatePersonalChecklistTask,
+        removePersonalChecklistTask,
+        syncPersonalChecklistDeadline,
       }}
     >
       {children}

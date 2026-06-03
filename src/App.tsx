@@ -9,6 +9,7 @@ import ChecklistPage from "./pages/Checklist";
 import LongTermChecklistPage from "./pages/LongTermChecklist";
 import LongTermArchivePage from "./pages/LongTermArchive";
 import PersonalChecklistPage from "./pages/PersonalChecklist";
+import PersonalChecklistDetailPage from "./pages/PersonalChecklistDetail";
 import AllChecklistsPage from "./pages/AllChecklists";
 import WheelPage from "./pages/Wheel";
 import RewardsPage from "./pages/Rewards";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/checklist/long-term" element={<LongTermChecklistPage />} />
             <Route path="/checklist/long-term/archive" element={<LongTermArchivePage />} />
             <Route path="/checklist/personal" element={<PersonalChecklistPage />} />
+            <Route path="/checklist/personal/:checklistId" element={<PersonalChecklistDetailPage />} />
             <Route path="/checklists" element={<AllChecklistsPage />} />
             <Route path="/wheel" element={<WheelPage />} />
             <Route path="/rewards" element={<RewardsPage />} />

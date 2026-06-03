@@ -63,6 +63,31 @@ export interface PointsLogEntry {
   timestamp: string;
 }
 
+export interface PersonalChecklistEntry {
+  id: string;
+  userId: string;
+  name: string;
+  bgColor: string;
+  flagId: string | null;
+  deadline: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  totalTasks: number;
+  doneTasks: number;
+}
+
+export interface PersonalChecklistTaskEntry {
+  id: string;
+  checklistId: string;
+  label: string;
+  completed: boolean;
+  completedAt: string | null;
+  deadline: string | null;
+  sortOrder: number;
+  createdAt: string;
+}
+
 export interface AppStatePayload {
   users: User[];
   checklistItems: ChecklistItem[];
@@ -71,6 +96,8 @@ export interface AppStatePayload {
   wheelConfigs: WheelConfig[];
   rewardItems: RewardItem[];
   pointsLog: PointsLogEntry[];
+  personalChecklists: PersonalChecklistEntry[];
+  personalChecklistTasks: PersonalChecklistTaskEntry[];
 }
 
 function todayUtc(): string {
@@ -125,6 +152,8 @@ export async function loadAppState(
     wheelUsers,
     rewards,
     pointsLog,
+    personalChecklists,
+    personalChecklistTasksRaw,
   ] = await Promise.all([
     sql`SELECT id, name, color, emoji FROM users ORDER BY sort_order, created_at`,
     sql`SELECT id, label, completed, completed_by, completed_at, points,
@@ -141,6 +170,19 @@ export async function loadAppState(
         FROM reward_items ORDER BY sort_order, created_at`,
     sql`SELECT id, user_id, points, reason, occurred_at
         FROM points_log ORDER BY occurred_at DESC`,
+    sql`SELECT pc.id, pc.user_id, pc.name, pc.bg_color, pc.flag_id, pc.deadline,
+               pc.sort_order, pc.created_at, pc.updated_at,
+               COALESCE(t.total, 0)::int AS total_tasks,
+               COALESCE(t.done, 0)::int AS done_tasks
+        FROM personal_checklists pc
+        LEFT JOIN LATERAL (
+          SELECT COUNT(*)::int AS total,
+                 COUNT(*) FILTER (WHERE completed = TRUE)::int AS done
+          FROM personal_checklist_tasks WHERE checklist_id = pc.id
+        ) t ON true
+        ORDER BY pc.sort_order, pc.created_at`,
+    sql`SELECT id, checklist_id, label, completed, completed_at, deadline, sort_order, created_at
+        FROM personal_checklist_tasks ORDER BY sort_order, created_at`,
   ]);
 
   const usersByConfig = new Map<string, string[]>();
@@ -263,6 +305,54 @@ export async function loadAppState(
       points: p.points,
       reason: p.reason,
       timestamp: new Date(p.occurred_at).toISOString(),
+    })),
+    personalChecklists: (
+      personalChecklists as Array<{
+        id: string;
+        user_id: string;
+        name: string;
+        bg_color: string;
+        flag_id: string | null;
+        deadline: string | null;
+        sort_order: number;
+        created_at: string;
+        updated_at: string;
+        total_tasks: number;
+        done_tasks: number;
+      }>
+    ).map((c) => ({
+      id: c.id,
+      userId: c.user_id,
+      name: c.name,
+      bgColor: c.bg_color,
+      flagId: c.flag_id,
+      deadline: c.deadline ? new Date(c.deadline).toISOString() : null,
+      sortOrder: c.sort_order,
+      createdAt: new Date(c.created_at).toISOString(),
+      updatedAt: new Date(c.updated_at).toISOString(),
+      totalTasks: c.total_tasks,
+      doneTasks: c.done_tasks,
+    })),
+    personalChecklistTasks: (
+      personalChecklistTasksRaw as Array<{
+        id: string;
+        checklist_id: string;
+        label: string;
+        completed: boolean;
+        completed_at: string | null;
+        deadline: string | null;
+        sort_order: number;
+        created_at: string;
+      }>
+    ).map((t) => ({
+      id: t.id,
+      checklistId: t.checklist_id,
+      label: t.label,
+      completed: Boolean(t.completed),
+      completedAt: t.completed_at ? new Date(t.completed_at).toISOString() : null,
+      deadline: t.deadline ? new Date(t.deadline).toISOString() : null,
+      sortOrder: t.sort_order,
+      createdAt: new Date(t.created_at).toISOString(),
     })),
   };
 }
