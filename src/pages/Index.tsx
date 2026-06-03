@@ -71,7 +71,7 @@ function HomePage() {
                     </p>
                     <h1
                         className="text-[1.875rem] font-semibold text-[#171e19] mt-0.5 tracking-tight leading-tight">Neureuther
-                                                                                                          </h1>
+                                                                                                                                  </h1>
                 </div>
                 <div className="flex -space-x-2">
                     {state.users.slice(0, 4).map(u => (<div
@@ -100,7 +100,7 @@ function HomePage() {
                             <h3 className="text-lg font-semibold text-[#171e19] tracking-tight">Today's Checklist</h3>
                             <p className="text-sm text-[#b7c6c2] font-medium mt-1">
                                 {completedToday}/ {totalToday}done
-                                                                                                                                              </p>
+                                                                                                                                                                              </p>
                         </div>
                         <div
                             className="w-16 h-16 rounded-full bg-[#FFF1E6] flex items-center justify-center cursor-default">
@@ -112,8 +112,7 @@ function HomePage() {
                         className="h-3 rounded-full bg-[#FFF1E6] [&>div]:bg-cantaloupe [&>div]:rounded-full" />
                     <button
                         onClick={() => navigate("/checklist/long-term")}
-                        className="mt-4 w-full flex items-center justify-between px-4 py-2.5 rounded-[1.25rem] bg-[#eeebe3] border border-[#b7c6c2]/20 text-xs font-medium text-[#171e19] transition-all active:scale-[0.99] hover:bg-[#b7c6c2]/15 relative z-10"
-                    >
+                        className="mt-4 w-full flex items-center justify-between px-4 py-2.5 rounded-[1.25rem] bg-[#eeebe3] border border-[#b7c6c2]/20 text-xs font-medium text-[#171e19] transition-all active:scale-[0.99] hover:bg-[#b7c6c2]/15 relative z-10">
                         <span>See long-term checklist</span>
                         <ArrowRight size={14} className="text-[#b7c6c2]" />
                     </button>
@@ -145,7 +144,7 @@ function HomePage() {
                             <ListChecks size={24} className="text-green-500" />
                         </div>
                         <h4 className="font-semibold text-[#171e19] text-base mb-1 tracking-tight">Checklist</h4>
-                        <p className="text-xs text-[#b7c6c2] font-medium">HOUSEHOLD</p>
+                        <p className="text-xs text-[#b7c6c2] font-medium">Time to fill today's quest list</p>
                     </button>
                 </div>
             </div>
@@ -214,7 +213,7 @@ function HomePage() {
                         <div>
                             <h4 className="font-semibold text-white text-lg mb-1 tracking-tight">Earn Rewards!</h4>
                             <p className="text-white/70 text-sm font-medium">Complete tasks & spin the wheel to earn points
-                                                                                                                                              </p>
+                                                                                                                                                                              </p>
                         </div>
                         <div
                             className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center group-hover:scale-110 transition-transform">
