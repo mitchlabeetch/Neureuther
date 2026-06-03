@@ -23,6 +23,7 @@ function safeReturnTo(raw: string | null | undefined): string {
 
 export default function AuthPage() {
   const { path } = useParams<{ path: string }>();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const returnTo = safeReturnTo(searchParams.get("returnTo"));
   const isSignIn = path !== "sign-up";
@@ -34,10 +35,10 @@ export default function AuthPage() {
       {/* Top bar */}
       <div className="px-5 pt-14 pb-2">
         <button
-          onClick={() => window.history.back()}
+          onClick={() => navigate("/")}
           className="flex items-center gap-1.5 text-[#b7c6c2] text-sm font-medium hover:text-[#171e19] transition-colors"
         >
-          <ArrowLeft size={18} /> Back
+          <ArrowLeft size={18} /> Home
         </button>
       </div>
 
