@@ -64,7 +64,8 @@ export function SpinWheel(
         const extraAngle = Math.random() * 360;
         const totalRotation = rotation + spins * 360 + extraAngle;
         const segmentAngle = 360 / segments.length;
-        const targetAngle = (360 - (extraAngle % 360)) % 360;
+        const finalAngle = (rotation + extraAngle) % 360;
+        const targetAngle = (360 - (finalAngle % 360)) % 360;
         const winnerIndex = Math.floor(targetAngle / segmentAngle);
 
         winnerRef.current = {
