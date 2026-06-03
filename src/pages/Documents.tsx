@@ -440,14 +440,14 @@ function SignedOutHero({ onSignIn }: { onSignIn: () => void }) {
             {[
               { icon: ShieldCheck, label: "End-to-end access control" },
               { icon: FileText, label: "Invoices, contracts, and IDs" },
-              { icon: Edit3, label: "Rename and color-code folders" },
+              { icon: Edit3, label: "Pretty safe I mean I think" },
             ].map((row) => (
               <div
                 key={row.label}
                 className="flex items-center gap-2.5 text-[#171e19]"
               >
                 <row.icon size={15} className="text-[#A78BFA]" />
-                <span className="text-sm font-medium">Pretty safe I mean I think</span>
+                <span className="text-sm font-medium">{row.label}</span>
               </div>
             ))}
           </div>
