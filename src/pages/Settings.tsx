@@ -22,6 +22,7 @@ function SettingsPage() {
     setNewName(user.name);
     setNewColor(user.color);
     setNewEmoji(user.emoji);
+    setShowDialog(true);
   };
 
   const openNew = () => {
