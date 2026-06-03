@@ -635,11 +635,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addWheelConfig = useCallback(
-    async (config: Omit<WheelConfig, "id">): Promise<WheelConfig> => {
-      return await addWheelConfigMut.mutateAsync(config);
-    },
-    [addWheelConfigMut],
-  );
+      async (config: Omit<WheelConfig, "id" | "lastPickUserId" | "lastPickAt">): Promise<WheelConfig> => {
+        return await addWheelConfigMut.mutateAsync(config);
+      },
+      [addWheelConfigMut],
+    );
 
   const updateWheelConfig = useCallback(
     async (id: string, data: Partial<WheelConfig>) => {
