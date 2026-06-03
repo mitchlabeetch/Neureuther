@@ -15,10 +15,12 @@ import {
   ChevronRight,
   Pencil,
   Trash2,
+  X as XIcon,
   Search,
   ListChecks,
   ShoppingBasket,
   BookOpen,
+  Tag,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import type { MealPlanEntry, MealSlot } from "@/lib/store";
@@ -64,7 +66,11 @@ function addDays(d: Date, n: number): Date {
 
 function MealsPage() {
   const navigate = useNavigate();
-  const { state } = useApp();
+  const {
+    state,
+    renameIngredientEverywhere,
+    removeIngredientEverywhere,
+  } = useApp();
   const [tab, setTab] = useState<Tab>("week");
   const [weekStart, setWeekStart] = useState<Date>(() => startOfIsoWeek(new Date()));
   const [search, setSearch] = useState("");
@@ -78,6 +84,15 @@ function MealsPage() {
   const [recipeDialogOpen, setRecipeDialogOpen] = useState(false);
   const [editingRecipeId, setEditingRecipeId] = useState<string | null>(null);
   const [viewingRecipeId, setViewingRecipeId] = useState<string | null>(null);
+
+  // Ingredient pantry edit/delete state
+  const [editingIngredient, setEditingIngredient] = useState<{
+    name: string;
+    recipes: string[];
+  } | null>(null);
+  const [confirmDeleteIngredient, setConfirmDeleteIngredient] = useState<
+    string | null
+  >(null);
 
   const weekStartIso = toIsoDate(weekStart);
 
@@ -384,18 +399,13 @@ function MealsPage() {
                 </p>
                 <div className="flex flex-wrap gap-1.5 p-2">
                   {filteredIngredients.map((i) => (
-                    <div
+                    <PantryChip
                       key={i.name}
-                      className="px-3 py-1.5 rounded-full bg-[#FFF1E6] text-[#171e19] text-xs font-medium flex items-center gap-1.5"
-                      title={i.recipes.length > 0 ? `Used in: ${i.recipes.join(", ")}` : ""}
-                    >
-                      <span>{i.name}</span>
-                      {i.recipes.length > 1 && (
-                        <span className="text-[10px] font-semibold text-cantaloupe">
-                          ×{i.recipes.length}
-                        </span>
-                      )}
-                    </div>
+                      name={i.name}
+                      usedInCount={i.recipes.length}
+                      onEdit={() => setEditingIngredient(i)}
+                      onDelete={() => setConfirmDeleteIngredient(i.name)}
+                    />
                   ))}
                 </div>
               </div>
@@ -466,6 +476,81 @@ function MealsPage() {
           dayLabel={DAY_LONG[slotDialog.day]}
           slotLabel={slotDialog.slot === "lunch" ? "Lunch" : "Dinner"}
         />
+      )}
+
+      {/* Edit ingredient sheet */}
+      {editingIngredient && (
+        <EditIngredientSheet
+          name={editingIngredient.name}
+          recipes={editingIngredient.recipes}
+          onClose={() => setEditingIngredient(null)}
+          onRename={async (newName) => {
+            try {
+              await renameIngredientEverywhere(
+                editingIngredient.name,
+                newName,
+              );
+              showSuccess(`Renamed to "${newName}"`);
+            } catch (e) {
+              showError("Couldn't rename ingredient");
+              throw e;
+            }
+          }}
+          onDelete={() => {
+            const name = editingIngredient.name;
+            setEditingIngredient(null);
+            setConfirmDeleteIngredient(name);
+          }}
+        />
+      )}
+
+      {/* Delete ingredient confirm (from edit sheet) */}
+      {confirmDeleteIngredient && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm flex items-center justify-center px-5"
+          onClick={() => setConfirmDeleteIngredient(null)}
+        >
+          <div
+            className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-3">
+                <Trash2 className="text-[#ca0013]" size={28} />
+              </div>
+              <h3 className="text-lg font-semibold text-[#171e19]">
+                Remove "{confirmDeleteIngredient}"?
+              </h3>
+              <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">
+                It will be deleted from all your recipes and stop appearing in
+                suggestions.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDeleteIngredient(null)}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const name = confirmDeleteIngredient;
+                  setConfirmDeleteIngredient(null);
+                  try {
+                    await removeIngredientEverywhere(name);
+                    showSuccess(`Removed "${name}"`);
+                  } catch {
+                    showError("Couldn't remove ingredient");
+                  }
+                }}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <BottomNav />
@@ -789,6 +874,235 @@ function RecipeViewSheet({
         </div>
       </div>
     </div>
+  );
+}
+
+function PantryChip({
+  name,
+  usedInCount,
+  onEdit,
+  onDelete,
+}: {
+  name: string;
+  usedInCount: number;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div
+      className="group relative inline-flex items-center"
+      title={
+        usedInCount > 0
+          ? `Used in ${usedInCount} recipe${usedInCount === 1 ? "" : "s"}`
+          : ""
+      }
+    >
+      <button
+        onClick={onEdit}
+        className={cn(
+          "pl-3 pr-2 py-1.5 rounded-full bg-[#FFF1E6] text-[#171e19] text-xs font-medium",
+          "flex items-center gap-1.5 transition active:scale-95",
+          "hover:bg-[#FFE4D0] hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.15)]",
+        )}
+      >
+        <span>{name}</span>
+        {usedInCount > 1 && (
+          <span className="text-[10px] font-semibold text-cantaloupe">
+            ×{usedInCount}
+          </span>
+        )}
+      </button>
+      <button
+        onClick={onDelete}
+        aria-label={`Delete ${name}`}
+        className={cn(
+          "absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full",
+          "bg-white text-[#ca0013] border border-[#ca0013]/30",
+          "flex items-center justify-center shadow-sm",
+          "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+          "transition-opacity duration-150 active:scale-90 hover:bg-red-50",
+        )}
+      >
+        <XIcon size={11} strokeWidth={3} />
+      </button>
+    </div>
+  );
+}
+
+function EditIngredientSheet({
+  name,
+  recipes,
+  onClose,
+  onRename,
+  onDelete,
+}: {
+  name: string;
+  recipes: string[];
+  onClose: () => void;
+  onRename: (newName: string) => Promise<void>;
+  onDelete: () => void;
+}) {
+  const [newName, setNewName] = useState(name);
+  const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const handleSave = async () => {
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed.toLowerCase() === name.toLowerCase() || saving) {
+      onClose();
+      return;
+    }
+    setSaving(true);
+    try {
+      await onRename(trimmed);
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[60] flex items-end justify-center">
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={onClose}
+        />
+        <div className="relative bg-[#fdf7f2] rounded-t-[2rem] w-full max-w-[480px] shadow-[0_-20px_60px_-12px_rgba(0,0,0,0.18)] animate-slide-up">
+          <div className="flex justify-center pt-3 pb-1">
+            <div className="w-12 h-1.5 rounded-full bg-[#b7c6c2]/40" />
+          </div>
+          <div className="px-6 pt-2 pb-4 flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#FFF1E6] flex items-center justify-center">
+              <Tag size={20} className="text-cantaloupe" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="section-header">Ingredient</p>
+              <h2 className="text-lg font-semibold text-[#171e19] tracking-tight truncate">
+                {name}
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-9 h-9 rounded-full flex items-center justify-center bg-[#eeebe3] text-[#171e19]/60 hover:text-[#171e19] active:scale-90 transition"
+              aria-label="Close"
+            >
+              <XIcon size={18} />
+            </button>
+          </div>
+
+          <div className="px-6 pb-6 space-y-4">
+            <div>
+              <label className="section-header block mb-2">Rename everywhere</label>
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSave();
+                  }
+                }}
+                autoFocus
+                placeholder="New name"
+                className="w-full h-12 rounded-2xl px-4 bg-white border border-[#b7c6c2]/20 text-base text-[#171e19] placeholder:text-[#b7c6c2] focus:outline-none focus:border-cantaloupe focus:ring-1 focus:ring-cantaloupe"
+              />
+              <p className="text-[11px] text-[#b7c6c2] font-medium mt-1.5">
+                Updates this name in every recipe that uses it.
+              </p>
+            </div>
+
+            {recipes.length > 0 && (
+              <div>
+                <p className="section-header block mb-2">
+                  Used in {recipes.length} recipe{recipes.length === 1 ? "" : "s"}
+                </p>
+                <div className="bg-white rounded-[1.5rem] border border-[#b7c6c2]/20 divide-y divide-[#b7c6c2]/10 overflow-hidden max-h-48 overflow-y-auto">
+                  {recipes.map((r) => (
+                    <div
+                      key={r}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#171e19]"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-cantaloupe" />
+                      <span className="truncate">{r}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="px-6 py-4 border-t border-[#b7c6c2]/20 bg-white flex gap-2 shrink-0">
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-[#ca0013] bg-[#eeebe3] hover:bg-red-50 active:scale-95 transition"
+              aria-label="Delete"
+            >
+              <Trash2 size={18} />
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 h-12 rounded-xl font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 active:scale-[0.98] transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={
+                saving ||
+                !newName.trim() ||
+                newName.trim().toLowerCase() === name.toLowerCase()
+              }
+              className="flex-1 h-12 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] active:scale-[0.98] transition"
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm flex items-center justify-center px-5"
+          onClick={() => setConfirmDelete(false)}
+        >
+          <div
+            className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-3">
+                <Trash2 className="text-[#ca0013]" size={28} />
+              </div>
+              <h3 className="text-lg font-semibold text-[#171e19]">
+                Remove "{name}"?
+              </h3>
+              <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">
+                It will be deleted from all your recipes and stop appearing in
+                suggestions.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmDelete(false);
+                  onDelete();
+                }}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

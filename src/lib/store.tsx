@@ -337,6 +337,8 @@ interface AppContextValue {
   ) => Promise<void>;
   removeGroceryListItem: (id: string) => Promise<void>;
   fetchIngredientSuggestions: (q: string) => Promise<IngredientSuggestion[]>;
+  renameIngredientEverywhere: (oldName: string, newName: string) => Promise<void>;
+  removeIngredientEverywhere: (name: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -850,6 +852,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   // ── Public action wrappers ───────────────────────────────────────────
+  const renameIngredientEverywhereMut = useMutation({
+    mutationFn: ({ oldName, newName }: { oldName: string; newName: string }) =>
+      api<{ ok: true }>(`/api/ingredients/${encodeURIComponent(oldName)}`, {
+        method: "PUT",
+        body: JSON.stringify({ newName }),
+      }),
+    onSuccess: invalidate,
+  });
+
+  const removeIngredientEverywhereMut = useMutation({
+    mutationFn: (name: string) =>
+      api<{ ok: true }>(`/api/ingredients/${encodeURIComponent(name)}`, {
+        method: "DELETE",
+      }),
+    onSuccess: invalidate,
+  });
   const addUser = useCallback(
     async (user: Omit<User, "id">) => {
       await addUserMut.mutateAsync(user);
@@ -1223,6 +1241,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const renameIngredientEverywhere = useCallback(
+    async (oldName: string, newName: string) => {
+      await renameIngredientEverywhereMut.mutateAsync({ oldName, newName });
+    },
+    [renameIngredientEverywhereMut],
+  );
+
+  const removeIngredientEverywhere = useCallback(
+    async (name: string) => {
+      await removeIngredientEverywhereMut.mutateAsync(name);
+    },
+    [removeIngredientEverywhereMut],
+  );
+
   const state: AppState = stateQuery.data ?? EMPTY_STATE;
 
   const getUserPoints = useCallback(
@@ -1301,6 +1333,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateGroceryListItem,
         removeGroceryListItem,
         fetchIngredientSuggestions,
+        renameIngredientEverywhere,
+        removeIngredientEverywhere,
       }}
     >
       {children}
