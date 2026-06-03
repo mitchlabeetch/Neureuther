@@ -1,29 +1,61 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
-import { Check, Plus, Trash2, Circle, X, CalendarDays, User, LayoutGrid, ChevronRight } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Check, Plus, Trash2, Pencil, Star, X, CalendarDays, User, LayoutGrid, ChevronRight, PartyPopper } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import type { ChecklistItem } from '@/lib/store';
 
 function ChecklistPage() {
   const {
     state,
     toggleChecklistItem,
     addChecklistItem,
+    updateChecklistItem,
     removeChecklistItem,
     awardPoints,
     getUserById,
   } = useApp();
+
   const [showDialog, setShowDialog] = useState(false);
   const [newLabel, setNewLabel] = useState('');
+  const [newPoints, setNewPoints] = useState('5');
   const [activePicker, setActivePicker] = useState<string | null>(null);
+
+  // Edit dialog state
+  const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
+  const [editLabel, setEditLabel] = useState('');
+  const [editPoints, setEditPoints] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Animated success trigger
+  const [successAnimation, setSuccessAnimation] = useState<{
+    points: number;
+    key: number;
+  } | null>(null);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const navigate = useNavigate();
 
   const completed = state.checklistItems.filter((i) => i.completed).length;
   const total = state.checklistItems.length;
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  const triggerSuccess = (points: number) => {
+    if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    setSuccessAnimation({ points, key: Date.now() });
+    successTimeoutRef.current = setTimeout(() => setSuccessAnimation(null), 1800);
+  };
+
+  const completeItem = (itemId: string, userId: string) => {
+    const item = state.checklistItems.find((i) => i.id === itemId);
+    if (!item) return;
+    toggleChecklistItem(itemId, userId);
+    awardPoints(userId, item.points, `Completed: ${item.label}`);
+    triggerSuccess(item.points);
+  };
 
   const handleToggle = (id: string) => {
     const item = state.checklistItems.find((i) => i.id === id);
@@ -35,8 +67,7 @@ function ChecklistPage() {
       }
       const user = state.users[0];
       if (user) {
-        toggleChecklistItem(id, user.id);
-        awardPoints(user.id, 5, `Completed: ${item.label}`);
+        completeItem(id, user.id);
       }
     } else {
       toggleChecklistItem(id);
@@ -44,19 +75,51 @@ function ChecklistPage() {
   };
 
   const handleUserPick = (itemId: string, userId: string) => {
-    toggleChecklistItem(itemId, userId);
-    const item = state.checklistItems.find((i) => i.id === itemId);
-    if (item) {
-      awardPoints(userId, 5, `Completed: ${item.label}`);
-    }
+    completeItem(itemId, userId);
     setActivePicker(null);
   };
 
   const handleCreate = () => {
-    if (!newLabel.trim()) return;
-    addChecklistItem({ label: newLabel.trim(), completed: false });
+    const pts = Number(newPoints);
+    if (!newLabel.trim() || !Number.isFinite(pts) || pts < 0) return;
+    addChecklistItem({
+      label: newLabel.trim(),
+      completed: false,
+      points: Math.floor(pts),
+    });
     setNewLabel('');
+    setNewPoints('5');
     setShowDialog(false);
+  };
+
+  const openEdit = (item: ChecklistItem) => {
+    setEditingItem(item);
+    setEditLabel(item.label);
+    setEditPoints(String(item.points));
+    setShowDeleteConfirm(false);
+  };
+
+  const closeEdit = () => {
+    setEditingItem(null);
+    setShowDeleteConfirm(false);
+  };
+
+  const handleEditSave = () => {
+    if (!editingItem) return;
+    const pts = Number(editPoints);
+    if (!editLabel.trim() || !Number.isFinite(pts) || pts < 0) return;
+    updateChecklistItem(editingItem.id, {
+      label: editLabel.trim(),
+      points: Math.floor(pts),
+    });
+    closeEdit();
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!editingItem) return;
+    removeChecklistItem(editingItem.id);
+    setShowDeleteConfirm(false);
+    setEditingItem(null);
   };
 
   return (
@@ -83,7 +146,7 @@ function ChecklistPage() {
       </div>
 
       {/* List */}
-      <div className="px-5 space-y-2.5 mb-5">
+      <div className="px-5 space-y-2.5 mb-3">
         {state.checklistItems.map((item, index) => {
           const completedBy = item.completedBy
             ? getUserById(item.completedBy)
@@ -127,55 +190,201 @@ function ChecklistPage() {
                   </span>
                 )}
               </div>
+              <span className="shrink-0 inline-flex items-center gap-0.5 text-[11px] font-bold text-[#FDA172] bg-[#FFF1E6] px-2 py-0.5 rounded-full">
+                <Star size={10} /> {item.points}
+              </span>
               <button
-                onClick={() => removeChecklistItem(item.id)}
-                aria-label="Remove this task"
-                className="p-2 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-[#ca0013] hover:bg-red-50 transition-all active:scale-90"
+                onClick={() => openEdit(item)}
+                aria-label="Edit this task"
+                className="p-2 rounded-full bg-[#eeebe3] text-[#95a5a0] hover:text-cantaloupe hover:bg-[#FFF1E6] transition-all active:scale-90"
               >
-                <Trash2 size={14} />
+                <Pencil size={14} />
               </button>
             </div>
           );
         })}
+        {state.checklistItems.length === 0 && (
+          <div className="text-center py-8 text-[#b7c6c2] text-sm">
+            No tasks yet — tap <strong>Add new task</strong> below to create one
+          </div>
+        )}
+      </div>
 
-        {/* Add button */}
-        <Dialog open={showDialog} onOpenChange={setShowDialog}>
-          <DialogTrigger asChild>
-            <button className="w-full flex items-center gap-3 rounded-[1.5rem] p-4 bg-white/60 border-2 border-dashed border-[#b7c6c2]/30 text-[#b7c6c2] hover:text-cantaloupe hover:border-cantaloupe transition-all duration-300 active:scale-[0.99]">
-              <div className="w-9 h-9 rounded-full bg-[#eeebe3] flex items-center justify-center">
-                <Plus size={18} />
-              </div>
-              <span className="text-sm font-medium">Add new task</span>
+      {/* Add task button — below the list, prominent and intuitive */}
+      <div className="px-5 mb-5">
+        <button
+          onClick={() => setShowDialog(true)}
+          className="w-full flex items-center justify-center gap-2.5 rounded-[1.5rem] p-4 bg-[#171e19] text-white font-semibold hover:bg-[#2a302b] transition-all active:scale-[0.98] shadow-[0_10px_28px_-10px_rgba(0,0,0,0.25)]"
+        >
+          <div className="w-8 h-8 rounded-full bg-cantaloupe flex items-center justify-center">
+            <Plus size={18} className="text-white" strokeWidth={2.5} />
+          </div>
+          <span>Add new task</span>
+        </button>
+      </div>
+
+      {/* Add task dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
+          <DialogHeader className="px-6 pt-6 pb-3">
+            <DialogTitle className="text-xl font-semibold text-[#171e19]">
+              New Daily Task
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-6 pb-6 space-y-4">
+            <div>
+              <label className="section-header block mb-2">Task Name</label>
+              <Input
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                placeholder="e.g. Water the plants"
+                className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-cantaloupe focus:ring-cantaloupe"
+                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              />
+            </div>
+            <div>
+              <label className="section-header block mb-2">Points</label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min="0"
+                value={newPoints}
+                onChange={(e) => setNewPoints(e.target.value)}
+                placeholder="5"
+                className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-cantaloupe focus:ring-cantaloupe"
+                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              />
+            </div>
+            <button
+              onClick={handleCreate}
+              disabled={
+                !newLabel.trim() ||
+                newPoints === '' ||
+                !Number.isFinite(Number(newPoints)) ||
+                Number(newPoints) < 0
+              }
+              className="w-full py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
+            >
+              Add Task
             </button>
-          </DialogTrigger>
-          <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
-            <DialogHeader className="px-6 pt-6 pb-3">
-              <DialogTitle className="text-xl font-semibold text-[#171e19]">
-                New Daily Task
-              </DialogTitle>
-            </DialogHeader>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit task dialog */}
+      <Dialog
+        open={!!editingItem}
+        onOpenChange={(open) => {
+          if (!open) closeEdit();
+        }}
+      >
+        <DialogContent className="rounded-[2rem] max-w-[380px] mx-auto p-0 gap-0 border-[#b7c6c2]/20">
+          <DialogHeader className="px-6 pt-6 pb-3">
+            <DialogTitle className="text-xl font-semibold text-[#171e19]">
+              Edit Task
+            </DialogTitle>
+          </DialogHeader>
+          {editingItem && (
             <div className="px-6 pb-6 space-y-4">
               <div>
                 <label className="section-header block mb-2">Task Name</label>
                 <Input
-                  value={newLabel}
-                  onChange={(e) => setNewLabel(e.target.value)}
+                  value={editLabel}
+                  onChange={(e) => setEditLabel(e.target.value)}
                   placeholder="e.g. Water the plants"
                   className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-cantaloupe focus:ring-cantaloupe"
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleEditSave()}
                 />
               </div>
+              <div>
+                <label className="section-header block mb-2">Points</label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={editPoints}
+                  onChange={(e) => setEditPoints(e.target.value)}
+                  placeholder="5"
+                  className="mt-1.5 rounded-xl bg-[#eeebe3] border-[#b7c6c2]/20 focus:border-cantaloupe focus:ring-cantaloupe"
+                  onKeyDown={(e) => e.key === 'Enter' && handleEditSave()}
+                />
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex-1 py-3 rounded-xl font-semibold text-[#ca0013] bg-[#eeebe3] hover:bg-red-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={16} /> Delete
+                </button>
+                <button
+                  onClick={handleEditSave}
+                  disabled={
+                    !editLabel.trim() ||
+                    editPoints === '' ||
+                    !Number.isFinite(Number(editPoints)) ||
+                    Number(editPoints) < 0
+                  }
+                  className="flex-1 py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      {showDeleteConfirm && editingItem && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center px-5"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div
+            className="bg-white rounded-[2rem] w-full max-w-[380px] p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-3">
+                <Trash2 className="text-[#ca0013]" size={28} />
+              </div>
+              <h3 className="text-lg font-semibold text-[#171e19]">
+                Delete this task?
+              </h3>
+              <p className="text-sm text-[#b7c6c2] font-medium mt-1.5 px-2">
+                "{editingItem.label}" will be removed permanently. This can't be undone.
+              </p>
+            </div>
+            <div className="flex gap-3">
               <button
-                onClick={handleCreate}
-                disabled={!newLabel.trim()}
-                className="w-full py-3 rounded-xl font-semibold text-white bg-[#171e19] hover:bg-[#2a302b] disabled:bg-[#eeebe3] disabled:text-[#b7c6c2] transition-all active:scale-[0.98]"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#171e19] bg-[#eeebe3] hover:bg-[#b7c6c2]/20 transition-all active:scale-[0.98]"
               >
-                Add Task
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[#ca0013] hover:bg-[#b30011] transition-all active:scale-[0.98]"
+              >
+                Delete
               </button>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
+        </div>
+      )}
+
+      {/* Animated success trigger */}
+      {successAnimation && (
+        <div
+          key={successAnimation.key}
+          className="fixed inset-x-0 top-[40%] z-[70] flex justify-center pointer-events-none"
+        >
+          <div className="animate-points-burst bg-gradient-to-br from-[#69D2A6] to-[#5BCA9B] text-white pl-3 pr-5 py-2.5 rounded-full text-lg font-extrabold shadow-2xl flex items-center gap-2 border-2 border-white/30">
+            <PartyPopper size={20} className="text-white" />
+            +{successAnimation.points} pts!
+          </div>
+        </div>
+      )}
 
       {/* User picker modal */}
       {activePicker && (
@@ -197,26 +406,32 @@ function ChecklistPage() {
               </button>
             </div>
             <div className="space-y-2">
-              {state.users.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => handleUserPick(activePicker, u.id)}
-                  className="w-full flex items-center gap-3 p-4 rounded-[1.5rem] border border-[#b7c6c2]/20 bg-white hover:bg-[#FFF1E6] hover:border-cantaloupe/30 transition-all duration-300 active:scale-[0.98] group"
-                >
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-lg shadow-sm"
-                    style={{ backgroundColor: u.color + '30' }}
+              {state.users.map((u) => {
+                const pickerItem = state.checklistItems.find(
+                  (i) => i.id === activePicker
+                );
+                const points = pickerItem?.points ?? 5;
+                return (
+                  <button
+                    key={u.id}
+                    onClick={() => handleUserPick(activePicker, u.id)}
+                    className="w-full flex items-center gap-3 p-4 rounded-[1.5rem] border border-[#b7c6c2]/20 bg-white hover:bg-[#FFF1E6] hover:border-cantaloupe/30 transition-all duration-300 active:scale-[0.98] group"
                   >
-                    {u.emoji}
-                  </div>
-                  <span className="text-base font-medium text-[#171e19]">
-                    {u.name}
-                  </span>
-                  <span className="ml-auto text-sm font-medium text-cantaloupe bg-[#FFF1E6] px-2.5 py-1 rounded-full group-hover:bg-cantaloupe group-hover:text-white transition-all">
-                    +5 pts
-                  </span>
-                </button>
-              ))}
+                    <div
+                      className="w-11 h-11 rounded-full flex items-center justify-center text-lg shadow-sm"
+                      style={{ backgroundColor: u.color + '30' }}
+                    >
+                      {u.emoji}
+                    </div>
+                    <span className="text-base font-medium text-[#171e19]">
+                      {u.name}
+                    </span>
+                    <span className="ml-auto text-sm font-medium text-cantaloupe bg-[#FFF1E6] px-2.5 py-1 rounded-full group-hover:bg-cantaloupe group-hover:text-white transition-all">
+                      +{points} pts
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

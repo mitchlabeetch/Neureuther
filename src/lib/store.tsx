@@ -22,6 +22,7 @@ export interface ChecklistItem {
   // and avoid forcing a JSON `null` → JS `undefined` rewrite.
   completedBy?: string | null;
   completedAt?: string | null;
+  points: number;
 }
 
 export interface WheelConfig {

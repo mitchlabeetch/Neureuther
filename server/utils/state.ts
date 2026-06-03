@@ -16,6 +16,7 @@ export interface ChecklistItem {
   completed: boolean;
   completedBy: string | null;
   completedAt: string | null;
+  points: number;
 }
 
 export interface WheelConfig {
@@ -104,7 +105,7 @@ export async function loadAppState(
   const [users, checklist, wheels, wheelUsers, rewards, pointsLog] =
     await Promise.all([
       sql`SELECT id, name, color, emoji FROM users ORDER BY sort_order, created_at`,
-      sql`SELECT id, label, completed, completed_by, completed_at
+      sql`SELECT id, label, completed, completed_by, completed_at, points
           FROM checklist_items ORDER BY sort_order, created_at`,
       sql`SELECT id, title, points_per_task
           FROM wheel_configs ORDER BY sort_order, created_at`,
@@ -144,6 +145,7 @@ export async function loadAppState(
         completed: boolean;
         completed_by: string | null;
         completed_at: string | null;
+        points: number;
       }>
     ).map((c) => ({
       id: c.id,
@@ -151,6 +153,7 @@ export async function loadAppState(
       completed: c.completed,
       completedBy: c.completed_by,
       completedAt: c.completed_at ? new Date(c.completed_at).toISOString() : null,
+      points: Number(c.points) || 5,
     })),
     wheelConfigs: (
       wheels as Array<{

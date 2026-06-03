@@ -7,6 +7,7 @@ export default defineHandler(async (event) => {
   const body = await readBody<{
     id?: string;
     label?: string;
+    points?: number;
   }>(event);
 
   if (!body?.label?.trim()) {
@@ -15,13 +16,17 @@ export default defineHandler(async (event) => {
 
   const id = body.id?.trim() || crypto.randomUUID();
   const label = body.label.trim();
+  const points =
+    typeof body.points === "number" && Number.isFinite(body.points) && body.points >= 0
+      ? Math.floor(body.points)
+      : 5;
 
   const tail = await sql`SELECT COALESCE(MAX(sort_order), -1) + 1 AS next
                        FROM checklist_items`;
   const nextSort = Number((tail[0] as { next: number | string }).next) || 0;
 
-  await sql`INSERT INTO checklist_items (id, label, completed, sort_order)
-            VALUES (${id}, ${label}, FALSE, ${nextSort})`;
+  await sql`INSERT INTO checklist_items (id, label, completed, sort_order, points)
+            VALUES (${id}, ${label}, FALSE, ${nextSort}, ${points})`;
 
-  return { id, label, completed: false, completedBy: null, completedAt: null };
+  return { id, label, completed: false, completedBy: null, completedAt: null, points };
 });

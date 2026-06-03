@@ -20,6 +20,7 @@ interface LegacyChecklistItem {
   completed: boolean;
   completedBy?: string;
   completedAt?: string;
+  points?: number;
 }
 interface LegacyWheelConfig {
   id: string;
@@ -68,10 +69,14 @@ export default defineHandler(async (event) => {
     if (!c?.id || !c.label) continue;
     const completedBy = c.completedBy ?? null;
     const completedAt = c.completedAt ?? null;
+    const points =
+      typeof c.points === "number" && Number.isFinite(c.points) && c.points >= 0
+        ? Math.floor(c.points)
+        : 5;
     queries.push(
       sql`INSERT INTO checklist_items
-            (id, label, completed, completed_by, completed_at)
-          VALUES (${c.id}, ${c.label}, ${c.completed}, ${completedBy}, ${completedAt})
+            (id, label, completed, completed_by, completed_at, points)
+          VALUES (${c.id}, ${c.label}, ${c.completed}, ${completedBy}, ${completedAt}, ${points})
           ON CONFLICT (id) DO NOTHING`,
     );
   }
