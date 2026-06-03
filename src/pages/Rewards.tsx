@@ -73,35 +73,33 @@ function RewardsPage() {
       {/* Points Account — simple, no ranking */}
       <div className="px-5 mb-5">
         <h3 className="section-header mb-3">Points Account</h3>
-        <div className="bg-white rounded-[2.5rem] p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] border border-[#b7c6c2]/20">
-          <div className="grid grid-cols-2 gap-3">
-            {state.users.map((u) => {
-              const pts = getUserPoints(u.id);
-              return (
+        <div className="grid grid-cols-2 gap-3">
+          {state.users.map((u) => {
+            const pts = getUserPoints(u.id);
+            return (
+              <div
+                key={u.id}
+                className="flex items-center gap-3 bg-white rounded-[1.5rem] p-3 border border-[#b7c6c2]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all"
+              >
                 <div
-                  key={u.id}
-                  className="flex items-center gap-3 bg-[#eeebe3]/60 rounded-[1.5rem] p-3 transition-all"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0"
+                  style={{ backgroundColor: u.color + '30' }}
                 >
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0"
-                    style={{ backgroundColor: u.color + '30' }}
-                  >
-                    {u.emoji}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-[#171e19] truncate">{u.name}</div>
-                    <div className="text-xs font-semibold mt-0.5" style={{ color: u.color }}>
-                      {pts} pts
-                    </div>
+                  {u.emoji}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-[#171e19] truncate">{u.name}</div>
+                  <div className="text-xs font-semibold mt-0.5" style={{ color: u.color }}>
+                    {pts} pts
                   </div>
                 </div>
-              );
-            })}
-          </div>
-          {state.users.length === 0 && (
-            <p className="text-sm text-[#b7c6c2] text-center py-4">Add people in Settings to see points</p>
-          )}
+              </div>
+            );
+          })}
         </div>
+        {state.users.length === 0 && (
+          <p className="text-sm text-[#b7c6c2] text-center py-4">Add people in Settings to see points</p>
+        )}
       </div>
 
       {/* Reward shop */}
