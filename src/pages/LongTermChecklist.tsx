@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/lib/store";
 import { BottomNav } from "@/components/BottomNav";
@@ -1108,6 +1109,33 @@ function FlagSelector({
   const [open, setOpen] = useState(false);
   const selected = flags.find((f) => f.id === value);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Position the portal dropdown directly under the trigger, synced on
+  // open + scroll/resize so it never drifts away.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const list = listRef.current;
+    const trigger = triggerRef.current;
+    if (!list || !trigger) return;
+
+    const apply = () => {
+      const rect = trigger.getBoundingClientRect();
+      list.style.position = "fixed";
+      list.style.top = `${rect.bottom + 6}px`;
+      list.style.left = `${rect.left}px`;
+      list.style.width = `${rect.width}px`;
+      list.style.zIndex = "300";
+    };
+
+    apply();
+    window.addEventListener("scroll", apply, true);
+    window.addEventListener("resize", apply, true);
+    return () => {
+      window.removeEventListener("scroll", apply, true);
+      window.removeEventListener("resize", apply, true);
+    };
+  }, [open]);
 
   return (
     <div className="relative">
@@ -1141,98 +1169,96 @@ function FlagSelector({
         />
       </button>
 
-      {open && (
-        <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setOpen(false)}
-          />
-          <div
-            ref={(el) => {
-              if (!el || !triggerRef.current) return;
-              const rect = triggerRef.current.getBoundingClientRect();
-              el.style.top = `${rect.bottom + 6}px`;
-              el.style.left = `${rect.left}px`;
-              el.style.width = `${rect.width}px`;
-            }}
-            className="fixed z-[200] bg-white rounded-[1.25rem] border border-[#b7c6c2]/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] p-1.5 max-h-60 overflow-y-auto animate-fade-in-up"
-          >
-            <button
-              type="button"
-              onClick={() => {
-                onChange("");
-                setOpen(false);
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                !value
-                  ? "bg-[#eeebe3] text-[#171e19]"
-                  : "text-[#171e19] hover:bg-[#eeebe3]"
-              }`}
+      {open &&
+        createPortal(
+          <>
+            {/* Backdrop overlay */}
+            <div
+              className="fixed inset-0 z-[299]"
+              onClick={() => setOpen(false)}
+            />
+            {/* Dropdown list */}
+            <div
+              ref={listRef}
+              className="bg-white rounded-[1.25rem] border border-[#b7c6c2]/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] p-1.5 max-h-60 overflow-y-auto animate-fade-in-up"
             >
-              <span className="w-3 h-3 rounded-full border border-[#b7c6c2]/40" />
-              <span className="flex-1 text-left">No flag</span>
-            </button>
-            {flags.map((f) => (
-              <div
-                key={f.id}
-                className={`flex items-center gap-1 rounded-xl transition-colors ${
-                  value === f.id ? "bg-[#eeebe3]" : "hover:bg-[#eeebe3]"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange(f.id);
-                    setOpen(false);
-                  }}
-                  className="flex-1 flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#171e19] text-left"
-                >
-                  <span
-                    className="w-3 h-3 rounded-full shrink-0"
-                    style={{ backgroundColor: f.color }}
-                  />
-                  <span className="flex-1">{f.name}</span>
-                </button>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpen(false);
-                        onEdit(f);
-                      }}
-                      aria-label={`Edit ${f.name}`}
-                      className="p-1.5 rounded-lg text-[#b7c6c2] hover:text-[#171e19] hover:bg-white transition-colors active:scale-90"
-                    >
-                      <Pencil size={12} />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="left"
-                    className="rounded-xl bg-[#171e19] text-white border-none text-[11px] font-medium px-2.5 py-1.5 shadow-lg"
-                  >
-                    Edit {f.name}
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            ))}
-            <div className="border-t border-[#b7c6c2]/20 mt-1 pt-1">
               <button
                 type="button"
                 onClick={() => {
+                  onChange("");
                   setOpen(false);
-                  onCreate();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#69D2A6] hover:bg-green-50 transition-colors"
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  !value
+                    ? "bg-[#eeebe3] text-[#171e19]"
+                    : "text-[#171e19] hover:bg-[#eeebe3]"
+                }`}
               >
-                <Plus size={14} strokeWidth={2.5} />
-                <span className="flex-1 text-left">Add a flag</span>
+                <span className="w-3 h-3 rounded-full border border-[#b7c6c2]/40" />
+                <span className="flex-1 text-left">No flag</span>
               </button>
+              {flags.map((f) => (
+                <div
+                  key={f.id}
+                  className={`flex items-center gap-1 rounded-xl transition-colors ${
+                    value === f.id ? "bg-[#eeebe3]" : "hover:bg-[#eeebe3]"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(f.id);
+                      setOpen(false);
+                    }}
+                    className="flex-1 flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#171e19] text-left"
+                  >
+                    <span
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{ backgroundColor: f.color }}
+                    />
+                    <span className="flex-1">{f.name}</span>
+                  </button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpen(false);
+                          onEdit(f);
+                        }}
+                        aria-label={`Edit ${f.name}`}
+                        className="p-1.5 rounded-lg text-[#b7c6c2] hover:text-[#171e19] hover:bg-white transition-colors active:scale-90"
+                      >
+                        <Pencil size={12} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="left"
+                      className="rounded-xl bg-[#171e19] text-white border-none text-[11px] font-medium px-2.5 py-1.5 shadow-lg"
+                    >
+                      Edit {f.name}
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              ))}
+              <div className="border-t border-[#b7c6c2]/20 mt-1 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    onCreate();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#69D2A6] hover:bg-green-50 transition-colors"
+                >
+                  <Plus size={14} strokeWidth={2.5} />
+                  <span className="flex-1 text-left">Add a flag</span>
+                </button>
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>,
+          document.body,
+        )}
     </div>
   );
 }
