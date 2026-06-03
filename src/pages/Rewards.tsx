@@ -28,6 +28,8 @@ function RewardsPage() {
       label: newLabel.trim(),
       pointsCost: Number(newCost),
       icon: newIcon || '🎁',
+      category: '',
+      description: null,
     });
     setNewLabel('');
     setNewCost('');
