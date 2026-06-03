@@ -73,14 +73,19 @@ function WheelPage() {
     const segment = allSegments[index];
     if (!segment || !activeConfig) return;
 
-    // Check if it's a temp user
-    if ('_tempIdx' in segment && typeof (segment as any)._tempIdx === 'number') {
+    const isTemp = '_tempIdx' in segment && typeof (segment as any)._tempIdx === 'number';
+
+    if (isTemp) {
+      const tempIdx = (segment as any)._tempIdx as number;
       setPendingPick({
-        userId: `temp-${(segment as any)._tempIdx}`,
-        points: activeConfig.pointsPerTask,
+        userId: `temp-${tempIdx}`,
+        points: 0, // temp users don't earn points
       });
     } else {
-      const realUser = realActiveUsers[index];
+      // Find the real user by matching the segment label/emoji
+      const realUser = realActiveUsers.find(
+        u => u!.emoji === segment.emoji && u!.name === segment.label
+      );
       if (realUser) {
         setPendingPick({
           userId: realUser.id,
@@ -177,6 +182,7 @@ function WheelPage() {
     ? tempUsers[parseInt(pendingPick.userId.replace('temp-', ''))]
     : null;
   const lastPickDisplay = lastPickUser || (lastPickTempUser ? { name: lastPickTempUser.name, emoji: lastPickTempUser.emoji } : null);
+  const isTempPick = pendingPick ? pendingPick.userId.startsWith('temp-') : false;
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
@@ -501,13 +507,15 @@ function WheelPage() {
               </TooltipContent>
             </Tooltip>
 
-            {!doneAnimation ? (
+            {!doneAnimation && !isTempPick ? (
               <button
                 onClick={handleDone}
                 className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-green-400 text-white text-xs font-extrabold hover:bg-green-500 transition-all active:scale-90 shadow-sm"
               >
                 <Check size={14} strokeWidth={3} /> Done
               </button>
+            ) : !doneAnimation && isTempPick ? (
+              <span className="ml-auto text-xs font-semibold text-gray-400 italic">Guest pick</span>
             ) : (
               <div className="ml-auto flex items-center gap-1.5 text-green-500 font-extrabold text-sm animate-bounce-in">
                 <PartyPopper size={16} />
