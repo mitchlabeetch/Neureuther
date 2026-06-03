@@ -155,9 +155,11 @@ function WheelPage() {
       setDoneAnimation(false);
       resetTempUsers();
       // Clear persisted pick on the backend
-      if (activeConfig?.id) {
-        saveLastPick(activeConfig.id, null).catch(() => {});
-      }
+            if (activeConfig?.id) {
+              saveLastPick(activeConfig.id, null).catch((err) =>
+                console.error("saveLastPick (clear) failed:", err)
+              );
+            }
     };
 
   const handleResult = (index: number, label: string) => {
@@ -171,7 +173,9 @@ function WheelPage() {
             const tempIdx = (segment as any)._tempIdx as number;
       
             // Clear persisted pick for this wheel (temp users aren't persisted)
-            saveLastPick(activeConfig.id, null).catch(() => {});
+                        saveLastPick(activeConfig.id, null).catch((err) =>
+                          console.error("saveLastPick (temp) failed:", err)
+                        );
       
             setPendingPick({
               userId: `temp-${tempIdx}`,
@@ -184,10 +188,12 @@ function WheelPage() {
             );
       
             if (realUser) {
-              // Persist the pick to the backend so it survives navigation
-              saveLastPick(activeConfig.id, realUser.id).catch(() => {});
-      
-              setPendingPick({
+                    // Persist the pick to the backend so it survives navigation
+                    saveLastPick(activeConfig.id, realUser.id).catch((err) =>
+                      console.error("saveLastPick failed:", err)
+                    );
+            
+                    setPendingPick({
                 userId: realUser.id,
                 // Random-pick wheels are pure tiebreakers — no points awarded.
                 points: isRandomPickWheel(activeConfig) ? 0 : activeConfig.pointsPerTask,
