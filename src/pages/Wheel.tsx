@@ -483,6 +483,24 @@ function WheelPage() {
       {/* Wheel selector */}
       <div className="px-5 mb-3">
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          {/* Random pick / "no subject" shortcut. One-tap setup for
+              in-the-moment oral decisions — creates a persistent
+              "🎲 Random Pick" wheel on the backend on first use and
+              reuses it afterwards. */}
+          <button
+            type="button"
+            onClick={handleRandomPick}
+            disabled={state.users.length < 2}
+            aria-label="Pick someone at random (no subject)"
+            title="No subject — just pick someone"
+            className={`shrink-0 w-10 h-10 rounded-full text-white flex items-center justify-center shadow-[0_2px_8px_rgba(105,210,166,0.4)] hover:shadow-[0_4px_12px_rgba(105,210,166,0.5)] transition-all duration-200 active:scale-90 bg-mint ${
+              isRandomPick
+                ? "ring-2 ring-offset-2 ring-mint/60 ring-offset-[#fdf7f2]"
+                : ""
+            }`}
+          >
+            <Dices size={18} />
+          </button>
           {state.wheelConfigs.map((config) => (
             <button
               key={config.id}
@@ -570,24 +588,6 @@ function WheelPage() {
               </div>
             </DialogContent>
           </Dialog>
-          {/* Random pick / "no subject" shortcut. One-tap setup for
-              in-the-moment oral decisions — creates a persistent
-              "🎲 Random Pick" wheel on the backend on first use and
-              reuses it afterwards. */}
-          <button
-            type="button"
-            onClick={handleRandomPick}
-            disabled={state.users.length < 2}
-            aria-label="Pick someone at random (no subject)"
-            title="No subject — just pick someone"
-            className={`shrink-0 w-10 h-10 rounded-full text-white flex items-center justify-center shadow-[0_2px_8px_rgba(105,210,166,0.4)] hover:shadow-[0_4px_12px_rgba(105,210,166,0.5)] transition-all duration-200 active:scale-90 bg-mint ${
-              isRandomPick
-                ? "ring-2 ring-offset-2 ring-mint/60 ring-offset-[#fdf7f2]"
-                : ""
-            }`}
-          >
-            <Dices size={18} />
-          </button>
         </div>
       </div>
 
