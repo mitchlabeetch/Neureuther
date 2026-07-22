@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BottomNav } from '@/components/BottomNav';
+import { PageHeader } from '@/components/PageHeader';
 import {
-  ArrowLeft,
-  ArrowRight,
   ChefHat,
   Refrigerator,
   UtensilsCrossed,
@@ -20,64 +19,13 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-
-interface KitchenRule {
-  id: string;
-  label: string;
-  category: 'kitchen' | 'fridge' | 'appliances' | 'cleaning';
-  completed: boolean;
-}
-
-const DEFAULT_RULES: KitchenRule[] = [
-  // Kitchen & Appliance Care
-  { id: 'k1', label: 'Organize fridge', category: 'fridge', completed: false },
-  { id: 'k2', label: 'Clean coffee machine', category: 'appliances', completed: false },
-  { id: 'k3', label: 'Clean kettle', category: 'appliances', completed: false },
-  { id: 'k4', label: 'Clean dishwasher', category: 'appliances', completed: false },
-  { id: 'k5', label: 'Leave wet stuff a bit open to dry', category: 'kitchen', completed: false },
-  { id: 'k6', label: 'Put everything away immediately', category: 'kitchen', completed: false },
-  // Fridge Hygiene
-  { id: 'k7', label: 'No expired food in the fridge', category: 'fridge', completed: false },
-  // Trash Sorting
-  { id: 'k8', label: 'Take out Pfand (bottle deposit)', category: 'cleaning', completed: false },
-  { id: 'k9', label: 'Take out glass / container recycling', category: 'cleaning', completed: false },
-  { id: 'k10', label: 'Take out residual waste', category: 'cleaning', completed: false },
-  { id: 'k11', label: 'Take out paper recycling', category: 'cleaning', completed: false },
-  { id: 'k12', label: 'Take out bio / compost', category: 'cleaning', completed: false },
-  // General
-  { id: 'k13', label: 'Regular vacuum cleaning', category: 'cleaning', completed: false },
-  { id: 'k14', label: 'Dust surfaces', category: 'cleaning', completed: false },
-];
-
-const STORAGE_KEY = 'kitchen-rules';
-
-function loadRules(): KitchenRule[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as KitchenRule[];
-      // Merge with defaults to ensure new items show up
-      const existingIds = new Set(parsed.map((r) => r.id));
-      const newDefaults = DEFAULT_RULES.filter((d) => !existingIds.has(d.id));
-      return [...parsed, ...newDefaults];
-    }
-  } catch {
-    /* ignore */
-  }
-  return DEFAULT_RULES;
-}
-
-function saveRules(rules: KitchenRule[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(rules));
-  } catch {
-    /* ignore */
-  }
-}
+import { useApp, type KitchenRule } from '@/lib/store';
+import { showError, showSuccess } from '@/utils/toast';
 
 function KitchenPage() {
   const navigate = useNavigate();
-  const [rules, setRules] = useState<KitchenRule[]>(loadRules);
+  const { state, addKitchenRule, updateKitchenRule, removeKitchenRule } = useApp();
+  const rules = state.kitchenRules;
   const [showDialog, setShowDialog] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [newCategory, setNewCategory] = useState<KitchenRule['category']>('kitchen');
@@ -85,27 +33,26 @@ function KitchenPage() {
   const [editLabel, setEditLabel] = useState('');
   const [editCategory, setEditCategory] = useState<KitchenRule['category']>('kitchen');
 
-  const toggleRule = (id: string) => {
-    const next = rules.map((r) => (r.id === id ? { ...r, completed: !r.completed } : r));
-    setRules(next);
-    saveRules(next);
+  const toggleRule = async (id: string) => {
+    const rule = rules.find((r) => r.id === id);
+    if (!rule) return;
+    try {
+      await updateKitchenRule(id, { completed: !rule.completed });
+    } catch {
+      showError("Couldn't update this rule. Please try again.");
+    }
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!newLabel.trim()) return;
-    const next: KitchenRule[] = [
-      ...rules,
-      {
-        id: crypto.randomUUID(),
-        label: newLabel.trim(),
-        category: newCategory,
-        completed: false,
-      },
-    ];
-    setRules(next);
-    saveRules(next);
-    setNewLabel('');
-    setShowDialog(false);
+    try {
+      await addKitchenRule({ label: newLabel.trim(), category: newCategory });
+      showSuccess("Kitchen rule added");
+      setNewLabel('');
+      setShowDialog(false);
+    } catch {
+      showError("Couldn't add this rule. Please try again.");
+    }
   };
 
   const openEdit = (rule: KitchenRule) => {
@@ -114,22 +61,24 @@ function KitchenPage() {
     setEditCategory(rule.category);
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!editingRule || !editLabel.trim()) return;
-    const next = rules.map((r) =>
-      r.id === editingRule.id
-        ? { ...r, label: editLabel.trim(), category: editCategory }
-        : r
-    );
-    setRules(next);
-    saveRules(next);
-    setEditingRule(null);
+    try {
+      await updateKitchenRule(editingRule.id, { label: editLabel.trim(), category: editCategory });
+      showSuccess("Kitchen rule saved");
+      setEditingRule(null);
+    } catch {
+      showError("Couldn't save this rule. Please try again.");
+    }
   };
 
-  const handleDeleteRule = (id: string) => {
-    const next = rules.filter((r) => r.id !== id);
-    setRules(next);
-    saveRules(next);
+  const handleDeleteRule = async (id: string) => {
+    try {
+      await removeKitchenRule(id);
+      showSuccess("Kitchen rule deleted");
+    } catch {
+      showError("Couldn't delete this rule. Please try again.");
+    }
   };
 
   const categories = [
@@ -143,67 +92,74 @@ function KitchenPage() {
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
-      {/* Header */}
-      <div className="px-5 pt-14 pb-4 animate-fade-in-up">
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-1 text-[#b7c6c2] text-sm font-medium mb-3 hover:text-[#171e19] transition-colors"
-        >
-          <ArrowLeft size={18} /> Home
-        </button>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center">
-              <ChefHat size={24} className="text-green-500" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">Kitchen</h1>
-              <p className="text-sm text-[#b7c6c2] font-medium">Household rules & cleaning</p>
-            </div>
+      <PageHeader
+        title="Kitchen"
+        subtitle="Meals, groceries & house rules"
+        backTo="/"
+        backLabel="Home"
+        icon={
+          <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center">
+            <ChefHat size={24} className="text-green-500" />
           </div>
-          {rules.length > 0 && (
+        }
+        right={
+          rules.length > 0 ? (
             <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center">
               <span className="text-lg font-semibold text-green-500">
                 {Math.round((doneCount / rules.length) * 100)}%
               </span>
             </div>
-          )}
-        </div>
-              </div>
+          ) : undefined
+        }
+      />
         
-              {/* Meals & Groceries quick links */}
+              {/* Kitchen hub */}
               <div className="px-5 pb-5 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <button
-                    onClick={() => navigate('/meals')}
-                    className="group flex items-center gap-2.5 bg-white rounded-[1.5rem] px-3.5 py-3 text-left border border-[#b7c6c2]/40 transition-all duration-300 hover:border-[#171e19]/30 hover:shadow-[0_6px_20px_-8px_rgba(0,0,0,0.12)] active:scale-[0.97]"
+                    type="button"
+                    onClick={() =>
+                      document
+                        .getElementById('kitchen-rules')
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                    className="group flex flex-col items-center gap-1.5 bg-white rounded-[1.5rem] px-2 py-4 border border-[#b7c6c2]/40 transition-all duration-300 hover:border-[#171e19]/30 hover:shadow-[0_6px_20px_-8px_rgba(0,0,0,0.12)] active:scale-[0.97]"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-[#FDA172]/15 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
-                      <Croissant size={18} className="text-[#FDA172]" />
+                    <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center transition-transform group-hover:scale-110">
+                      <Sparkles size={20} className="text-green-500" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold text-[#171e19] leading-tight">Meals</h4>
-                      <p className="text-[10px] text-[#b7c6c2] font-medium leading-tight mt-0.5">Plan & track</p>
-                    </div>
-                    <ArrowRight size={14} className="text-[#b7c6c2] group-hover:text-[#171e19] group-hover:translate-x-0.5 transition-all shrink-0" />
+                    <span className="text-xs font-semibold text-[#171e19]">Rules</span>
                   </button>
                   <button
-                    onClick={() => navigate('/groceries')}
-                    className="group flex items-center gap-2.5 bg-white rounded-[1.5rem] px-3.5 py-3 text-left border border-[#b7c6c2]/40 transition-all duration-300 hover:border-[#171e19]/30 hover:shadow-[0_6px_20px_-8px_rgba(0,0,0,0.12)] active:scale-[0.97]"
+                    type="button"
+                    onClick={() => navigate('/meals')}
+                    className="group flex flex-col items-center gap-1.5 bg-white rounded-[1.5rem] px-2 py-4 border border-[#b7c6c2]/40 transition-all duration-300 hover:border-[#171e19]/30 hover:shadow-[0_6px_20px_-8px_rgba(0,0,0,0.12)] active:scale-[0.97]"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-[#69D2A6]/15 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
-                      <ShoppingBasket size={18} className="text-[#69D2A6]" />
+                    <div className="w-10 h-10 rounded-xl bg-[#FDA172]/15 flex items-center justify-center transition-transform group-hover:scale-110">
+                      <Croissant size={20} className="text-[#FDA172]" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold text-[#171e19] leading-tight">Groceries</h4>
-                      <p className="text-[10px] text-[#b7c6c2] font-medium leading-tight mt-0.5">Shopping list</p>
+                    <span className="text-xs font-semibold text-[#171e19]">Meals</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/groceries')}
+                    className="group flex flex-col items-center gap-1.5 bg-white rounded-[1.5rem] px-2 py-4 border border-[#b7c6c2]/40 transition-all duration-300 hover:border-[#171e19]/30 hover:shadow-[0_6px_20px_-8px_rgba(0,0,0,0.12)] active:scale-[0.97]"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-[#69D2A6]/15 flex items-center justify-center transition-transform group-hover:scale-110">
+                      <ShoppingBasket size={20} className="text-[#69D2A6]" />
                     </div>
-                    <ArrowRight size={14} className="text-[#b7c6c2] group-hover:text-[#171e19] group-hover:translate-x-0.5 transition-all shrink-0" />
+                    <span className="text-xs font-semibold text-[#171e19]">Groceries</span>
                   </button>
                 </div>
               </div>
         
-              {/* Category cards */}
+              {/* Kitchen Rules */}
+      <div id="kitchen-rules" className="px-5 mb-2">
+        <h3 className="section-header">Kitchen Rules</h3>
+        <p className="text-[11px] text-[#b7c6c2] font-medium mt-0.5">
+          Your everyday house rules — tap a category to jump to it.
+        </p>
+      </div>
       <div className="px-5 mb-5">
         <div className="grid grid-cols-2 gap-3">
           {categories.map((cat) => {
@@ -253,7 +209,7 @@ function KitchenPage() {
                 <h3 className="text-sm font-semibold text-[#171e19]">{cat.label}</h3>
               </div>
               <p className="text-[11px] text-[#b7c6c2] font-medium mb-3 leading-tight">
-                These checks are resetting every day — the goal is to remain at 100% as much as possible
+                Keep these ticked as you keep the kitchen in shape.
               </p>
               <div className="space-y-2.5">
                 {catRules.map((rule) => (

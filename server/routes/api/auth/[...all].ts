@@ -89,6 +89,13 @@ export default defineHandler(async (event) => {
       c = c.replace(/;[ ]*Domain=[^;]*/gi, "");
       // 4. Rewrite SameSite=None → SameSite=Lax for HTTP
       c = c.replaceAll("; SameSite=None", "; SameSite=Lax").replaceAll(";SameSite=None", ";SameSite=Lax");
+    } else {
+      // Native Capacitor origins are cross-site from the deployed API. Make
+      // that contract explicit so the session survives the webview boundary.
+      c = /SameSite=/i.test(c)
+        ? c.replace(/;[ ]*SameSite=[^;]*/gi, "; SameSite=None")
+        : `${c}; SameSite=None`;
+      if (!/;[ ]*Secure/i.test(c)) c = `${c}; Secure`;
     }
     // 5. Force Path=/ so the cookies are sent for every route, not just
     //    the /api/auth/* prefix Neon Auth's response came from. Without this

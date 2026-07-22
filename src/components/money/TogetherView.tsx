@@ -112,7 +112,9 @@ export function TogetherView(
         try {
             const data = await api<SplitExpense[]>("/api/money/shared-expenses");
             setExpenses(data);
-        } catch {}
+        } catch (error) {
+            console.error("Failed to load shared expenses", error);
+        }
 
         setLoading(false);
     }, []);

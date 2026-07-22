@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp, User } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
+import { PageHeader } from '@/components/PageHeader';
 import { Plus, Pencil, Trash2, Users } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -47,10 +48,7 @@ function SettingsPage() {
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
-      <div className="px-5 pt-14 pb-4 animate-fade-in-up">
-        <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">Settings</h1>
-        <p className="text-sm text-[#95a5a0] font-medium mt-1">Manage your household</p>
-      </div>
+      <PageHeader title="Settings" subtitle="Manage your household" backTo="/" backLabel="Home" icon={<div className="w-12 h-12 rounded-2xl bg-[#eeebe3] flex items-center justify-center"><Users size={24} className="text-[#171e19]" /></div>} />
 
       <div className="px-5 mb-5">
         <div className="flex items-center justify-between mb-3">

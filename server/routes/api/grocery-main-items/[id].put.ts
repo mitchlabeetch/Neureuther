@@ -21,7 +21,7 @@ export default defineHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "no updatable fields" });
   }
 
-  await sql`
+  const rows = await sql`
     UPDATE grocery_main_items SET
       name = COALESCE(${hasName ? body.name!.trim() : null}::text, name),
       quantity = CASE
@@ -33,7 +33,17 @@ export default defineHandler(async (event) => {
         ELSE checked
       END
     WHERE id = ${id}
+    RETURNING id, name, quantity, checked, sort_order, created_at
   `;
+  if (rows.length === 0) throw createError({ statusCode: 404, statusMessage: "item not found" });
 
-  return { ok: true };
+  const row = rows[0] as { id: string; name: string; quantity: string | null; checked: boolean; sort_order: number; created_at: string };
+  return {
+    id: row.id,
+    name: row.name,
+    quantity: row.quantity,
+    checked: Boolean(row.checked),
+    sortOrder: Number(row.sort_order) || 0,
+    createdAt: new Date(row.created_at).toISOString(),
+  };
 });

@@ -2,6 +2,7 @@ import { useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
+import { PageHeader } from '@/components/PageHeader';
 import { Check, Plus, Trash2, Pencil, Star, X, CalendarDays, User, LayoutGrid, ChevronRight, PartyPopper, Archive as ArchiveIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -132,21 +133,14 @@ function ChecklistPage() {
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
-      {/* Header */}
-      <div className="px-5 pt-14 pb-4 animate-fade-in-up">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">
-              Daily Checklist
-            </h1>
-            <p className="text-sm text-[#b7c6c2] font-medium mt-1">
-              {completed} / {total} tasks done
-            </p>
-          </div>
-          <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-            <span className="text-2xl font-semibold text-green-500">{pct}%</span>
-          </div>
-        </div>
+      <PageHeader
+        title="Daily Checklist"
+        subtitle={`${completed} / ${total} tasks done`}
+        backTo="/"
+        backLabel="Home"
+        right={<div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center"><span className="text-2xl font-semibold text-green-500">{pct}%</span></div>}
+      />
+      <div className="px-5 -mt-2 pb-4">
         <Progress
           value={pct}
           className="h-3 rounded-full bg-[#FFF1E6] mt-3 [&>div]:bg-green-400 [&>div]:rounded-full"

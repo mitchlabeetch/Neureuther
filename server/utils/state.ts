@@ -2,6 +2,7 @@
 // claim/award endpoints so the daily-reset logic and the response
 // shape stay in one place.
 import { sql } from "./db";
+import { ensureKitchenRulesSchema, loadKitchenRules, type KitchenRule } from "./kitchen-rules";
 
 export interface User {
   id: string;
@@ -154,6 +155,8 @@ export interface GroceryListItemEntry {
   createdAt: string;
 }
 
+export type { KitchenRule };
+
 export interface AppStatePayload {
   users: User[];
   checklistItems: ChecklistItem[];
@@ -170,6 +173,7 @@ export interface AppStatePayload {
   groceryMainItems: GroceryMainItemEntry[];
   groceryLists: GroceryListEntry[];
   groceryListItems: GroceryListItemEntry[];
+  kitchenRules: KitchenRule[];
 }
 
 function todayUtc(): string {
@@ -224,6 +228,7 @@ export async function resetChecklistIfNeeded(): Promise<void> {
 export async function loadAppState(
   runDailyReset = true,
 ): Promise<AppStatePayload> {
+  await ensureKitchenRulesSchema();
   if (runDailyReset) await resetChecklistIfNeeded();
 
   const [
@@ -243,6 +248,7 @@ export async function loadAppState(
     groceryMainItems,
     groceryLists,
     groceryListItems,
+    kitchenRules,
   ] = await Promise.all([
     sql`SELECT id, name, color, emoji FROM users ORDER BY sort_order, created_at`,
     sql`SELECT id, label, completed, completed_by, completed_at, points,
@@ -286,6 +292,7 @@ export async function loadAppState(
         ORDER BY sort_order, created_at`,
     sql`SELECT id, list_id, name, quantity, checked, sort_order, created_at
         FROM grocery_list_items ORDER BY sort_order, created_at`,
+    loadKitchenRules(),
   ]);
 
   const usersByConfig = new Map<string, string[]>();
@@ -586,6 +593,7 @@ export async function loadAppState(
       sortOrder: Number(g.sort_order) || 0,
       createdAt: new Date(g.created_at).toISOString(),
     })),
+    kitchenRules,
   };
 }
 

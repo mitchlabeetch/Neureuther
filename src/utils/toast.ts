@@ -8,6 +8,15 @@ export const showError = (message: string) => {
   toast.error(message);
 };
 
+export const showUndo = (message: string, onUndo: () => void | Promise<void>) => {
+  toast.success(message, {
+    action: {
+      label: "Undo",
+      onClick: () => void onUndo(),
+    },
+  });
+};
+
 export const showLoading = (message: string) => {
   return toast.loading(message);
 };

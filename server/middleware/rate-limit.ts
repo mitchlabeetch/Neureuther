@@ -10,9 +10,19 @@ const PIN_LIMIT = 5; // max PIN attempts per minute per IP
 
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
-function getClientKey(event: any): string {
+type RequestLike = {
+  node?: {
+    req?: {
+      headers?: Record<string, string | string[] | undefined>;
+      socket?: { remoteAddress?: string };
+    };
+  };
+};
+
+function getClientKey(event: RequestLike): string {
   const headers = event.node?.req?.headers ?? {};
-  const forwarded = (headers["x-forwarded-for"] as string) ?? "";
+  const forwardedHeader = headers["x-forwarded-for"];
+  const forwarded = Array.isArray(forwardedHeader) ? forwardedHeader[0] ?? "" : forwardedHeader ?? "";
   const ip = forwarded.split(",")[0]?.trim() || event.node?.req?.socket?.remoteAddress || "unknown";
   return ip;
 }

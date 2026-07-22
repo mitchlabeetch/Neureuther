@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/lib/store";
 import { BottomNav } from "@/components/BottomNav";
+import { PageHeader } from "@/components/PageHeader";
 import {
   Archive as ArchiveIcon,
   ChevronRight,
@@ -54,28 +55,13 @@ function LongTermArchivePage() {
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
-      {/* Header */}
-      <div className="px-5 pt-14 pb-4 animate-fade-in-up">
-        <button
-          onClick={() => navigate("/checklist/long-term")}
-          className="flex items-center gap-1.5 text-sm font-medium text-[#b7c6c2] hover:text-[#171e19] transition-colors mb-3"
-        >
-          <ChevronRight size={16} className="rotate-180" /> Back
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-[1.25rem] bg-[#eeebe3] flex items-center justify-center">
-            <ArchiveIcon className="text-[#171e19]" size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-[#171e19] tracking-tight">
-              Long-term Archive
-            </h1>
-            <p className="text-sm text-[#b7c6c2] font-medium mt-0.5">
-              {archived.length} completed {archived.length === 1 ? "task" : "tasks"}
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Long-term Archive"
+        subtitle={`${archived.length} completed ${archived.length === 1 ? "task" : "tasks"}`}
+        backTo="/checklist/long-term"
+        backLabel="Long-term checklist"
+        icon={<div className="w-12 h-12 rounded-[1.25rem] bg-[#eeebe3] flex items-center justify-center"><ArchiveIcon className="text-[#171e19]" size={24} /></div>}
+      />
 
       {/* List */}
       <div className="px-5 space-y-2.5 mb-16">

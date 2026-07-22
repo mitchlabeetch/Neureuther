@@ -5,8 +5,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
+import { PageHeader } from "@/components/PageHeader";
 import {
-  ArrowLeft,
   CalendarDays,
   ChefHat,
   Sparkles,
@@ -29,6 +29,7 @@ import { MealSlotDialog } from "@/components/meals/MealSlotDialog";
 import { RecipeEditorDialog } from "@/components/meals/RecipeEditorDialog";
 import { RichContentView } from "@/components/meals/RichTextEditor";
 import { showSuccess, showError } from "@/utils/toast";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 
 type Tab = "week" | "recipes" | "ingredients";
 
@@ -68,6 +69,7 @@ function MealsPage() {
   const navigate = useNavigate();
   const {
     state,
+    isLoading,
     renameIngredientEverywhere,
     removeIngredientEverywhere,
   } = useApp();
@@ -172,30 +174,23 @@ function MealsPage() {
   const isCurrentWeek =
     toIsoDate(weekStart) === toIsoDate(startOfIsoWeek(new Date()));
 
+  if (isLoading) {
+    return <div className="app-container min-h-screen bg-cream page-content"><div className="px-5 pt-14 pb-6"><LoadingSkeleton rows={6} /></div><BottomNav /></div>;
+  }
+
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
-      {/* Header */}
-      <div className="px-5 pt-14 pb-2 animate-fade-in-up">
-        <button
-          onClick={() => navigate("/kitchen")}
-          className="flex items-center gap-1 text-[#b7c6c2] text-sm font-medium mb-3 hover:text-[#171e19] transition-colors"
-        >
-          <ArrowLeft size={18} /> Kitchen
-        </button>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#FDA172]/15 flex items-center justify-center">
-              <ChefHat size={24} className="text-[#FDA172]" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">
-                Meals
-              </h1>
-              <p className="text-sm text-[#b7c6c2] font-medium">
-                Plan, save, shop
-              </p>
-            </div>
+      <PageHeader
+        title="Meals"
+        subtitle="Plan, save, shop"
+        backTo="/kitchen"
+        backLabel="Kitchen"
+        icon={
+          <div className="w-12 h-12 rounded-2xl bg-[#FDA172]/15 flex items-center justify-center">
+            <ChefHat size={24} className="text-[#FDA172]" />
           </div>
+        }
+        right={
           <button
             onClick={() => navigate("/groceries")}
             className="w-12 h-12 rounded-2xl bg-[#69D2A6]/15 flex items-center justify-center text-[#69D2A6] active:scale-90 transition"
@@ -203,8 +198,8 @@ function MealsPage() {
           >
             <ShoppingBasket size={20} />
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Tabs */}
       <div className="px-5 mb-4 animate-fade-in-up" style={{ animationDelay: "60ms" }}>

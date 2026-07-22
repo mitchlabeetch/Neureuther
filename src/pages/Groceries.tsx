@@ -1,9 +1,8 @@
 // Groceries hub: live "main" shopping list + named custom lists.
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
+import { PageHeader } from "@/components/PageHeader";
 import {
-  ArrowLeft,
   ShoppingBasket,
   Plus,
   Trash2,
@@ -22,6 +21,9 @@ import type { GroceryList, GroceryListItem, GroceryMainItem } from "@/lib/store"
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
+import { showError, showSuccess, showUndo } from "@/utils/toast";
+import { hapticToggle } from "@/lib/haptics";
 
 const EMOJI_OPTIONS = [
   "🛒", "🎉", "🎂", "🍖", "🥩", "🥖", "🍷", "🍺", "🥂",
@@ -29,9 +31,9 @@ const EMOJI_OPTIONS = [
 ];
 
 function GroceriesPage() {
-  const navigate = useNavigate();
   const {
     state,
+    isLoading,
     addGroceryMainItem,
     updateGroceryMainItem,
     removeGroceryMainItem,
@@ -102,6 +104,10 @@ function GroceriesPage() {
     .filter((s) => !listNamesLower.has(s.name.toLowerCase()))
     .slice(0, 5);
 
+  if (isLoading) {
+    return <div className="app-container min-h-screen bg-cream page-content"><div className="px-5 pt-14 pb-6"><LoadingSkeleton rows={5} /></div><BottomNav /></div>;
+  }
+
   const handleAddMain = async () => {
     const trimmed = newItemName.trim();
     if (!trimmed) return;
@@ -151,40 +157,31 @@ function GroceriesPage() {
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
-      {/* Header */}
-      <div className="px-5 pt-14 pb-4 animate-fade-in-up">
-        <button
-          onClick={() => navigate("/kitchen")}
-          className="flex items-center gap-1 text-[#b7c6c2] text-sm font-medium mb-3 hover:text-[#171e19] transition-colors"
-        >
-          <ArrowLeft size={18} /> Kitchen
-        </button>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#69D2A6]/15 flex items-center justify-center">
-              <ShoppingBasket size={24} className="text-[#69D2A6]" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">
-                Groceries
-              </h1>
-              <p className="text-sm text-[#b7c6c2] font-medium">
-                {mainUnchecked.length === 0
-                  ? "Shopping list is clear"
-                  : `${mainUnchecked.length} to buy`}
-              </p>
-            </div>
+      <PageHeader
+        title="Groceries"
+        subtitle={
+          mainUnchecked.length === 0
+            ? "Shopping list is clear"
+            : `${mainUnchecked.length} to buy`
+        }
+        backTo="/kitchen"
+        backLabel="Kitchen"
+        icon={
+          <div className="w-12 h-12 rounded-2xl bg-[#69D2A6]/15 flex items-center justify-center">
+            <ShoppingBasket size={24} className="text-[#69D2A6]" />
           </div>
-          {state.groceryMainItems.length > 0 && (
+        }
+        right={
+          state.groceryMainItems.length > 0 ? (
             <button
               onClick={() => setConfirmClear(true)}
               className="text-xs font-semibold text-[#ca0013] bg-red-50 hover:bg-red-100 px-3 py-2 rounded-full active:scale-95 transition flex items-center gap-1"
             >
               <Eraser size={12} /> Clear
             </button>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       {/* Main list — add item */}
       <div className="px-5 mb-3 animate-fade-in-up" style={{ animationDelay: "60ms" }}>
@@ -223,10 +220,19 @@ function GroceriesPage() {
           <MainList
             unchecked={mainUnchecked}
             checked={mainChecked}
-            onToggle={(item, next) =>
-              updateGroceryMainItem(item.id, { checked: next })
-            }
-            onRemove={(item) => removeGroceryMainItem(item.id)}
+            onToggle={async (item, next) => {
+              await hapticToggle();
+              await updateGroceryMainItem(item.id, { checked: next });
+            }}
+            onRemove={async (item) => {
+              try {
+                await removeGroceryMainItem(item.id);
+                showUndo("Item removed", async () => {
+                  try { await addGroceryMainItem({ name: item.name, quantity: item.quantity ?? undefined }); showSuccess("Item restored"); }
+                  catch { showError("Couldn't restore the item."); }
+                });
+              } catch { showError("Couldn't remove the item."); }
+            }}
           />
         )}
       </div>
@@ -400,10 +406,19 @@ function GroceriesPage() {
             setShowListSuggest(false);
           }}
           onClose={() => setOpenList(null)}
-          onToggle={(item, next) =>
-            updateGroceryListItem(item.id, { checked: next })
-          }
-          onRemove={(item) => removeGroceryListItem(item.id)}
+          onToggle={async (item, next) => {
+            await hapticToggle();
+            await updateGroceryListItem(item.id, { checked: next });
+          }}
+          onRemove={async (item) => {
+            try {
+              await removeGroceryListItem(item.id);
+              showUndo("Item removed", async () => {
+                try { await addGroceryListItem({ listId: openList.id, name: item.name, quantity: item.quantity ?? undefined }); showSuccess("Item restored"); }
+                catch { showError("Couldn't restore the item."); }
+              });
+            } catch { showError("Couldn't remove the item."); }
+          }}
           onRename={(name) => updateGroceryList(openList.id, { name })}
           onChangeEmoji={(emoji) => updateGroceryList(openList.id, { emoji })}
           onDelete={() => setConfirmDeleteList(true)}
@@ -432,9 +447,19 @@ function GroceriesPage() {
           confirmLabel="Delete list"
           onConfirm={async () => {
             const id = openList.id;
+            const snapshot = { ...openList, items: state.groceryListItems.filter((item) => item.listId === id) };
             setOpenList(null);
             setConfirmDeleteList(false);
-            await removeGroceryList(id);
+            try {
+              await removeGroceryList(id);
+              showUndo("List deleted", async () => {
+                try {
+                  const restored = await addGroceryList({ name: snapshot.name, emoji: snapshot.emoji });
+                  for (const item of snapshot.items) await addGroceryListItem({ listId: restored.id, name: item.name, quantity: item.quantity ?? undefined });
+                  showSuccess("List restored");
+                } catch { showError("Couldn't restore the list."); }
+              });
+            } catch { showError("Couldn't delete the list."); }
           }}
           onCancel={() => setConfirmDeleteList(false)}
         />
@@ -548,7 +573,7 @@ function GroceryRow({
       </div>
       <button
         onClick={() => onRemove(item)}
-        className="w-8 h-8 rounded-full flex items-center justify-center text-[#b7c6c2] opacity-0 group-hover:opacity-100 hover:text-[#ca0013] hover:bg-red-50 active:scale-90 transition"
+        className="w-11 h-11 rounded-full flex items-center justify-center text-muted-ink hover:text-[#ca0013] hover:bg-red-50 active:scale-90 transition"
         aria-label="Remove"
       >
         <X size={14} />

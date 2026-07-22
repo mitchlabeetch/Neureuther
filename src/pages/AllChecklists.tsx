@@ -1,5 +1,6 @@
 import { BottomNav } from "@/components/BottomNav";
 import { LayoutGrid, ArrowLeft, CalendarDays, User, ListChecks, Archive as ArchiveIcon, Shuffle } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 import { useNavigate } from "react-router-dom";
 
 export default function AllChecklistsPage() {
@@ -50,28 +51,13 @@ export default function AllChecklistsPage() {
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
-      {/* Header */}
-      <div className="px-5 pt-14 pb-4 animate-fade-in-up">
-        <button
-          onClick={() => navigate("/checklist")}
-          className="flex items-center gap-1.5 text-sm font-medium text-[#b7c6c2] hover:text-[#171e19] transition-colors mb-3"
-        >
-          <ArrowLeft size={16} /> Back
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-[1.25rem] bg-[#FFF1E6] flex items-center justify-center">
-            <LayoutGrid className="text-cantaloupe" size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-[#171e19] tracking-tight">
-              All Checklists
-            </h1>
-            <p className="text-sm text-[#b7c6c2] font-medium mt-0.5">
-              Browse every checklist
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="All Checklists"
+        subtitle="Browse every checklist"
+        backTo="/checklist"
+        backLabel="Checklists"
+        icon={<div className="w-12 h-12 rounded-[1.25rem] bg-[#FFF1E6] flex items-center justify-center"><LayoutGrid className="text-cantaloupe" size={24} /></div>}
+      />
 
       {/* List */}
       <div className="px-5 space-y-3 mb-16">
