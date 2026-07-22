@@ -779,7 +779,7 @@ export function PersonalView({ onBack }: { onBack: () => void }) {
                     { key: 'stat', label: '📊 Stat' },
                     { key: 'goal', label: '🎯 Goal' },
                   ].map(wt => (
-                    <button key={wt.key} onClick={() => setNewWidgetType(wt.key as any)}
+                    <button key={wt.key} onClick={() => setNewWidgetType(wt.key as "stat" | "goal")}
                       className={`px-4 py-2 rounded-full text-sm font-medium ${newWidgetType === wt.key ? 'bg-[#171e19] text-white' : 'bg-[#eeebe3] text-[#b7c6c2]'}`}>
                       {wt.label}
                     </button>

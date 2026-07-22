@@ -9,7 +9,8 @@
     "build": "npm run generate-icons && vite build",
     "build:dev": "npm run generate-icons && vite build --mode development",
     "generate-icons": "node scripts/generate-icons.mjs",
-    "lint": "eslint .",
+    "lint": "eslint . && node scripts/check-internal-anchors.mjs",
+    "test:critical": "node --test scripts/test-critical-save-flows.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

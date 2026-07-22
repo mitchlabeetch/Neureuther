@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { getApiBaseUrl } from "@/lib/api-base";
 
 const STORAGE_KEY = "neureuther-app-unlocked";
 
@@ -20,9 +21,10 @@ function setUnlocked(): void {
 
 async function verifyPin(pin: string): Promise<boolean> {
   try {
-    const res = await fetch("/api/verify-app-pin", {
+    const res = await fetch(getApiBaseUrl() + "/api/verify-app-pin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ pin }),
     });
     return res.ok;

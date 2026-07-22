@@ -5,6 +5,8 @@ import React, {
   useCallback,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getApiBaseUrl } from "./api-base";
+import { hapticToggle } from "./haptics";
 
 export interface User {
   id: string;
@@ -159,6 +161,19 @@ export interface GroceryListItem {
   createdAt: string;
 }
 
+export type KitchenRuleCategory = "kitchen" | "fridge" | "appliances" | "cleaning";
+
+export interface KitchenRule {
+  id: string;
+  label: string;
+  category: KitchenRuleCategory;
+  completed: boolean;
+  completedAt: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type MealSlot = "lunch" | "dinner";
 
 export interface IngredientSuggestion {
@@ -183,6 +198,7 @@ interface AppState {
   groceryMainItems: GroceryMainItem[];
   groceryLists: GroceryList[];
   groceryListItems: GroceryListItem[];
+  kitchenRules: KitchenRule[];
 }
 
 const EMPTY_STATE: AppState = {
@@ -201,26 +217,15 @@ const EMPTY_STATE: AppState = {
   groceryMainItems: [],
   groceryLists: [],
   groceryListItems: [],
+  kitchenRules: [],
 };
 
 const STATE_QUERY_KEY = ["app", "state"] as const;
 
-function getApiBaseUrl(): string {
-  // Runtime override (e.g. set by Capacitor at startup) takes priority,
-  // then the Vite build-time env var, then relative URLs as fallback.
-  if (typeof window !== "undefined" && (window as any).__API_BASE_URL__) {
-    return (window as any).__API_BASE_URL__ as string;
-  }
-  // import.meta.env is statically replaced at build time
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL as string;
-  }
-  return "";
-}
-
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(getApiBaseUrl() + url, {
     ...init,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(init?.headers ?? {}),
@@ -244,7 +249,7 @@ interface AppContextValue {
   state: AppState;
   isLoading: boolean;
   isError: boolean;
-  refetch: () => void;
+  refetch: () => Promise<void>;
   addUser: (user: Omit<User, "id">) => Promise<void>;
   updateUser: (id: string, data: Partial<User>) => Promise<void>;
   removeUser: (id: string) => Promise<void>;
@@ -336,6 +341,9 @@ interface AppContextValue {
     data: { name?: string; quantity?: string | null; checked?: boolean },
   ) => Promise<void>;
   removeGroceryListItem: (id: string) => Promise<void>;
+  addKitchenRule: (data: { label: string; category: KitchenRuleCategory }) => Promise<KitchenRule>;
+  updateKitchenRule: (id: string, data: Partial<Pick<KitchenRule, "label" | "category" | "completed">>) => Promise<KitchenRule>;
+  removeKitchenRule: (id: string) => Promise<void>;
   fetchIngredientSuggestions: (q: string) => Promise<IngredientSuggestion[]>;
   renameIngredientEverywhere: (oldName: string, newName: string) => Promise<void>;
   removeIngredientEverywhere: (name: string) => Promise<void>;
@@ -402,6 +410,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [queryClient],
   );
 
+  // ── Optimistic update helpers ──────────────────────────────────────
+  // Patch a single entity in the cached AppState so the UI reflects the change
+  // instantly. Enhanced mutations roll back on error and reconcile on settle.
+  type MutationContext = { prev?: AppState };
+
   // ── Mutations ────────────────────────────────────────────────────────
   const addUserMut = useMutation({
     mutationFn: (user: Omit<User, "id">) =>
@@ -454,6 +467,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const toggleChecklistItemMut = useMutation({
     mutationFn: ({ id, userId }: { id: string; userId?: string }) =>
       api<{
+        id: string;
         completed: boolean;
         completedBy: string | null;
         completedAt: string | null;
@@ -461,7 +475,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
         body: JSON.stringify({ userId }),
       }),
-    onSuccess: invalidate,
+    onMutate: async ({ id, userId }: { id: string; userId?: string }) => {
+      void hapticToggle();
+      await queryClient.cancelQueries({ queryKey: STATE_QUERY_KEY });
+      const prev = queryClient.getQueryData<AppState>(STATE_QUERY_KEY);
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          checklistItems: old.checklistItems.map((it) => {
+            if (it.id !== id) return it;
+            const completed = !it.completed;
+            return {
+              ...it,
+              completed,
+              completedBy: completed ? userId ?? it.completedBy ?? null : null,
+              completedAt: completed ? new Date().toISOString() : null,
+            };
+          }),
+        };
+      });
+      return { prev };
+    },
+    onError: (_e: unknown, _v: { id: string; userId?: string }, ctx: MutationContext | undefined) => {
+      if (ctx?.prev) queryClient.setQueryData(STATE_QUERY_KEY, ctx.prev);
+    },
+    onSuccess: (result) => {
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? {
+              ...old,
+              checklistItems: old.checklistItems.map((item) =>
+                item.id === result.id
+                  ? {
+                      ...item,
+                      completed: result.completed,
+                      completedBy: result.completedBy,
+                      completedAt: result.completedAt,
+                    }
+                  : item,
+              ),
+            }
+          : old,
+      );
+    },
   });
 
   const addSubtaskMut = useMutation({
@@ -481,11 +538,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       id: string;
       data: Partial<Pick<ChecklistSubtask, "label" | "completed">>;
     }) =>
-      api<{ ok: true }>(`/api/checklist-subtasks/${id}`, {
+      api<ChecklistSubtask>(`/api/checklist-subtasks/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       }),
-    onSuccess: invalidate,
+    onMutate: async ({ id, data }) => {
+      void hapticToggle();
+      await queryClient.cancelQueries({ queryKey: STATE_QUERY_KEY });
+      const prev = queryClient.getQueryData<AppState>(STATE_QUERY_KEY);
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? {
+              ...old,
+              checklistSubtasks: old.checklistSubtasks.map((item) =>
+                item.id === id ? { ...item, ...data } : item,
+              ),
+            }
+          : old,
+      );
+      return { prev } satisfies MutationContext;
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.prev) queryClient.setQueryData(STATE_QUERY_KEY, context.prev);
+    },
+    onSuccess: (item) => {
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? { ...old, checklistSubtasks: old.checklistSubtasks.map((current) => current.id === item.id ? item : current) }
+          : old,
+      );
+    },
   });
 
   const removeSubtaskMut = useMutation({
@@ -651,11 +733,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updatePersonalChecklistTaskMut = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Pick<PersonalChecklistTask, "label" | "completed" | "deadline">> }) =>
-      api<{ ok: true }>(`/api/personal-checklist-tasks/${id}`, {
+      api<PersonalChecklistTask>(`/api/personal-checklist-tasks/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       }),
-    onSuccess: invalidate,
+    onMutate: async ({ id, data }) => {
+      void hapticToggle();
+      await queryClient.cancelQueries({ queryKey: STATE_QUERY_KEY });
+      const prev = queryClient.getQueryData<AppState>(STATE_QUERY_KEY);
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? {
+              ...old,
+              personalChecklistTasks: old.personalChecklistTasks.map((item) =>
+                item.id === id ? { ...item, ...data, completedAt: data.completed === true ? new Date().toISOString() : data.completed === false ? null : item.completedAt } : item,
+              ),
+            }
+          : old,
+      );
+      return { prev } satisfies MutationContext;
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.prev) queryClient.setQueryData(STATE_QUERY_KEY, context.prev);
+    },
+    onSuccess: (item) => {
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? { ...old, personalChecklistTasks: old.personalChecklistTasks.map((current) => current.id === item.id ? item : current) }
+          : old,
+      );
+    },
   });
 
   const removePersonalChecklistTaskMut = useMutation({
@@ -771,11 +878,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       id: string;
       data: { name?: string; quantity?: string | null; checked?: boolean };
     }) =>
-      api<{ ok: true }>(`/api/grocery-main-items/${id}`, {
+      api<GroceryMainItem>(`/api/grocery-main-items/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       }),
-    onSuccess: invalidate,
+    onMutate: async ({ id, data }) => {
+      void hapticToggle();
+      await queryClient.cancelQueries({ queryKey: STATE_QUERY_KEY });
+      const prev = queryClient.getQueryData<AppState>(STATE_QUERY_KEY);
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? { ...old, groceryMainItems: old.groceryMainItems.map((item) => item.id === id ? { ...item, ...data } : item) }
+          : old,
+      );
+      return { prev } satisfies MutationContext;
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.prev) queryClient.setQueryData(STATE_QUERY_KEY, context.prev);
+    },
+    onSuccess: (item) => {
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? { ...old, groceryMainItems: old.groceryMainItems.map((current) => current.id === item.id ? item : current) }
+          : old,
+      );
+    },
   });
 
   const removeGroceryMainItemMut = useMutation({
@@ -838,17 +965,89 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       id: string;
       data: { name?: string; quantity?: string | null; checked?: boolean };
     }) =>
-      api<{ ok: true }>(`/api/grocery-list-items/${id}`, {
+      api<GroceryListItem>(`/api/grocery-list-items/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       }),
-    onSuccess: invalidate,
+    onMutate: async ({ id, data }) => {
+      void hapticToggle();
+      await queryClient.cancelQueries({ queryKey: STATE_QUERY_KEY });
+      const prev = queryClient.getQueryData<AppState>(STATE_QUERY_KEY);
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? { ...old, groceryListItems: old.groceryListItems.map((item) => item.id === id ? { ...item, ...data } : item) }
+          : old,
+      );
+      return { prev } satisfies MutationContext;
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.prev) queryClient.setQueryData(STATE_QUERY_KEY, context.prev);
+    },
+    onSuccess: (item) => {
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? { ...old, groceryListItems: old.groceryListItems.map((current) => current.id === item.id ? item : current) }
+          : old,
+      );
+    },
   });
 
   const removeGroceryListItemMut = useMutation({
     mutationFn: (id: string) =>
       api<{ ok: true }>(`/api/grocery-list-items/${id}`, { method: "DELETE" }),
     onSuccess: invalidate,
+  });
+
+  const addKitchenRuleMut = useMutation({
+    mutationFn: (data: { label: string; category: KitchenRuleCategory }) =>
+      api<KitchenRule>("/api/kitchen-rules", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (rule) => {
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old ? { ...old, kitchenRules: [...old.kitchenRules, rule] } : old,
+      );
+    },
+  });
+
+  const updateKitchenRuleMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Pick<KitchenRule, "label" | "category" | "completed">> }) =>
+      api<KitchenRule>(`/api/kitchen-rules/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onMutate: async ({ id, data }) => {
+      void hapticToggle();
+      await queryClient.cancelQueries({ queryKey: STATE_QUERY_KEY });
+      const prev = queryClient.getQueryData<AppState>(STATE_QUERY_KEY);
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? { ...old, kitchenRules: old.kitchenRules.map((rule) => rule.id === id ? { ...rule, ...data, completedAt: data.completed === true ? new Date().toISOString() : data.completed === false ? null : rule.completedAt } : rule) }
+          : old,
+      );
+      return { prev } satisfies MutationContext;
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.prev) queryClient.setQueryData(STATE_QUERY_KEY, context.prev);
+    },
+    onSuccess: (rule) => {
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old
+          ? { ...old, kitchenRules: old.kitchenRules.map((current) => current.id === rule.id ? rule : current) }
+          : old,
+      );
+    },
+  });
+
+  const removeKitchenRuleMut = useMutation({
+    mutationFn: (id: string) =>
+      api<{ ok: true }>(`/api/kitchen-rules/${id}`, { method: "DELETE" }),
+    onSuccess: (_result, id) => {
+      queryClient.setQueryData<AppState>(STATE_QUERY_KEY, (old) =>
+        old ? { ...old, kitchenRules: old.kitchenRules.filter((rule) => rule.id !== id) } : old,
+      );
+    },
   });
 
   // ── Public action wrappers ───────────────────────────────────────────
@@ -1233,6 +1432,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [removeGroceryListItemMut],
   );
 
+  const addKitchenRule = useCallback(
+    async (data: { label: string; category: KitchenRuleCategory }) =>
+      addKitchenRuleMut.mutateAsync(data),
+    [addKitchenRuleMut],
+  );
+
+  const updateKitchenRule = useCallback(
+    async (id: string, data: Partial<Pick<KitchenRule, "label" | "category" | "completed">>) =>
+      updateKitchenRuleMut.mutateAsync({ id, data }),
+    [updateKitchenRuleMut],
+  );
+
+  const removeKitchenRule = useCallback(
+    async (id: string) => {
+      await removeKitchenRuleMut.mutateAsync(id);
+    },
+    [removeKitchenRuleMut],
+  );
+
   const fetchIngredientSuggestions = useCallback(
     async (q: string): Promise<IngredientSuggestion[]> => {
       const params = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
@@ -1282,7 +1500,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         state,
         isLoading: stateQuery.isLoading,
         isError: stateQuery.isError,
-        refetch: () => queryClient.invalidateQueries({ queryKey: STATE_QUERY_KEY }),
+        refetch: async () => {
+          await stateQuery.refetch();
+        },
         addUser,
         updateUser,
         removeUser,
@@ -1332,6 +1552,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         addGroceryListItem,
         updateGroceryListItem,
         removeGroceryListItem,
+        addKitchenRule,
+        updateKitchenRule,
+        removeKitchenRule,
         fetchIngredientSuggestions,
         renameIngredientEverywhere,
         removeIngredientEverywhere,

@@ -26,7 +26,7 @@ export default defineHandler(async (event) => {
                   completed_by = NULL,
                   completed_at = NULL
               WHERE id = ${id}`;
-    return { completed: false, completedBy: null, completedAt: null };
+    return { id, completed: false, completedBy: null, completedAt: null };
   }
 
   if (!body?.userId) {
@@ -42,5 +42,5 @@ export default defineHandler(async (event) => {
                 completed_by = ${body.userId},
                 completed_at = ${now}
             WHERE id = ${id}`;
-  return { completed: true, completedBy: body.userId, completedAt: now };
+  return { id, completed: true, completedBy: body.userId, completedAt: now };
 });

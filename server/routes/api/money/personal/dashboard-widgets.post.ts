@@ -2,6 +2,8 @@ import { defineHandler } from "nitro";
 import { readBody, createError } from "nitro/h3";
 import { sql } from "../../../../utils/db";
 
+type SortRow = { next: number | string | null };
+
 export default defineHandler(async (event) => {
   const body = await readBody<{ userId?: string; widgetType?: string; title?: string; value?: string }>(event);
 
@@ -12,7 +14,7 @@ export default defineHandler(async (event) => {
 
   const tail = await sql`SELECT COALESCE(MAX(sort_order), -1) + 1 AS next
                          FROM personal_dashboard_widgets WHERE user_id = ${body.userId}`;
-  const nextSort = Number((tail[0] as any).next) || 0;
+  const nextSort = Number((tail[0] as SortRow | undefined)?.next) || 0;
 
   await sql`INSERT INTO personal_dashboard_widgets (id, user_id, widget_type, title, value, sort_order)
             VALUES (${id}, ${body.userId}, ${body.widgetType || "stat"}, ${body.title.trim()}, ${body.value || "0"}, ${nextSort})`;

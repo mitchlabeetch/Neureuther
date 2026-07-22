@@ -1,6 +1,16 @@
 import { defineHandler } from "nitro";
 import { sql } from "../../../utils/db";
 
+type SharedExpenseRow = {
+  id: string;
+  title: string;
+  amount: number | string;
+  paid_by: string;
+  date: string | Date;
+  split_user_ids: string[];
+  created_at: string | Date;
+};
+
 export default defineHandler(async () => {
   const expenses = await sql`
     SELECT se.*, 
@@ -11,7 +21,7 @@ export default defineHandler(async () => {
     ORDER BY se.date DESC, se.created_at DESC
   `;
 
-  return expenses.map((e: any) => ({
+  return (expenses as SharedExpenseRow[]).map((e) => ({
     id: e.id,
     title: e.title,
     amount: Number(e.amount),

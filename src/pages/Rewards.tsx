@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '@/lib/store';
 import { BottomNav } from '@/components/BottomNav';
+import { PageHeader } from '@/components/PageHeader';
 import { Plus, Trash2, Pencil, Star, Wallet, Sparkles, Film, Shield, Cookie, Users, Clock, Search, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -101,13 +102,7 @@ function RewardsPage() {
 
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content pb-24">
-      {/* Header */}
-      <div className="px-5 pt-14 pb-4 animate-fade-in-up">
-        <h1 className="text-3xl font-semibold text-[#171e19] tracking-tight">Rewards</h1>
-        <p className="text-sm text-[#b7c6c2] font-medium mt-1">
-          Earn points, redeem rewards!
-        </p>
-      </div>
+      <PageHeader title="Rewards" subtitle="Earn points, redeem rewards!" backTo="/" backLabel="Home" icon={<div className="w-12 h-12 rounded-2xl bg-[#FFF1E6] flex items-center justify-center"><Star size={24} className="text-cantaloupe" /></div>} />
 
       {/* Points Account */}
       <div className="px-5 mb-5">

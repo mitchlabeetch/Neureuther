@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/lib/store";
 import { PinGate } from "@/components/PinGate";
 import { AuthProvider } from "@/components/AuthProvider";
+import { DataErrorBanner } from "@/components/DataErrorBanner";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import HomePage from "./pages/Index";
 import ChecklistPage from "./pages/Checklist";
 import LongTermChecklistPage from "./pages/LongTermChecklist";
@@ -39,7 +41,9 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <PinGate>
-              <Routes>
+              <PullToRefresh>
+                <DataErrorBanner />
+                <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/checklist" element={<ChecklistPage />} />
                 <Route path="/checklist/long-term" element={<LongTermChecklistPage />} />
@@ -61,7 +65,8 @@ const App = () => (
                 <Route path="/daily-habits/:userId" element={<DailyHabitsPage />} />
                 <Route path="/auth/:path" element={<AuthPage />} />
                 <Route path="*" element={<NotFound />} />
-              </Routes>
+                </Routes>
+              </PullToRefresh>
             </PinGate>
           </AuthProvider>
         </BrowserRouter>

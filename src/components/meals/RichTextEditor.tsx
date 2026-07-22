@@ -35,6 +35,11 @@ export function RichTextEditor({
       ref.current.innerHTML = value || "";
       setEmpty(!ref.current.innerText.trim());
     }
+  }, [value]);
+    if (ref.current && ref.current.innerHTML !== value) {
+      ref.current.innerHTML = value || "";
+      setEmpty(!ref.current.innerText.trim());
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

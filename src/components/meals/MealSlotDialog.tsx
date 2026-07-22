@@ -3,7 +3,7 @@
 //   - "pick":   choose a saved recipe or a custom entry
 //   - "custom": write a one-off name
 //   - "check":  "untick what you already have" UX for recipe ingredients
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Search, Plus, Check, Sparkles, BookOpen, Edit3 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import type {
@@ -60,8 +60,18 @@ export function MealSlotDialog({
   const [editingRecipe, setEditingRecipe] = useState<MealRecipe | null>(null);
   const [editingIngs, setEditingIngs] = useState<MealRecipeIngredient[]>([]);
 
+  const seededKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      seededKeyRef.current = null;
+      return;
+    }
+    // Seed only once per open session so a background store refetch doesn't
+    // reset the user's selection or typed custom name mid-edit.
+    const key = existing?.id ?? "__new__";
+    if (seededKeyRef.current === key) return;
+    seededKeyRef.current = key;
     setSearch("");
     if (existing) {
       if (existing.recipeId) {

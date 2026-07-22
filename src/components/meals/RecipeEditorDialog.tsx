@@ -1,7 +1,7 @@
 // Create / edit dialog for a saved meal recipe.
 // Lets the user enter name, emoji, cuisine, rich notes, and a list of
 // ingredients with quantities.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
@@ -9,6 +9,7 @@ import { useApp } from "@/lib/store";
 import type { MealRecipe, MealRecipeIngredient } from "@/lib/store";
 import { RichTextEditor } from "./RichTextEditor";
 import { IngredientInput, type IngredientRow } from "./IngredientInput";
+import { showSuccess, showError, showUndo } from "@/utils/toast";
 
 interface RecipeEditorDialogProps {
   open: boolean;
@@ -58,8 +59,19 @@ export function RecipeEditorDialog({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const seededKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      seededKeyRef.current = null;
+      return;
+    }
+    // Seed the form only once per open session. Without this guard, the store's
+    // background refetch (every 60s / on tab focus) changes the identity of
+    // `recipe`/`initialIngredients` and would wipe the user's in-progress edits.
+    const key = recipe?.id ?? "__new__";
+    if (seededKeyRef.current === key) return;
+    seededKeyRef.current = key;
     if (recipe) {
       setName(recipe.name);
       setEmoji(recipe.emoji || "🍽️");
@@ -103,10 +115,14 @@ export function RecipeEditorDialog({
       };
       if (recipe) {
         await updateMealRecipe(recipe.id, payload);
+        showSuccess("Recipe saved");
       } else {
         await addMealRecipe(payload);
+        showSuccess("Recipe added");
       }
       onOpenChange(false);
+    } catch {
+      showError("Couldn't save the recipe. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -114,9 +130,31 @@ export function RecipeEditorDialog({
 
   const handleDelete = async () => {
     if (!recipe) return;
-    await removeMealRecipe(recipe.id);
-    setShowDeleteConfirm(false);
-    onOpenChange(false);
+    const snapshot = {
+      name: recipe.name,
+      emoji: recipe.emoji,
+      notes: recipe.notes,
+      cuisine: recipe.cuisine,
+      ingredients: (initialIngredients ?? []).map((ingredient) => ({
+        name: ingredient.name,
+        quantity: ingredient.quantity ?? undefined,
+      })),
+    };
+    try {
+      await removeMealRecipe(recipe.id);
+      showUndo("Recipe deleted", async () => {
+        try {
+          await addMealRecipe(snapshot);
+          showSuccess("Recipe restored");
+        } catch {
+          showError("Couldn't restore the recipe.");
+        }
+      });
+      setShowDeleteConfirm(false);
+      onOpenChange(false);
+    } catch {
+      showError("Couldn't delete the recipe. Please try again.");
+    }
   };
 
   return (

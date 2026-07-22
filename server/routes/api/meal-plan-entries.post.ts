@@ -2,6 +2,7 @@
 import { defineHandler } from "nitro";
 import { readBody, createError } from "nitro/h3";
 import { sql } from "../../utils/db";
+import { autoAddRecipeIngredientsToGroceries } from "../../utils/meal-plan";
 
 export default defineHandler(async (event) => {
   const body = await readBody<{
@@ -38,9 +39,7 @@ export default defineHandler(async (event) => {
   `;
 
   // If a recipe was assigned, optionally push its unchecked ingredients into the main grocery list
-  if (body.recipeId) {
-    await autoAddRecipeIngredientsToGroceries(body.recipeId);
-  }
+  if (body.recipeId) await autoAddRecipeIngredientsToGroceries(body.recipeId);
 
   return {
     id,
@@ -54,30 +53,3 @@ export default defineHandler(async (event) => {
   };
 });
 
-async function autoAddRecipeIngredientsToGroceries(recipeId: string) {
-  const ings = (await sql`
-    SELECT name FROM meal_recipe_ingredients WHERE recipe_id = ${recipeId} ORDER BY sort_order
-  `) as Array<{ name: string }>;
-  if (ings.length === 0) return;
-
-  const tail = await sql`SELECT COALESCE(MAX(sort_order), -1) + 1 AS next FROM grocery_main_items`;
-  let nextSort = Number((tail[0] as { next: number | string }).next) || 0;
-
-  const queries: Array<ReturnType<typeof sql>> = [];
-  for (const ing of ings) {
-    const trimmed = ing.name.trim();
-    if (!trimmed) continue;
-    // Skip if an unchecked item with the same name already exists
-    const existing = await sql`
-      SELECT id FROM grocery_main_items
-      WHERE lower(name) = lower(${trimmed}) AND checked = FALSE
-      LIMIT 1
-    `;
-    if (existing.length > 0) continue;
-    queries.push(
-      sql`INSERT INTO grocery_main_items (id, name, sort_order) VALUES (${crypto.randomUUID()}, ${trimmed}, ${nextSort})`,
-    );
-    nextSort++;
-  }
-  if (queries.length > 0) await sql.transaction(queries);
-}
