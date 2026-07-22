@@ -27,7 +27,7 @@ export default defineHandler(async (event) => {
       ? null
       : undefined;
 
-  await sql`
+  const updatedRows = await sql`
     UPDATE personal_checklist_tasks SET
       label = COALESCE(${hasLabel ? body.label!.trim() : null}::text, label),
       completed = CASE
@@ -43,7 +43,9 @@ export default defineHandler(async (event) => {
         ELSE deadline
       END
     WHERE id = ${id}
+    RETURNING id, checklist_id, label, completed, completed_at, deadline, sort_order, created_at
   `;
+  if (updatedRows.length === 0) throw createError({ statusCode: 404, statusMessage: "task not found" });
 
   // If deadline changed, recalculate the checklist's deadline
   if (hasDeadline) {
@@ -56,7 +58,26 @@ export default defineHandler(async (event) => {
     }
   }
 
-  return { ok: true };
+  const row = updatedRows[0] as {
+    id: string;
+    checklist_id: string;
+    label: string;
+    completed: boolean;
+    completed_at: string | null;
+    deadline: string | null;
+    sort_order: number;
+    created_at: string;
+  };
+  return {
+    id: row.id,
+    checklistId: row.checklist_id,
+    label: row.label,
+    completed: Boolean(row.completed),
+    completedAt: row.completed_at ? new Date(row.completed_at).toISOString() : null,
+    deadline: row.deadline ? new Date(row.deadline).toISOString() : null,
+    sortOrder: Number(row.sort_order) || 0,
+    createdAt: new Date(row.created_at).toISOString(),
+  };
 });
 
 async function recalcChecklistDeadline(checklistId: string) {

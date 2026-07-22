@@ -242,7 +242,7 @@ function IngredientRowEditor({
         <button
           type="button"
           onClick={onRemove}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-[#b7c6c2] hover:text-[#ca0013] hover:bg-red-50 active:scale-90 transition"
+          className="w-11 h-11 rounded-full flex items-center justify-center text-muted-ink hover:text-[#ca0013] hover:bg-red-50 active:scale-90 transition"
           aria-label="Remove ingredient"
         >
           <X size={14} />

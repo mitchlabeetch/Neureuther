@@ -25,6 +25,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Plus, Trash2, Check, PartyPopper, Pencil, UserPlus, RotateCcw, Dices } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { hapticSuccess } from "@/lib/haptics";
 
 interface PendingPick {
   userId: string;
@@ -163,15 +164,17 @@ function WheelPage() {
     };
 
   const handleResult = (index: number, label: string) => {
+    void hapticSuccess();
       const segment = allSegments[index];
   
       if (!segment || !activeConfig) return;
   
-      const isTemp = "_tempIdx" in segment && typeof (segment as any)._tempIdx === "number";
-  
+      const tempIdx = "_tempIdx" in segment && typeof segment._tempIdx === "number"
+        ? segment._tempIdx
+        : null;
+      const isTemp = tempIdx !== null;
+
       if (isTemp) {
-            const tempIdx = (segment as any)._tempIdx as number;
-      
             // Clear persisted pick for this wheel (temp users aren't persisted)
                         saveLastPick(activeConfig.id, null).catch((err) =>
                           console.error("saveLastPick (temp) failed:", err)

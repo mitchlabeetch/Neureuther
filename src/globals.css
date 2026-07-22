@@ -26,6 +26,13 @@
   --ring: 24 100% 72%;
   --radius: 1.25rem;
 
+  --surface-cream: #fdf7f2;
+  --surface: #ffffff;
+  --surface-muted: #eeebe3;
+  --ink: #171e19;
+  /* #53635c keeps secondary text readable on the cream surface. */
+  --muted-ink: #53635c;
+  --danger: #ca0013;
   --cantaloupe: #FDA172;
   --cantaloupe-light: #FED7B8;
   --cantaloupe-lighter: #FFF1E6;
@@ -41,10 +48,23 @@
 }
 
 body {
-  background-color: #fdf7f2;
-  color: var(--charcoal);
+  background-color: var(--surface-cream);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role="button"] {
+  min-height: 2.75rem;
 }
 
 /* === ANIMATIONS === */

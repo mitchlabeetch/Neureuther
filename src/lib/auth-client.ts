@@ -2,10 +2,16 @@
 // Talks to the Nitro proxy at /api/auth/*, NOT directly to NEON_AUTH_BASE_URL.
 import { createAuthClient } from "@neondatabase/auth";
 import { BetterAuthReactAdapter } from "@neondatabase/auth/react/adapters";
+import { getApiBaseUrl } from "./api-base";
 
-const baseURL = typeof window !== "undefined"
-  ? `${window.location.origin}/api/auth`
-  : "http://localhost:8080/api/auth";
+// On native (Capacitor) getApiBaseUrl() returns the deployed origin; on web it
+// is "", so we fall back to the same-origin location.
+const apiOrigin =
+  getApiBaseUrl() ||
+  (typeof window !== "undefined"
+    ? window.location.origin
+    : "http://localhost:8080");
+const baseURL = `${apiOrigin}/api/auth`;
 
 // better-auth's createDynamicPathProxy walks the proxy chain to build the
 // request path. If something coerces an intermediate proxy to a primitive

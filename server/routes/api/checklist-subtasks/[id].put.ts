@@ -22,13 +22,23 @@ export default defineHandler(async (event) => {
     });
   }
 
-  await sql`UPDATE checklist_subtasks SET
+  const rows = await sql`UPDATE checklist_subtasks SET
               label = COALESCE(${hasLabel ? body.label!.trim() : null}::text, label),
               completed = CASE
                 WHEN ${hasCompleted}::boolean THEN ${Boolean(body.completed)}::boolean
                 ELSE completed
               END
-            WHERE id = ${id}`;
+            WHERE id = ${id}
+            RETURNING id, task_id, label, completed, sort_order, created_at`;
 
-  return { ok: true };
+  if (rows.length === 0) throw createError({ statusCode: 404, statusMessage: "subtask not found" });
+  const row = rows[0] as { id: string; task_id: string; label: string; completed: boolean; sort_order: number; created_at: string };
+  return {
+    id: row.id,
+    taskId: row.task_id,
+    label: row.label,
+    completed: Boolean(row.completed),
+    sortOrder: Number(row.sort_order) || 0,
+    createdAt: new Date(row.created_at).toISOString(),
+  };
 });

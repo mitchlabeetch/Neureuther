@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useApp } from "@/lib/store";
 import { BottomNav } from "@/components/BottomNav";
+import { PageHeader } from "@/components/PageHeader";
 import {
   Check,
   Plus,
@@ -203,14 +204,12 @@ export default function DailyHabitsPage() {
   return (
     <div className="app-container min-h-screen bg-[#fdf7f2] page-content">
       {/* Header */}
-      <div className="px-5 pt-14 pb-2 animate-fade-in-up">
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center gap-1.5 text-sm font-medium text-[#b7c6c2] hover:text-[#171e19] transition-colors mb-3"
-        >
-          <ChevronRight size={16} className="rotate-180" /> Back to home
-        </button>
-
+        <PageHeader
+          title={`${user.emoji} ${user.name}`}
+          subtitle="Daily habits"
+          backTo="/"
+          backLabel="Home"
+        />
         {/* Hero card */}
         <div className="rounded-[2rem] bg-white border border-[#b7c6c2]/20 overflow-hidden shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] p-5 relative">
           {/* Decorative blob */}
@@ -266,7 +265,6 @@ export default function DailyHabitsPage() {
             </div>
           )}
         </div>
-      </div>
 
       {/* Completion reward */}
       {allDone && (

@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -56,14 +57,19 @@ export default {
         // throughout the app (bg-cantaloupe, text-mint, etc.) but were
         // missing from the Tailwind config, which made the affected
         // classes render with no color at all.
-        cantaloupe: "#FDA172",
-        "cantaloupe-light": "#FED7B8",
-        "cantaloupe-lighter": "#FFF1E6",
-        coral: "#FF6B6B",
-        mint: "#69D2A6",
-        lavender: "#A78BFA",
-        gold: "#FBBF24",
-        charcoal: "#2D2B2A",
+        cream: "var(--surface-cream)",
+        surface: "var(--surface)",
+        "muted-surface": "var(--surface-muted)",
+        ink: "var(--ink)",
+        "muted-ink": "var(--muted-ink)",
+        cantaloupe: "var(--cantaloupe)",
+        "cantaloupe-light": "var(--cantaloupe-light)",
+        "cantaloupe-lighter": "var(--cantaloupe-lighter)",
+        coral: "var(--coral)",
+        mint: "var(--mint)",
+        lavender: "var(--lavender)",
+        gold: "var(--gold)",
+        charcoal: "var(--charcoal)",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -76,6 +82,8 @@ export default {
         },
       },
       borderRadius: {
+        card: "1.5rem",
+        panel: "2rem",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
@@ -102,7 +110,11 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      boxShadow: {
+        card: "0 4px 20px -4px rgba(0, 0, 0, 0.04)",
+        elevated: "0 12px 40px -8px rgba(0, 0, 0, 0.12)",
+      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;
