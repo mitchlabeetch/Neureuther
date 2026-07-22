@@ -1,0 +1,299 @@
+# Instincts generated from https://github.com/mitchlabeetch/Neureuther
+# Generated: 2026-07-22T17:47:25.312Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: Neureuther-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/mitchlabeetch/Neureuther
+---
+
+# Neureuther Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat
+
+## Evidence
+
+- 1 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat: complete UX routing overhaul
+
+---
+id: Neureuther-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/mitchlabeetch/Neureuther
+---
+
+# Neureuther Commit Length
+
+## Action
+
+Keep commit messages concise (~34 characters)
+
+## Evidence
+
+- Average commit message length: 34 chars
+- Based on 1 commits
+
+---
+id: Neureuther-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mitchlabeetch/Neureuther
+---
+
+# Neureuther Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: Neureuther-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mitchlabeetch/Neureuther
+---
+
+# Neureuther Export Style
+
+## Action
+
+Prefer default exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: default
+
+---
+id: Neureuther-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/mitchlabeetch/Neureuther
+---
+
+# Neureuther Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: components, hooks, lib, pages, utils
+
+---
+id: neureuther-instinct-file-naming
+trigger: "When creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct File Naming
+
+## Action
+
+Name the file using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.files
+
+---
+id: neureuther-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct Function Naming
+
+## Action
+
+Name the function using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: neureuther-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct Class Naming
+
+## Action
+
+Name the class using PascalCase
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: neureuther-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: neureuther-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct Import Style
+
+## Action
+
+Use absolute import paths
+
+## Evidence
+
+- Pattern in importStyle
+
+---
+id: neureuther-instinct-export-style
+trigger: "When exporting modules or components"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct Export Style
+
+## Action
+
+Use default exports
+
+## Evidence
+
+- Pattern in exportStyle
+
+---
+id: neureuther-instinct-git-commit-format
+trigger: "When writing a git commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct Git Commit Format
+
+## Action
+
+Start the message with a conventional commit prefix (e.g., 'feat:'), followed by a concise description
+
+## Evidence
+
+- Pattern in commits.prefixes
+- Seen in commit 'feat: complete UX routing overhaul'
+
+---
+id: neureuther-instinct-git-commit-length
+trigger: "When composing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct Git Commit Length
+
+## Action
+
+Keep the message around 34 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: neureuther-instinct-test-location
+trigger: "When adding new tests"
+confidence: 0.6
+domain: testing
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct Test Location
+
+## Action
+
+Place test files in both source folders and dedicated test folders as appropriate (mixed location)
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation
+
+---
+id: neureuther-instinct-test-type-organization
+trigger: "When organizing code and tests"
+confidence: 0.7
+domain: architecture
+source: repo-analysis
+source_repo: mitchlabeetch/Neureuther
+---
+
+# Neureuther Instinct Test Type Organization
+
+## Action
+
+Group modules and tests by type (e.g., components, hooks, utils)
+
+## Evidence
+
+- Pattern in architecture.moduleOrganization
+- Pattern in srcLayout
+
